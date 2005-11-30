@@ -1,0 +1,350 @@
+
+dnl /**-------------------------------------------------------------------**
+dnl  **                              CLooG                                **
+dnl  **-------------------------------------------------------------------**
+dnl  **                           configure.in                            **
+dnl  **-------------------------------------------------------------------**
+dnl  **                   First version: august 7th 2002                  **
+dnl  **-------------------------------------------------------------------**/
+dnl
+dnl Input file for autoconf to build a configuration shellscript.
+dnl To build the configure script from the CLooG's top-level directory, use
+dnl autoconf -l autoconf autoconf/configure.in > configure
+dnl if it doesn't work (invalid option -l) try -I instead
+dnl autoconf -I autoconf autoconf/configure.in > configure
+
+dnl /**************************************************************************
+dnl *               CLooG : the Chunky Loop Generator (experimental)          *
+dnl ***************************************************************************
+dnl *                                                                         *
+dnl * Copyright (C) 2001 Cedric Bastoul                                       *
+dnl *                                                                         *
+dnl * This is free software; you can redistribute it and/or modify it under   *
+dnl * the terms of the GNU General Public License as published by the Free    *
+dnl * Software Foundation; either version 2 of the License, or (at your       *
+dnl * option) any later version.                                              *
+dnl *                                                                         *
+dnl * This software is distributed in the hope that it will be useful, but    *
+dnl * WITHOUT ANY WARRANTY; without even the implied warranty of              *
+dnl * MERCHANTABILITYor FITNESS FOR A PARTICULAR PURPOSE.  See the GNU        *
+dnl * General Public License for more details.                                *
+dnl *                                                                         *
+dnl * You should have received a copy of the GNU General Public License along *
+dnl * with software; if not, write to the Free Software Foundation, Inc.,     *
+dnl * 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA                  *
+dnl *                                                                         *
+dnl * CLooG, the Chunky Loop Generator                                        *
+dnl * Written by Cedric Bastoul, Cedric.Bastoul@inria.fr                      *
+dnl *                                                                         *
+dnl ***************************************************************************/
+
+AC_PREREQ(2.13)
+AC_INIT(source/cloog.c)
+AC_CONFIG_AUX_DIR(autoconf)
+RELEASE="0.14.0"
+dnl default version
+VERSION="64"
+
+dnl /**************************************************************************
+dnl  *                              Checking                                  *
+dnl  **************************************************************************/
+
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_CANONICAL_SYSTEM 
+
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_LN_S
+AC_PROG_RANLIB
+AC_PROG_MAKE_SET
+AC_CHECK_PROG(CD, cd)
+dnl Configure needs an empty install.sh file with this, i HATE that...
+AC_PROG_INSTALL
+
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_SIZE_T
+
+
+dnl Checks for libraries.
+dnl Replace `main' with a function in -lc:
+AC_CHECK_LIB(c,main)
+
+
+dnl Checks for header files.
+AC_HEADER_STDC
+
+
+dnl Checks for library functions.
+AC_CHECK_FUNCS(strtol)
+
+
+dnl Set some system dependant values.
+case "$target" in
+  i*-pc-cygwin)
+	SHEXT="dll"
+	EXEC_SUFFIX=".exe"	
+	EXTRA_FLAGS="-DCYGWIN"
+	EXTRA_LIBS="-lcygwin -lkernel32"
+	CLOOGLIB="cloogstaticlib"
+	INSTALL_CLOOGLIB="install_cloogstaticlib" ;;
+  *)
+	SHEXT="so"
+	EXEC_SUFFIX=""
+	EXTRA_FLAGS=""
+	EXTRA_LIBS=""
+	CLOOGLIB="cloogsharedlib cloogstaticlib"
+	INSTALL_CLOOGLIB="install_cloogsharedlib install_cloogstaticlib" ;;
+esac
+
+dnl Test whether we are using SUN's ld rather than Solaris ld
+dnl If so, we need to add -G -Bdynamic to the linking options
+dnl This is a hack to avoid having to hack the piplib makefiles
+dnl and configure scripts. (by Allen Leung)
+
+SOLARIS_LD=no
+case $target_os in
+    solaris*)
+        case `which ld` in
+           /usr/ccs/bin/ld|/usr/ucb/ld)
+               SOLARIS_LD=yes
+               ;;
+           *)
+               ld -shared 2>&1 | grep 'fatal: option -h'
+               if test "$?" = "0"; then
+                   SOLARIS_LD=yes
+               fi
+               ;;
+        esac
+        ;;
+    *)
+        ;;
+esac
+SOLARIS_LDFLAGS=''
+if test "$SOLARIS_LD" = "yes"; then
+   SOLARIS_LDFLAGS='-G -Bdynamic'
+fi
+
+dnl /**************************************************************************
+dnl  *                             Option setting                             *
+dnl  **************************************************************************/
+
+
+dnl The two different packages that can be built and installed.
+CLOOG="cloog"
+INSTALL_CLOOG="install_cloog"
+
+dnl Some default values cause I'm not sure whether autoconf set them, while
+dnl documentation says it does...
+gmp_package="yes"
+gmp_include_package="yes"
+gmp_library_package="yes"
+
+MP_BITS="MP"
+MP_DFLAGS=-DLINEAR_VALUE_IS_MP
+NEED_MP="no"
+GMP_INC="/usr/local/include"
+GMP_LIB="/usr/local/lib"
+
+
+dnl Options.
+dnl --with-cloog=yes, --with-cloog=no ou --without-cloog
+AC_ARG_WITH(cloog,
+            [  --without-cloog         disable the compilation of cloog],
+            [ echo "Package cloog : $withval" &&
+              if test "$withval"="no" ; then 	
+                CLOOG=""
+                INSTALL_CLOOG=""
+              fi ])
+
+dnl --with-lib=yes,   --with-lib=no   ou --without-lib
+AC_ARG_WITH(lib,
+            [  --without-lib           disable the compilation of cloog's lib],
+            [ echo "Package clooglib : $withval" &&
+              if test "$withval"="no" ; then 	
+                CLOOGLIB=""
+                INSTALL_CLOOGLIB=""
+              fi ])
+
+dnl --with-polylib=polylib-path
+AC_ARG_WITH(polylib,
+            [  --with-polylib=DIR      DIR Location of the PolyLib],
+            [ echo "Package polylib : $withval" && polylib_package=$withval],
+            [ polylib_package=yes ])
+AC_ARG_WITH(bits,
+	    [  --with-bits=32|64|gmp   PolyLib library type to use],
+	    [ echo "polylib$withval"; VERSION=$withval ])
+
+dnl --with-gmp=gmp-path
+AC_ARG_WITH(gmp,
+        [  --with-gmp=DIR          DIR where the gmp package is installed],
+	[ echo "Package gmp : $withval" &&
+	  gmp_package=$withval &&
+          GMP_INC=$gmp_package/include &&
+          GMP_LIB=$gmp_package/lib &&
+          NEED_MP="yes"])
+
+AC_ARG_WITH(gmp_include,
+        [  --with-gmp-include=DIR  DIR where gmp.h is installed],
+	[ echo "Package gmp-include : $withval" &&
+	  gmp_include_package=$withval &&
+          GMP_INC=$gmp_include_package &&
+	  NEED_MP="yes"])
+
+AC_ARG_WITH(gmp_library,
+        [  --with-gmp-library=DIR  DIR where the gmp library is installed],
+	[ echo "Package gmp-library : $withval" &&
+	  gmp_library_package=$withval &&
+          GMP_LIB=$gmp_library_package &&
+	  NEED_MP="yes"])
+
+dnl Packages to build.
+PACKAGES="$CLOOGLIB $CLOOG"
+INSTALL_PACKAGES="$INSTALL_CLOOGLIB $INSTALL_CLOOG"
+
+
+dnl /**************************************************************************
+dnl  *                          Where is PolyLib?                             *
+dnl  **************************************************************************/
+
+polylibs="64 32"
+case "$VERSION" in
+    32|64|gmp)
+	polylibs=$VERSION
+    ;;
+esac
+
+dnl Checking for PolyLib
+AC_SUBST(cl_cv_polylib)
+AC_MSG_CHECKING(whether PolyLib works)
+if test "$polylib_package" = "no"; then
+  AC_MSG_RESULT(no)
+  AC_MSG_ERROR(Can't find PolyLib.)
+else
+  AC_MSG_RESULT()
+  if test "$polylib_package" != "yes"; then
+    POLYLIB_DIR=$polylib_package
+    POLYLIB_LIB=$POLYLIB_DIR/lib
+    CPPFLAGS="-I$POLYLIB_DIR/include $CPPFLAGS"
+    LDFLAGS="-L$POLYLIB_DIR/lib $LDFLAGS"
+  fi
+  for VERSION in $polylibs; do
+    cl_cv_polylib="polylib$VERSION"
+    AC_CHECK_LIB($cl_cv_polylib,PolyhedronTSort,[break])
+    cl_cv_polylib=missing
+  done
+  if test "$cl_cv_polylib" = "missing"; then
+    AC_MSG_ERROR(Can't find PolyLib.)
+  else
+    LIBS="-l$cl_cv_polylib $LIBS"
+  fi
+  AC_CHECK_HEADER(polylib/$cl_cv_polylib.h,[],
+               [AC_MSG_ERROR(Can't find PolyLib headers.)])
+fi
+
+
+dnl /**************************************************************************
+dnl  *                            Where is GMP?                               *
+dnl  **************************************************************************/
+
+
+dnl Checking for gmp
+AC_MSG_CHECKING(whether gmp works)
+if test "$gmp_package" = "no"; then
+  echo "GMP package not defined"
+  AC_MSG_RESULT(no)
+  TO_BUILD_MP=""
+else
+  if test "$NEED_MP" = "no"; then
+    echo "Mode normal GMP"
+    TO_BUILD="$TO_BUILD MP"
+    AC_CHECK_HEADER(gmp.h,
+                    [AC_CHECK_LIB(gmp,
+		                  __gmpz_init,
+		                  [EXTRA_LIBS="$EXTRA_LIBS -lgmp"],
+				  [echo "Can't find gmp library." &&
+				   echo "MP version will not be builded." &&
+				   TO_BUILD_MP=""])],
+		    [echo "Can't find gmp headers." &&
+		     echo "MP version will not be builded." &&
+		     TO_BUILD_MP=""])
+  else
+    dnl Default given by --with-X is "yes", --without-X is "no". We also
+    dnl initialized manually all gmp_package* variables to "yes" (thus they are
+    dnl supposed to be "yes" except if the user set them himself).
+    
+    if test "$gmp_package" != "yes" ; then
+      echo "(GMP path has been set by user)"
+      GMP_DIR=$gmp_package
+      GMP_LIB=$GMP_DIR/lib
+      GMP_INC=$GMP_DIR/include
+      EXTRA_INC="-I$GMP_INC"
+      EXTRA_LIBS="$EXTRA_LIBS -L$GMP_LIB"
+      dnl Useful for AC_CHECK_X to find what we want.
+      CPPFLAGS="-I$GMP_DIR/include $CPPFLAGS"
+      LDFLAGS="-L$GMP_DIR/lib $LDFLAGS"
+    fi
+    
+    if test "$gmp_include_package" != "yes" ; then
+      CPPFLAGS="-I$GMP_DIR/include $CPPFLAGS"
+      EXTRA_INC="-I$GMP_INC"
+    fi
+    
+    if test "$gmp_library_package" != "yes" ; then
+      EXTRA_LIBS="$EXTRA_LIBS -L$GMP_LIB"
+      LDFLAGS="-L$GMP_DIR/lib $LDFLAGS"
+    fi
+     
+    AC_CHECK_HEADER(gmp.h,
+                    [],
+                    [AC_MSG_ERROR(Can't find gmp headers.)])
+    AC_CHECK_LIB(gmp,
+                 __gmpz_init,
+                 [EXTRA_LIBS="$EXTRA_LIBS -lgmp"],
+                 [AC_MSG_ERROR(Can't find gmp library.)])
+    
+    AC_MSG_RESULT(yes)
+  fi
+fi
+
+
+dnl /**************************************************************************
+dnl  *                            Substitutions                               *
+dnl  **************************************************************************/
+
+
+dnl Substitutions to do in Makefile.in.
+AC_SUBST(RELEASE)
+AC_SUBST(target)
+AC_SUBST(CC)
+AC_SUBST(LN_S)
+AC_SUBST(RANLIB)
+AC_SUBST(SHEXT)
+AC_SUBST(EXEC_SUFFIX)
+AC_SUBST(EXTRA_FLAGS)
+AC_SUBST(EXTRA_LIBS)
+
+AC_SUBST(POLYLIB_LIB)
+AC_SUBST(prefix)
+AC_SUBST(exec_prefix)
+AC_SUBST(INSTALL)
+AC_SUBST(PACKAGES)
+AC_SUBST(INSTALL_PACKAGES)
+
+AC_SUBST(VERSION)
+
+dnl Makefile creation (Allen Leung's fix).
+AC_OUTPUT(makefile:autoconf/makefile.in include/cloog/cloog.h autoconf/Doxyfile)
+
+
+echo "             /*-----------------------------------------------*"
+echo "              *           CLooG configuration is OK           *"
+echo "              *-----------------------------------------------*/"
+echo "It appears that your system is OK to start CLooG compilation. You need"
+echo "now to type \"make\". After compilation, you should check CLooG by typing"
+echo "\"make check\". If no problem occur, you can type \"make uninstall\" if"
+echo "you are upgrading an old version. Lastly type \"make install\" to install"
+echo "CLooG on your system (log as root if necessary)."

@@ -1,0 +1,295 @@
+#
+#   /**-------------------------------------------------------------------**
+#    **                              CLooG                                **
+#    **-------------------------------------------------------------------**
+#    **                           makefile.in                             **
+#    **-------------------------------------------------------------------**
+#    **                   First version: october 25th 2001                **
+#    **-------------------------------------------------------------------**/
+#
+# makefile.in (or makefile if generated) of CLooG, the Chunky LOOp Generator.
+# makefile.in is not a makefile, you must run the 'configure' shellscript to
+# generate the makefile thanks to this file.
+
+#/*****************************************************************************
+# *               CLooG : the Chunky Loop Generator (experimental)            *
+# *****************************************************************************
+# *                                                                           *
+# * Copyright (C) 2001 Cedric Bastoul                                         *
+# *                                                                           *
+# * This is free software; you can redistribute it and/or modify it under the *
+# * terms of the GNU General Public License as published by the Free Software *
+# * Foundation; either version 2 of the License, or (at your option) any      *
+# * later version.							      *
+# *                                                                           *
+# * This software is distributed in the hope that it will be useful, but      *
+# * WITHOUT ANY WARRANTY; without even the implied warranty of                *
+# * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General *
+# * Public License for more details.                                          *
+# *                                                                           *
+# * You should have received a copy of the GNU General Public License along   *
+# * with software; if not, write to the Free Software Foundation, Inc.,       *
+# * 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA                    *
+# *                                                                           *
+# * CLooG, the Chunky Loop Generator                                          *
+# * Written by Cedric Bastoul, Cedric.Bastoul@inria.fr                        *
+# *                                                                           *
+# *****************************************************************************/
+
+
+#/*****************************************************************************
+# *                     Variables substituted with configure                  *
+# *****************************************************************************/
+
+
+#             CLooG's version.
+RELEASE     = @RELEASE@
+#             Target architecture and system
+TARGET      = @target@
+#             C compiler.
+CC          = @CC@
+#	      cpp flags
+CPPFLAGS    = @CPPFLAGS@
+#             Tool to create symbolic links.
+LN_S        = @LN_S@
+#             Tool to provide speed access to archives.
+RANLIB      = @RANLIB@
+#             Shared library extension 
+SHEXT       = @SHEXT@
+#             Executable suffix 
+EXEC_SUFFIX = @EXEC_SUFFIX@
+#             Extra flags
+EXTRA_FLAGS = @EXTRA_FLAGS@
+#             libraries
+LIBS  	    = @LIBS@
+#             Extra libraries
+EXTRA_LIBS  = @EXTRA_LIBS@
+#             PolyLib library directory.      
+POLYLIB_LIB = @POLYLIB_LIB@
+#             Architecture-independent installation directory.     
+prefix      = @prefix@
+#             Architecture-dependent installation directory.     
+exec_prefix = @exec_prefix@
+#             Installation software. 
+INSTALL     = @INSTALL@
+#             Packages to build.         
+all         : @PACKAGES@
+#             Packages to install.
+all_install : @INSTALL_PACKAGES@
+
+
+#/*****************************************************************************
+# *                              CLooG's variables                            *
+# *****************************************************************************/
+
+
+# Directory of CLooG's sources (.c).
+CLOOG_SRC = ./source
+# Directory of CLooG's include (.h).
+CLOOG_INC = ./include
+# Directory for object files and software and library before installation, its
+# name depends on architecture and on operating system.
+CLOOG_OBJ = ./obj_$(TARGET)
+# CLooG's installation subdirectories.
+CLOOG_INS_BIN = $(exec_prefix)/bin
+CLOOG_INS_LIB = $(exec_prefix)/lib
+CLOOG_INS_INC = $(prefix)/include
+
+
+#/*****************************************************************************
+# *                         Compiler and linker options                       *
+# *****************************************************************************/
+
+
+INCFLAGS = -I $(CLOOG_INC)
+LDFLAGS  = @LDFLAGS@ $(LIBS) $(EXTRA_LIBS) # -static
+CFLAGS   = -c -Wall $(INCFLAGS) $(CPPFLAGS) \
+	   -fomit-frame-pointer -O2 $(EXTRA_FLAGS)
+
+
+#/*****************************************************************************
+# *                                   Rules                                   *
+# *****************************************************************************/
+
+
+OBJ = $(CLOOG_OBJ)/cloog.o $(CLOOG_OBJ)/program.o $(CLOOG_OBJ)/loop.o \
+	$(CLOOG_OBJ)/pprint.o $(CLOOG_OBJ)/names.o $(CLOOG_OBJ)/statement.o \
+	$(CLOOG_OBJ)/domain.o $(CLOOG_OBJ)/matrix.o $(CLOOG_OBJ)/block.o \
+	$(CLOOG_OBJ)/options.o 
+
+cloog: $(CLOOG_OBJ) $(OBJ)
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *               MAKING CLooG (soft)             *"
+	@echo "              *-----------------------------------------------*/"
+	$(CC) $(OBJ) -o $(CLOOG_OBJ)/cloog$(EXEC_SUFFIX) $(LDFLAGS)
+
+cloogsharedlib: $(CLOOG_OBJ) $(OBJ)
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *            MAKING ClooG (shared lib)          *"
+	@echo "              *-----------------------------------------------*/"
+	$(LD) $(OBJ) -o $(CLOOG_OBJ)/libcloog.$(SHEXT).$(RELEASE) \
+	-lc -shared -fPIC $(LDFLAGS)
+	$(LDCONFIG)
+
+cloogstaticlib: $(CLOOG_OBJ) $(OBJ)
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *            MAKING ClooG (static lib)          *"
+	@echo "              *-----------------------------------------------*/"
+	cp $(POLYLIB_LIB)/lib@cl_cv_polylib@.a \
+	$(CLOOG_OBJ)/libcloog.a.$(RELEASE)
+	$(AR) q $(CLOOG_OBJ)/libcloog.a.$(RELEASE) $(OBJ)
+	$(RANLIB) $(CLOOG_OBJ)/libcloog.a.$(RELEASE)
+
+#              /-------statement------\
+#              |           |          |
+#              |           | matrix   |
+#              |           |  |  |    |
+#              |     /----block  |    |
+#              |     |     |     |    |
+#     options  |     |  /--+---domain |
+#     | | | |  |     |  |  |     |    |
+#     | | | |  |     |  |  |     |    |
+#     | | | \--+--+--+--/  |     |    |
+#     | | |       |        |     |    |
+#     | | |      loop      |     |    |
+#     | | |      |  |      |     |    |
+#     | | \--+--/   |      |     |    |
+#     | |    |      |      |     |    |
+#     | |  pprint   |      |     |    |   names
+#     | |    |      |      |     |    |     |
+#     | \----+------+------+-----+----+-----/
+#     |               |
+#     |            program
+#     |               |
+#     \-------+-------/          /*-------------------------*
+#             |                   * CLooG's dependence tree *
+#           cloog                 *-------------------------*/
+
+$(CLOOG_OBJ)/cloog.o: $(CLOOG_SRC)/cloog.c $(CLOOG_INC)/cloog/cloog.h \
+	$(CLOOG_INC)/cloog/options.h $(CLOOG_INC)/cloog/program.h
+	$(CC) $(CFLAGS) $(CLOOG_SRC)/cloog.c -o $(CLOOG_OBJ)/cloog.o
+
+$(CLOOG_OBJ)/options.o: $(CLOOG_SRC)/options.c $(CLOOG_INC)/cloog/options.h
+	$(CC) $(CFLAGS) $(CLOOG_SRC)/options.c -o $(CLOOG_OBJ)/options.o
+
+$(CLOOG_OBJ)/program.o: $(CLOOG_SRC)/program.c $(CLOOG_INC)/cloog/program.h \
+	$(CLOOG_INC)/cloog/options.h $(CLOOG_INC)/cloog/pprint.h \
+	$(CLOOG_INC)/cloog/loop.h $(CLOOG_INC)/cloog/domain.h \
+	$(CLOOG_INC)/cloog/names.h $(CLOOG_INC)/cloog/statement.h \
+	$(CLOOG_INC)/cloog/matrix.h $(CLOOG_INC)/cloog/block.h
+	$(CC) $(CFLAGS) $(CLOOG_SRC)/program.c -o $(CLOOG_OBJ)/program.o
+
+$(CLOOG_OBJ)/loop.o: $(CLOOG_SRC)/loop.c $(CLOOG_INC)/cloog/loop.h \
+	$(CLOOG_INC)/cloog/options.h $(CLOOG_INC)/cloog/domain.h \
+	$(CLOOG_INC)/cloog/statement.h $(CLOOG_INC)/cloog/block.h
+	$(CC) $(CFLAGS) $(CLOOG_SRC)/loop.c -o $(CLOOG_OBJ)/loop.o
+
+$(CLOOG_OBJ)/pprint.o: $(CLOOG_SRC)/pprint.c $(CLOOG_INC)/cloog/pprint.h \
+	$(CLOOG_INC)/cloog/options.h $(CLOOG_INC)/cloog/loop.h
+	$(CC) $(CFLAGS) $(CLOOG_SRC)/pprint.c -o $(CLOOG_OBJ)/pprint.o
+
+$(CLOOG_OBJ)/names.o: $(CLOOG_SRC)/names.c $(CLOOG_INC)/cloog/names.h
+	$(CC) $(CFLAGS) $(CLOOG_SRC)/names.c -o $(CLOOG_OBJ)/names.o
+
+$(CLOOG_OBJ)/domain.o: $(CLOOG_SRC)/domain.c $(CLOOG_INC)/cloog/domain.h \
+	$(CLOOG_INC)/cloog/matrix.h
+	$(CC) $(CFLAGS) $(CLOOG_SRC)/domain.c -o $(CLOOG_OBJ)/domain.o
+
+$(CLOOG_OBJ)/matrix.o: $(CLOOG_SRC)/matrix.c $(CLOOG_INC)/cloog/matrix.h
+	$(CC) $(CFLAGS) $(CLOOG_SRC)/matrix.c -o $(CLOOG_OBJ)/matrix.o
+
+$(CLOOG_OBJ)/statement.o: $(CLOOG_SRC)/statement.c \
+	$(CLOOG_INC)/cloog/statement.h
+	$(CC) $(CFLAGS) $(CLOOG_SRC)/statement.c -o $(CLOOG_OBJ)/statement.o
+
+$(CLOOG_OBJ)/block.o: $(CLOOG_SRC)/block.c \
+	$(CLOOG_INC)/cloog/block.h $(CLOOG_INC)/cloog/matrix.h \
+	$(CLOOG_INC)/cloog/statement.h
+	$(CC) $(CFLAGS) $(CLOOG_SRC)/block.c -o $(CLOOG_OBJ)/block.o
+
+$(CLOOG_OBJ):
+	$(INSTALL) -d $(CLOOG_OBJ)
+	
+clean:
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *                 CLEANING CLooG                *"
+	@echo "              *-----------------------------------------------*/"
+	rm -rf $(CLOOG_OBJ)
+	rm -f core
+
+distclean: clean
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *               DISTCLEANING CLooG              *"
+	@echo "              *-----------------------------------------------*/"
+	rm -f config.cache config.log config.status makefile autoconf/Doxyfile
+	rm -rf autom4te.cache ./include/cloog/cloog.h
+
+install: all_install
+
+install_cloog:
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *             INSTALLING CLooG (soft)           *"
+	@echo "              *-----------------------------------------------*/"
+	($(INSTALL) -d $(CLOOG_INS_BIN) && \
+	$(INSTALL) $(CLOOG_OBJ)/cloog$(EXEC_SUFFIX) $(CLOOG_INS_BIN))
+
+install_preparation:
+	($(INSTALL) -d $(CLOOG_INS_INC) && \
+	$(INSTALL) -d $(CLOOG_INS_INC)/cloog && \
+	$(INSTALL) $(CLOOG_INC)/cloog/*.h $(CLOOG_INS_INC)/cloog)
+
+install_cloogsharedlib: install_preparation
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *           INSTALLING CLooG (shared lib)       *"
+	@echo "              *-----------------------------------------------*/"
+	rm -f  $(CLOOG_INS_LIB)/libcloog.$(SHEXT)
+	($(INSTALL) -d $(CLOOG_INS_LIB) && \
+	$(INSTALL) $(CLOOG_OBJ)/libcloog.$(SHEXT).$(RELEASE) \
+	$(CLOOG_INS_LIB) && \
+	$(LN_S) $(CLOOG_INS_LIB)/libcloog.$(SHEXT).$(RELEASE) \
+	$(CLOOG_INS_LIB)/libcloog.$(SHEXT))
+
+install_cloogstaticlib: install_preparation
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *           INSTALLING CLooG (static lib)       *"
+	@echo "              *-----------------------------------------------*/"
+	rm -f  $(CLOOG_INS_LIB)/libcloog.a
+	($(INSTALL) -d $(CLOOG_INS_LIB) && \
+	$(INSTALL) $(CLOOG_OBJ)/libcloog.a.$(RELEASE) \
+	$(CLOOG_INS_LIB) && \
+	$(LN_S) $(CLOOG_INS_LIB)/libcloog.a.$(RELEASE) \
+	$(CLOOG_INS_LIB)/libcloog.a)
+
+check:
+	$(MAKE) test -C test
+
+valcheck:
+	$(MAKE) valgrind -C test
+
+uninstall:
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *               UNINSTALLING CLooG              *"
+	@echo "              *-----------------------------------------------*/"
+	rm -f  $(CLOOG_INS_LIB)/libcloog*
+	rm -rf $(CLOOG_INS_INC)/cloog
+	rm -f  $(CLOOG_INS_BIN)/cloog
+
+total:
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *                     CLooG                     *"
+	@echo "              *-----------------------------------------------*/"
+	$(MAKE) uninstall
+	$(MAKE) clean
+	$(MAKE)
+	$(MAKE) install
+
+doc:
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *        Generating CLooG's documentation       *"
+	@echo "              *-----------------------------------------------*/"
+	doxygen ./autoconf/Doxyfile
+
+tgz: distclean
+	(cd .. && \
+	tar cvf cloog-$(RELEASE).tar cloog-$(RELEASE) && \
+	gzip cloog-$(RELEASE).tar)
