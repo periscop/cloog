@@ -666,7 +666,7 @@ CloogOptions * options ;
      *    an illegal target code (since the scattering is not respected), if
      *    it is the case, we set -l depth to the first acceptable value.
      */
-    if ((program->nb_scattdims > options->l) && (options->l > 0))
+    if ((program->nb_scattdims > options->l) && (options->l >= 0))
     { fprintf(stderr,
       "[CLooG]WARNING: -l depth is less than the scattering dimension number "
       "(the \n                generated code may be incorrect), it has been "
