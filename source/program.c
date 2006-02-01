@@ -288,6 +288,7 @@ CloogOptions * options ;
   CloogBlock * block ;
   CloogInfos * infos ;
   CloogMatrix * equal ;
+  struct clast_stmt *root;
    
   infos           = (CloogInfos *)malloc(sizeof(CloogInfos)) ;
   infos->names    = program->names ;
@@ -425,7 +426,9 @@ CloogOptions * options ;
     indentation += 2 ;
   }
   
-  pprint(file,program->loop,equal,1,0,indentation,infos) ;
+  root = cloog_clast_create(program->loop, equal, infos);
+  pprint(file, root, indentation, infos);
+  cloog_clast_free(root);
   
   /* The end of the compilable code in case of 'compilable' option. */
   if (options->compilable && (program->language == 'c'))

@@ -54,38 +54,10 @@ extern "C"
 # define LANGUAGE_FORTRAN 1
 
 
-/**
- * CloogInfos structure:
- * this structure contains all the informations necessary for pretty printing,
- * they come from the original CloogProgram structure (language, names), from
- * genereral options (options) or are built only for pretty printing (stride).
- * This structure is mainly there to reduce the number of function parameters,
- * since most pprint.c functions need most of its field.
- */
-struct clooginfos
-{ Value * stride ;           /**< The stride for each iterator. */
-  int language ;             /**< 1 to generate FORTRAN, 0 for C otherwise. */
-  int  nb_scattdims ;        /**< Scattering dimension number. */
-  int * scaldims ;           /**< Boolean array saying whether a given
-                              *   scattering dimension is scalar or not.
-                              */
-  CloogNames * names ;       /**< Names of iterators and parameters. */
-  CloogOptions * options ;   /**< Options on CLooG's behaviour. */
-} ;
-typedef struct clooginfos CloogInfos ;
-
-
-/******************************************************************************
- *                               useful prototypes                            *
- ******************************************************************************/
-char * pprint_line(CloogMatrix *, CloogMatrix *, int, int, CloogInfos *) ;
-char * pprint_minmax(CloogMatrix *, CloogMatrix *, int, int, int, CloogInfos *);
-
-
 /******************************************************************************
  *                          Structure display function                        *
  ******************************************************************************/
-void pprint(FILE *, CloogLoop *, CloogMatrix *, int, int, int, CloogInfos *) ;
+void pprint(FILE *foo, struct clast_stmt *root, int indent, CloogInfos *infos);
 
 
 #if defined(__cplusplus)

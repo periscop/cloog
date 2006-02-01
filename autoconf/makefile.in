@@ -115,7 +115,7 @@ CFLAGS   = -c -Wall $(INCFLAGS) $(CPPFLAGS) \
 OBJ = $(CLOOG_OBJ)/cloog.o $(CLOOG_OBJ)/program.o $(CLOOG_OBJ)/loop.o \
 	$(CLOOG_OBJ)/pprint.o $(CLOOG_OBJ)/names.o $(CLOOG_OBJ)/statement.o \
 	$(CLOOG_OBJ)/domain.o $(CLOOG_OBJ)/matrix.o $(CLOOG_OBJ)/block.o \
-	$(CLOOG_OBJ)/options.o 
+	$(CLOOG_OBJ)/options.o $(CLOOG_OBJ)/clast.o 
 
 cloog: $(CLOOG_OBJ) $(OBJ)
 	@echo "             /*-----------------------------------------------*"
@@ -183,6 +183,10 @@ $(CLOOG_OBJ)/loop.o: $(CLOOG_SRC)/loop.c $(CLOOG_INC)/cloog/loop.h \
 	$(CLOOG_INC)/cloog/options.h $(CLOOG_INC)/cloog/domain.h \
 	$(CLOOG_INC)/cloog/statement.h $(CLOOG_INC)/cloog/block.h
 	$(CC) $(CFLAGS) $(CLOOG_SRC)/loop.c -o $(CLOOG_OBJ)/loop.o
+
+$(CLOOG_OBJ)/clast.o: $(CLOOG_SRC)/clast.c $(CLOOG_INC)/cloog/clast.h \
+	$(CLOOG_INC)/cloog/options.h $(CLOOG_INC)/cloog/loop.h
+	$(CC) $(CFLAGS) $(CLOOG_SRC)/clast.c -o $(CLOOG_OBJ)/clast.o
 
 $(CLOOG_OBJ)/pprint.o: $(CLOOG_SRC)/pprint.c $(CLOOG_INC)/cloog/pprint.h \
 	$(CLOOG_INC)/cloog/options.h $(CLOOG_INC)/cloog/loop.h

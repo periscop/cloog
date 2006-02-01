@@ -49,6 +49,7 @@
 # include "./names.h"
 # include "./loop.h"
 # include "./program.h"
+#include "clast.h"
 # include "./pprint.h"
 
 
