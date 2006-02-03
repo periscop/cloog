@@ -250,6 +250,7 @@ CloogOptions * cloog_options_malloc(void)
   options->f           =  1 ;  /* First level to optimize: the first. */
   options->stop        = -1 ;  /* Generate all the code. */
   options->strides     =  0 ;  /* Generate a code with unit strides. */
+  options->name	       = "";
   /* OPTIONS FOR PRETTY PRINTING */
   options->esp         =  0 ;  /* We don't want Equality SPreading.*/
   options->csp         =  1 ;  /* We want only Constant SPreading. */
