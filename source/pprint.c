@@ -371,6 +371,13 @@ void pprint_stmt_list(struct clooginfos *infos, FILE *dst, int indent,
 	case stmt_guard:
 	    pprint_guard(infos, dst, indent, (struct clast_guard *) s);
 	    break;
+	case stmt_block:
+	    fprintf(dst, "{\n");
+	    pprint_stmt_list(infos, dst, indent + INDENT_STEP, 
+				((struct clast_block *)s)->body);
+	    fprintf(dst, "%*s", indent, "");
+	    fprintf(dst, "}\n");
+	    break;
 	default:
 	    assert(0);
 	}

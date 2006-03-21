@@ -22,6 +22,7 @@ static void free_clast_assignment(struct clast_assignment *a);
 static void free_clast_user_stmt(struct clast_user_stmt *u);
 static void free_clast_for(struct clast_for *f);
 static void free_clast_guard(struct clast_guard *g);
+static void free_clast_block(struct clast_block *b);
 
 static int clast_expr_equal(struct clast_expr *e1, struct clast_expr *e2);
 static int clast_term_equal(struct clast_term *t1, struct clast_term *t2);
@@ -226,6 +227,12 @@ void free_clast_guard(struct clast_guard *g)
     free(g);
 }
 
+void free_clast_block(struct clast_block *b)
+{
+    cloog_clast_free(b->body);
+    free(b);
+}
+
 void cloog_clast_free(struct clast_stmt *s)
 {
     struct clast_stmt *next;
@@ -243,6 +250,9 @@ void cloog_clast_free(struct clast_stmt *s)
 	    break;
 	case stmt_user:
 	    free_clast_user_stmt((struct clast_user_stmt *) s);
+	    break;
+	case stmt_block:
+	    free_clast_block((struct clast_block *) s);
 	    break;
 	default:
 	    assert(0);
