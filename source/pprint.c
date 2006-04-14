@@ -104,37 +104,37 @@ void pprint_binary(struct clooginfos *i, FILE *dst, struct clast_binary *b)
 		((struct clast_reduction*) b->LHS)->n > 1;
     if (i->language == LANGUAGE_FORTRAN) {
 	switch (b->type) {
-	case bin_fdiv:
+	case clast_bin_fdiv:
 	    s1 = "FLOOR(REAL(", s2 = ")/REAL(", s3 = "))";
 	    break;
-	case bin_cdiv:
+	case clast_bin_cdiv:
 	    s1 = "CEILING(REAL(", s2 = ")/REAL(", s3 = "))";
 	    break;
-	case bin_div:
+	case clast_bin_div:
 	    if (group)
 		s1 = "(", s2 = ")/", s3 = "";
 	    else
 		s1 = "", s2 = "/", s3 = "";
 	    break;
-	case bin_mod:
+	case clast_bin_mod:
 	    s1 = "MOD(", s2 = ", ", s3 = ")";
 	    break;
 	}
     } else {
 	switch (b->type) {
-	case bin_fdiv:
+	case clast_bin_fdiv:
 	    s1 = "floord(", s2 = ",", s3 = ")";
 	    break;
-	case bin_cdiv:
+	case clast_bin_cdiv:
 	    s1 = "ceild(", s2 = ",", s3 = ")";
 	    break;
-	case bin_div:
+	case clast_bin_div:
 	    if (group)
 		s1 = "(", s2 = ")/", s3 = "";
 	    else
 		s1 = "", s2 = "/", s3 = "";
 	    break;
-	case bin_mod:
+	case clast_bin_mod:
 	    if (group)
 		s1 = "(", s2 = ")%", s3 = "";
 	    else
@@ -154,7 +154,7 @@ void pprint_minmax_f(struct clooginfos *info, FILE *dst, struct clast_reduction 
     int i;
     if (r->n == 0)
 	return;
-    fprintf(dst, r->type == red_max ? "MAX(" : "MIN(");
+    fprintf(dst, r->type == clast_red_max ? "MAX(" : "MIN(");
     pprint_expr(info, dst, r->elts[0]);
     for (i = 1; i < r->n; ++i) {
 	fprintf(dst, ",");
@@ -167,7 +167,7 @@ void pprint_minmax_c(struct clooginfos *info, FILE *dst, struct clast_reduction 
 {
     int i;
     for (i = 1; i < r->n; ++i)
-	fprintf(dst, r->type == red_max ? "max(" : "min(");
+	fprintf(dst, r->type == clast_red_max ? "max(" : "min(");
     if (r->n > 0)
 	pprint_expr(info, dst, r->elts[0]);
     for (i = 1; i < r->n; ++i) {
@@ -180,11 +180,11 @@ void pprint_minmax_c(struct clooginfos *info, FILE *dst, struct clast_reduction 
 void pprint_reduction(struct clooginfos *i, FILE *dst, struct clast_reduction *r)
 {
     switch (r->type) {
-    case red_sum:
+    case clast_red_sum:
 	pprint_sum(dst, r);
 	break;
-    case red_min:
-    case red_max:
+    case clast_red_min:
+    case clast_red_max:
 	if (r->n == 1) {
 	    pprint_expr(i, dst, r->elts[0]);
 	    break;

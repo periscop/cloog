@@ -1,29 +1,6 @@
 #include <stdlib.h>
 #include "../include/cloog/cloog.h"
 
-static struct clast_term *new_clast_term(Value c, char *v);
-static struct clast_binary *new_clast_binary(enum bin_type t, 
-				      struct clast_expr *lhs, Value rhs);
-static struct clast_reduction *new_clast_reduction(enum red_type t, int n);
-static struct clast_assignment *new_clast_assignment(const char *lhs,
-					      struct clast_expr *rhs);
-static struct clast_user_stmt *new_clast_user_stmt(CloogStatement *stmt, 
-						struct clast_stmt *subs);
-static struct clast_block *new_clast_block();
-static struct clast_for *new_clast_for(const char *it, struct clast_expr *LB, 
-				struct clast_expr *UB, Value stride);
-static struct clast_guard *new_clast_guard(int n);
-
-static void free_clast_term(struct clast_term *t);
-static void free_clast_binary(struct clast_binary *b);
-static void free_clast_reduction(struct clast_reduction *r);
-static void free_clast_expr(struct clast_expr *e);
-static void free_clast_assignment(struct clast_assignment *a);
-static void free_clast_user_stmt(struct clast_user_stmt *u);
-static void free_clast_for(struct clast_for *f);
-static void free_clast_guard(struct clast_guard *g);
-static void free_clast_block(struct clast_block *b);
-
 static int clast_expr_equal(struct clast_expr *e1, struct clast_expr *e2);
 static int clast_term_equal(struct clast_term *t1, struct clast_term *t2);
 static int clast_binary_equal(struct clast_binary *b1, struct clast_binary *b2);
@@ -68,7 +45,7 @@ struct clast_term *new_clast_term(Value c, char *v)
     return t;
 }
 
-struct clast_binary *new_clast_binary(enum bin_type t, 
+struct clast_binary *new_clast_binary(enum clast_bin_type t, 
 				      struct clast_expr *lhs, Value rhs)
 {
     struct clast_binary *b = malloc(sizeof(struct clast_binary));
@@ -80,7 +57,7 @@ struct clast_binary *new_clast_binary(enum bin_type t,
     return b;
 }
 
-struct clast_reduction *new_clast_reduction(enum red_type t, int n)
+struct clast_reduction *new_clast_reduction(enum clast_red_type t, int n)
 {
     int i;
     struct clast_reduction *r;
@@ -280,7 +257,8 @@ int clast_binary_equal(struct clast_binary *b1, struct clast_binary *b2)
 int clast_reduction_equal(struct clast_reduction *r1, struct clast_reduction *r2)
 {
     int i;
-    if (r1->type == red_max && r2->type == red_min && r1->n == 1 && r2->n == 1)
+    if (r1->type == clast_red_max && r2->type == clast_red_min && 
+	    r1->n == 1 && r2->n == 1)
 	return clast_expr_equal(r1->elts[0], r2->elts[0]);
     if (r1->type != r2->type)
 	return 0;
@@ -670,7 +648,7 @@ struct clast_expr *clast_line(CloogMatrix *matrix, CloogMatrix *equal,
     for (i = 1, nb_elts = 0; i <= matrix->NbColumns - 1; ++i)
 	if (i != level && value_notzero_p(line[i]))
 	    nb_elts++;
-    r = new_clast_reduction(red_sum, nb_elts);
+    r = new_clast_reduction(clast_red_sum, nb_elts);
     nb_elts = 0;
 
     /* First, we have to print the iterators. */
@@ -720,11 +698,11 @@ struct clast_expr *clast_line(CloogMatrix *matrix, CloogMatrix *equal,
       if (value_notone_p(line[level]) && value_notmone_p(line[level]))
       { if (value_one_p(line[0]))
         { if (value_pos_p(line[level]))
-	    e = &new_clast_binary(bin_cdiv, &r->expr, denominator)->expr;
+	    e = &new_clast_binary(clast_bin_cdiv, &r->expr, denominator)->expr;
           else
-	    e = &new_clast_binary(bin_fdiv, &r->expr, denominator)->expr;
+	    e = &new_clast_binary(clast_bin_fdiv, &r->expr, denominator)->expr;
         } else
-	    e = &new_clast_binary(bin_div, &r->expr, denominator)->expr;
+	    e = &new_clast_binary(clast_bin_div, &r->expr, denominator)->expr;
       }
       else
 	e = &r->expr;
@@ -767,8 +745,9 @@ struct clast_expr *clast_line(CloogMatrix *matrix, CloogMatrix *equal,
             }
           }
           else
-	    e = &new_clast_binary(bin_div, &new_clast_term(numerator, NULL)->expr,
-				 denominator)->expr;
+	    e = &new_clast_binary(clast_bin_div, 
+				  &new_clast_term(numerator, NULL)->expr,
+				  denominator)->expr;
         }
         else
 	    e = &new_clast_term(numerator, NULL)->expr;
@@ -820,7 +799,7 @@ struct clast_expr *clast_minmax(CloogMatrix *matrix, CloogMatrix *equal,
 	n++;
   if (!n)
     return NULL;
-  r = new_clast_reduction(max ? red_max : red_min, n);
+  r = new_clast_reduction(max ? clast_red_max : clast_red_min, n);
 
   for (i=0, n=0;i<matrix->NbRows;i++)
       if (((max && value_pos_p(matrix->p[i][level])) ||
@@ -990,7 +969,7 @@ void insert_equality(CloogMatrix *matrix, CloogMatrix *equal, int num,
       if (value_notzero_p(val))
 	nb_elts++;
   }
-  r = new_clast_reduction(red_sum, nb_elts+1);
+  r = new_clast_reduction(clast_red_sum, nb_elts+1);
   nb_elts = 0;
 
   /* First, the modulo guard : the iterators... */
@@ -1057,7 +1036,7 @@ void insert_equality(CloogMatrix *matrix, CloogMatrix *equal, int num,
     else
     value_assign(val,line[level]) ;
 
-    e = &new_clast_binary(bin_mod, &r->expr, val)->expr;
+    e = &new_clast_binary(clast_bin_mod, &r->expr, val)->expr;
     g = new_clast_guard(1);
     g->eq[0].LHS = e;
     value_set_si(val, 0);

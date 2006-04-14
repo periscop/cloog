@@ -36,16 +36,19 @@ struct clast_term {
     char *		var;
 };
 
+enum clast_red_type { clast_red_sum, clast_red_min, clast_red_max };
 struct clast_reduction {
     struct clast_expr	expr;
-    enum red_type { red_sum, red_min, red_max } type;
+    enum clast_red_type	type;
     int			n;
     struct clast_expr*	elts[1];
 };
 
+enum clast_bin_type { clast_bin_fdiv, clast_bin_cdiv, 
+		      clast_bin_div, clast_bin_mod };
 struct clast_binary {
     struct clast_expr	expr;
-    enum bin_type { bin_fdiv, bin_cdiv, bin_div, bin_mod } type;
+    enum clast_bin_type type;
     struct clast_expr*	LHS;
     Value		RHS;
 };
@@ -98,6 +101,29 @@ struct clast_guard {
 struct clast_stmt *cloog_clast_create(CloogLoop * loop, CloogMatrix * equal, 
 				      CloogInfos *infos);
 void cloog_clast_free(struct clast_stmt *s);
+
+struct clast_term *new_clast_term(Value c, char *v);
+struct clast_binary *new_clast_binary(enum clast_bin_type t, 
+				      struct clast_expr *lhs, Value rhs);
+struct clast_reduction *new_clast_reduction(enum clast_red_type t, int n);
+struct clast_assignment *new_clast_assignment(const char *lhs,
+					      struct clast_expr *rhs);
+struct clast_user_stmt *new_clast_user_stmt(CloogStatement *stmt, 
+						struct clast_stmt *subs);
+struct clast_block *new_clast_block();
+struct clast_for *new_clast_for(const char *it, struct clast_expr *LB, 
+				struct clast_expr *UB, Value stride);
+struct clast_guard *new_clast_guard(int n);
+
+void free_clast_term(struct clast_term *t);
+void free_clast_binary(struct clast_binary *b);
+void free_clast_reduction(struct clast_reduction *r);
+void free_clast_expr(struct clast_expr *e);
+void free_clast_assignment(struct clast_assignment *a);
+void free_clast_user_stmt(struct clast_user_stmt *u);
+void free_clast_for(struct clast_for *f);
+void free_clast_guard(struct clast_guard *g);
+void free_clast_block(struct clast_block *b);
 
 #if defined(__cplusplus)
   }
