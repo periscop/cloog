@@ -148,7 +148,7 @@ struct clast_guard *new_clast_guard(int n)
     g->stmt.next = NULL;
     g->then = NULL;
     g->n = n;
-    for (i = 0; i < 0; ++i) {
+    for (i = 0; i < n; ++i) {
 	g->eq[i].LHS = NULL;
 	g->eq[i].RHS = NULL;
     }
