@@ -35,7 +35,7 @@ static void insert_loop(CloogLoop * loop, CloogMatrix * equal, int level,
 			struct clast_stmt ***next, CloogInfos *infos);
 
 
-struct clast_term *new_clast_term(Value c, char *v)
+struct clast_term *new_clast_term(Value c, const char *v)
 {
     struct clast_term *t = malloc(sizeof(struct clast_term));
     t->expr.type = expr_term;

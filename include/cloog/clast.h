@@ -33,7 +33,7 @@ struct clast_expr {
 struct clast_term {
     struct clast_expr	expr;
     Value		val;
-    char *		var;
+    const char *	var;
 };
 
 enum clast_red_type { clast_red_sum, clast_red_min, clast_red_max };
@@ -102,7 +102,7 @@ struct clast_stmt *cloog_clast_create(CloogLoop * loop, CloogMatrix * equal,
 				      CloogInfos *infos);
 void cloog_clast_free(struct clast_stmt *s);
 
-struct clast_term *new_clast_term(Value c, char *v);
+struct clast_term *new_clast_term(Value c, const char *v);
 struct clast_binary *new_clast_binary(enum clast_bin_type t, 
 				      struct clast_expr *lhs, Value rhs);
 struct clast_reduction *new_clast_reduction(enum clast_red_type t, int n);
