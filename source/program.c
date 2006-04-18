@@ -250,8 +250,10 @@ void cloog_program_dump_cloog(FILE * foo, CloogProgram * program)
     loop = loop->next ;
   }
   fprintf(foo,"\n1 # Iterator name(s)\n") ;
+  for (i=0;i<program->names->nb_scattering;i++)
+    fprintf(foo,"%s ",program->names->scattering[i]);
   for (i=0;i<program->names->nb_iterators;i++)
-  fprintf(foo,"%s ",program->names->iterators[i]) ;
+    fprintf(foo,"%s ",program->names->iterators[i]);
   fprintf(foo,"\n\n") ;
 
   /* Scattering functions (none since included inside domains). */
