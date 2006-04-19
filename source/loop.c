@@ -793,6 +793,37 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
 
 
 /**
+ * cloog_loop_merge_list
+ * Merge two lists of CloogLoops.  The new list contains the
+ * elements of the two lists in the same order, but they may
+ * be interleaved.
+ * In particular, if the elements of a and b are ordered
+ * according to the inner loops of the order list, then so are the elements
+ * in the new list.
+ */
+static CloogLoop *cloog_loop_merge_inner_list(CloogLoop *a, CloogLoop *b, 
+					      CloogLoop *order)
+{
+  CloogLoop *loop, **next;
+  next = &loop;
+
+  for ( ; order && (a||b); order = order->next) {
+    if (a && order->inner->block == a->block) {
+      *next = a;
+      a = a->next;
+      next = &(*next)->next;
+      continue;
+    }
+    if (b && order->inner->block == b->block) {
+      *next = b;
+      b = b->next;
+      next = &(*next)->next;
+    }
+  }
+  return loop;
+}
+
+/**
  * cloog_loop_merge function:
  * This function is the 'soft' version of loop_separate if we are looking for
  * a code much simpler (and less efficicient). Here we merge loops if they have
@@ -841,7 +872,7 @@ CloogLoop * cloog_loop_merge(CloogLoop * loop)
       }
       else 
       { cloog_domain_free(temp) ;
-        new_inner = cloog_loop_concat(Q->inner,P->inner) ;
+        new_inner = cloog_loop_merge_inner_list(Q->inner, P->inner, old);
         temp = cloog_domain_union(P->domain,Q->domain) ;
         new_domain = cloog_domain_convex(temp) ;
         cloog_domain_free(temp) ;
