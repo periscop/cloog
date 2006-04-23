@@ -125,6 +125,8 @@ void free_clast_for(struct clast_for *f);
 void free_clast_guard(struct clast_guard *g);
 void free_clast_block(struct clast_block *b);
 
+int clast_expr_equal(struct clast_expr *e1, struct clast_expr *e2);
+
 #if defined(__cplusplus)
   }
 #endif 

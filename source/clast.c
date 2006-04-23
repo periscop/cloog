@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include "../include/cloog/cloog.h"
 
-static int clast_expr_equal(struct clast_expr *e1, struct clast_expr *e2);
 static int clast_term_equal(struct clast_term *t1, struct clast_term *t2);
 static int clast_binary_equal(struct clast_binary *b1, struct clast_binary *b2);
 static int clast_reduction_equal(struct clast_reduction *r1, 
