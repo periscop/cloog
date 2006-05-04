@@ -959,6 +959,8 @@ void insert_equality(CloogMatrix *matrix, CloogMatrix *equal, int num,
 
   line = matrix->p[num] ;
   sign = value_pos_p(line[level]) ? -1 : 1 ;
+  if (sign == 1)
+    value_oppose(line[level], line[level]);
   nb_iter = matrix->NbColumns - 2 - infos->names->nb_parameters ;
 
   for (i = 1, nb_elts = 0; i <= matrix->NbColumns - 2; ++i) {
@@ -981,6 +983,8 @@ void insert_equality(CloogMatrix *matrix, CloogMatrix *equal, int num,
 	value_oppose(val,line[i]) ;
 	else
 	value_assign(val,line[i]) ;
+
+	value_pmodulus(val, val, line[level]);
 	
 	if (i <= infos->names->nb_scattering)
         name = infos->names->scattering[i-1] ;
@@ -1009,6 +1013,8 @@ void insert_equality(CloogMatrix *matrix, CloogMatrix *equal, int num,
       value_oppose(val,line[i]) ;
       else
       value_assign(val,line[i]) ;
+
+      value_pmodulus(val, val, line[level]);
 	
       name = infos->names->parameters[i-nb_iter-1] ;
       r->elts[nb_elts++] = &new_clast_term(val, name)->expr;
@@ -1024,18 +1030,14 @@ void insert_equality(CloogMatrix *matrix, CloogMatrix *equal, int num,
     else
     value_assign(val,line[matrix->NbColumns-1]) ;
     
+    value_pmodulus(val, val, line[level]);
     if (value_notzero_p(val))
       r->elts[nb_elts++] = &new_clast_term(val, NULL)->expr;
   
     /* our initial computation may have been an overestimate */
     r->n = nb_elts;
     
-    if ((-1 * sign) == -1)
-    value_oppose(val,line[level]) ;
-    else
-    value_assign(val,line[level]) ;
-
-    e = &new_clast_binary(clast_bin_mod, &r->expr, val)->expr;
+    e = &new_clast_binary(clast_bin_mod, &r->expr, line[level])->expr;
     g = new_clast_guard(1);
     g->eq[0].LHS = e;
     value_set_si(val, 0);
@@ -1046,6 +1048,10 @@ void insert_equality(CloogMatrix *matrix, CloogMatrix *equal, int num,
     *next = &g->then;
   } else
       free_clast_reduction(r);
+
+  /* change sign of line[level] back to original */
+  if (sign == 1)
+    value_oppose(line[level], line[level]);
  
   if (!clast_equal_add(equal,matrix,level,num,infos))
   { /* Finally, the equality. */

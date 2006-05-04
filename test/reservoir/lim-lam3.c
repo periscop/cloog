@@ -1,5 +1,5 @@
-/* Generated from lim-lam3.cloog by CLooG v0.14.0 64 bits in 0.01s. */
-/* CLooG asked for 160 KBytes. */
+/* Generated from ./reservoir/lim-lam3.cloog by CLooG v0.14.0 gmp bits in 0.04s. */
+/* CLooG asked for 304 KBytes. */
 for (c2=5;c2<=min(5*M,8);c2++) {
   if (c2%5 == 0) {
     S4(i = c2/5) ;
@@ -14,7 +14,7 @@ for (c2=9;c2<=min(13,5*M-1);c2++) {
     S4(i = c2/5) ;
   }
   for (c4=max(1,ceild(c2-3*M-1,2));c4<=floord(c2-4,5);c4++) {
-    if ((c2-2*c4-1)%3 == 0) {
+    if ((c2+c4+2)%3 == 0) {
       i = (c2-2*c4-1)/3 ;
       S3(j = c4) ;
     }
@@ -35,7 +35,7 @@ for (c2=14;c2<=5*M-1;c2++) {
     S4(i = c2/5) ;
   }
   for (c4=max(ceild(c2-3*M-1,2),1);c4<=floord(c2-4,5);c4++) {
-    if ((c2-2*c4-1)%3 == 0) {
+    if ((c2+c4+2)%3 == 0) {
       i = (c2-2*c4-1)/3 ;
       S3(j = c4) ;
     }

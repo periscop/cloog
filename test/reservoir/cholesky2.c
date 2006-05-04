@@ -1,12 +1,12 @@
-/* Generated from cholesky2.cloog by CLooG v0.14.0 64 bits in 0.01s. */
-/* CLooG asked for 160 KBytes. */
+/* Generated from ./reservoir/cholesky2.cloog by CLooG v0.14.0 gmp bits in 0.04s. */
+/* CLooG asked for 268 KBytes. */
 for (c2=2;c2<=min(3,3*M-4);c2++) {
   if ((c2+1)%3 == 0) {
     i = (c2+1)/3 ;
     S1 ;
   }
   for (c4=ceild(c2+4,3);c4<=min(c2,M);c4++) {
-    if ((c2-c4+2)%2 == 0) {
+    if ((c2+c4)%2 == 0) {
       i = (c2-c4+2)/2 ;
       S2(j = c4) ;
     }
@@ -24,7 +24,7 @@ for (c2=4;c2<=3*M-4;c2++) {
     }
   }
   for (c4=ceild(c2+4,3);c4<=min(M,c2);c4++) {
-    if ((c2-c4+2)%2 == 0) {
+    if ((c2+c4)%2 == 0) {
       i = (c2-c4+2)/2 ;
       S2(j = c4) ;
     }

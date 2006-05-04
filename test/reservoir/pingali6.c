@@ -1,5 +1,5 @@
-/* Generated from pingali6.cloog by CLooG v0.14.0 64 bits in 0.01s. */
-/* CLooG asked for 160 KBytes. */
+/* Generated from ./reservoir/pingali6.cloog by CLooG v0.14.0 gmp bits in 0.04s. */
+/* CLooG asked for 212 KBytes. */
 if (N >= 3) {
   for (c4=2;c4<=N-1;c4++) {
     for (c6=2;c6<=N-1;c6++) {
@@ -18,7 +18,7 @@ if (N >= 3) {
     }
     for (c4=2;c4<=N-1;c4++) {
       for (c6=2;c6<=N-1;c6++) {
-        if ((c2-1)%2 == 0) {
+        if ((c2+1)%2 == 0) {
           i = (c2-1)/2 ;
           S2(j = c4,k = c6) ;
         }
