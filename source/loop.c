@@ -1629,39 +1629,36 @@ int level, nb_par ;
   
   domain = loop->domain ;
   
-  /* If the constraint system is never true, go to the next one. */
-  while (cloog_domain_never_integral(domain))
-  { next = loop->next ;
-    loop->next = NULL ;
-    cloog_loop_free(loop) ;
-    
-    if (next == NULL)
-    return NULL ;
-    else
-    { loop = next ;
-      domain = loop->domain ;
-    }
-  }
-
   next = cloog_loop_simplify(loop->next,context,level,nb_par) ;
-  inner = cloog_loop_simplify(loop->inner,domain,level+1,nb_par) ;
-  
-  if ((inner == NULL) && (loop->block == NULL))
-  { loop->inner = NULL ; /* For loop integrity. */
-    loop->next = NULL ;  /* For loop integrity. */
-    cloog_loop_free_parts(loop,1,1,1,0) ;
-    return(next) ;
-  }
-  
-  new_block = cloog_block_copy(loop->block) ;
   
   domain_dim = cloog_domain_dimension(domain) - nb_par ;
   extended_context=cloog_domain_extend(context,domain_dim,nb_par);
   inter = cloog_domain_intersection(domain,extended_context) ;
   simp = cloog_domain_simplify(inter,extended_context) ;
-  cloog_domain_free(inter) ;
   cloog_domain_free(extended_context) ;
 
+  /* If the constraint system is never true, go to the next one. */
+  if (cloog_domain_never_integral(simp)) {
+    loop->next = NULL;
+    cloog_loop_free(loop);
+    cloog_domain_free(inter);
+    cloog_domain_free(simp);
+    return next;
+  }
+
+  inner = cloog_loop_simplify(loop->inner,inter,level+1,nb_par) ;
+  cloog_domain_free(inter) ;
+  
+  if ((inner == NULL) && (loop->block == NULL))
+  { loop->inner = NULL ; /* For loop integrity. */
+    loop->next = NULL ;  /* For loop integrity. */
+    cloog_loop_free_parts(loop,1,1,1,0) ;
+    cloog_domain_free(simp);
+    return(next) ;
+  }
+
+  new_block = cloog_block_copy(loop->block) ;
+  
   simplified = cloog_loop_alloc(simp,loop->stride,new_block,inner,next) ;
   
   /* Examples like test/iftest2.cloog give unions of polyhedra after

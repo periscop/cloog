@@ -1,5 +1,5 @@
-/* Generated from ./test/classen.cloog by CLooG v0.14.0 64 bits in 0.34s. */
-/* CLooG asked for 656 KBytes. */
+/* Generated from classen.cloog by CLooG v0.14.0 gmp bits in 1.54s. */
+/* CLooG asked for 3980 KBytes. */
 if (m >= 2) {
   S1(coordT1 = 0,coordP1 = 1,other1 = 1,other2 = 1) ;
   S2(coordT1 = 0,coordP1 = 1,other1 = 1,other2 = 1,other3 = 1,other4 = 1,other5 = 2,other6 = 1) ;
@@ -23,7 +23,7 @@ if (m >= 3) {
   S2(coordT1 = 1,coordP1 = 2,other1 = 2,other2 = 2,other3 = 1,other4 = 2,other5 = 2,other6 = 2) ;
   S3(coordT1 = 1,coordP1 = 2,other1 = 2,other2 = 3,other3 = 1,other4 = 2,other5 = 1,other6 = 3) ;
   S4(coordT1 = 1,coordP1 = 2,other1 = 3,other2 = 3,other3 = 1,other4 = 2,other5 = 2,other6 = 3) ;
-  for (coordP1=max(-m+3,1);coordP1<=min(2,m);coordP1++) {
+  for (coordP1=1;coordP1<=2;coordP1++) {
     S8(coordT1 = 1) ;
   }
 }
@@ -111,7 +111,7 @@ for (glT1=2;glT1<=m-2;glT1++) {
   other4 = glT1+1 ;
   other6 = glT1+2 ;
   S4(coordT1 = glT1,other3 = 1,other5 = 2) ;
-  for (coordP1=max(glT1-m+2,1);coordP1<=min(glT1+1,m);coordP1++) {
+  for (coordP1=1;coordP1<=glT1+1;coordP1++) {
     S8(coordT1 = glT1) ;
   }
 }
@@ -274,7 +274,7 @@ for (glT1=m;glT1<=2*m-4;glT1++) {
   other3 = glT1-m+2 ;
   other5 = glT1-m+3 ;
   S2(coordT1 = glT1,coordP1 = m,other2 = m,other4 = m,other6 = m) ;
-  for (coordP1=max(glT1-m+2,1);coordP1<=min(glT1+1,m);coordP1++) {
+  for (coordP1=glT1-m+2;coordP1<=m;coordP1++) {
     S8(coordT1 = glT1) ;
   }
 }

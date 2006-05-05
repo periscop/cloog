@@ -1,4 +1,4 @@
-! Generated from dartef.cloog by CLooG v0.14.0 gmp bits in 0.26s.
+! Generated from dartef.cloog by CLooG v0.14.0 gmp bits in 0.25s.
 ! CLooG asked for 460 KBytes.
 IF (n >= 1) THEN
   t1 = -n+1
@@ -97,14 +97,14 @@ DO t1=CEILING(REAL(-2*n+5)/REAL(2)), MIN(-n+6,-1)
   END DO
 END DO
 IF (n == 2) THEN
-  DO t3=5, 2*n+3
+  DO t3=5, 7
     IF (MOD(t3+1, 2) == 0) THEN
       k = (t3-3)/2
       S1(i = 2,j = 1)
     END IF
   END DO
   DO t2=4, 6
-    DO t3=1, n
+    DO t3=1, 2
       IF (MOD(t2, 2) == 0) THEN
         i = (t2-2)/2
         IF (MOD(t2, 2) == 0) THEN

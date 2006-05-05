@@ -1,4 +1,4 @@
-/* Generated from darte.cloog by CLooG v0.14.0 gmp bits in 0.25s. */
+/* Generated from darte.cloog by CLooG v0.14.0 gmp bits in 0.27s. */
 /* CLooG asked for 460 KBytes. */
 if (n >= 1) {
   t1 = -n+1 ;
@@ -97,14 +97,14 @@ for (t1=ceild(-2*n+5,2);t1<=min(-n+6,-1);t1++) {
   }
 }
 if (n == 2) {
-  for (t3=5;t3<=2*n+3;t3++) {
+  for (t3=5;t3<=7;t3++) {
     if ((t3+1)%2 == 0) {
       k = (t3-3)/2 ;
       S1(i = 2,j = 1) ;
     }
   }
   for (t2=4;t2<=6;t2++) {
-    for (t3=1;t3<=n;t3++) {
+    for (t3=1;t3<=2;t3++) {
       if (t2%2 == 0) {
         i = (t2-2)/2 ;
         if (t2%2 == 0) {

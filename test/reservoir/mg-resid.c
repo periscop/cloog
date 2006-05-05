@@ -1,5 +1,5 @@
-/* Generated from mg-resid.cloog by CLooG v0.14.0 64 bits in 0.01s. */
-/* CLooG asked for 160 KBytes. */
+/* Generated from ./reservoir/mg-resid.cloog by CLooG v0.14.0 gmp bits in 0.06s. */
+/* CLooG asked for 300 KBytes. */
 if ((M >= 3) && (N >= 4)) {
   for (c2=2;c2<=O-1;c2++) {
     for (c6=1;c6<=M;c6++) {
@@ -34,8 +34,7 @@ if ((M >= 3) && (N == 3)) {
       S2(i = c2,j = 2,k = c6) ;
     }
     for (c6=2;c6<=M-1;c6++) {
-      j = N-1 ;
-      S3(i = c2,k = c6) ;
+      S3(i = c2,j = 2,k = c6) ;
     }
   }
 }
