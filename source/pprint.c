@@ -242,7 +242,7 @@ void pprint_user_stmt(struct clooginfos *i, FILE *dst,
 		       struct clast_user_stmt *u)
 {
     struct clast_stmt *t;
-    fprintf(dst, "S%d", u->statement->number+1);
+    fprintf(dst, "S%d", u->statement->number);
     if (i->options->cpp || u->substitutions)
 	fprintf(dst, "(");
     for (t = u->substitutions; t; t = t->next) {

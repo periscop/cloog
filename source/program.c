@@ -364,7 +364,7 @@ CloogOptions * options ;
     { block = blocklist->block ;
       statement = block->statement ;
       while (statement != NULL)
-      { fprintf(file,"#define S%d(",statement->number+1) ;
+      { fprintf(file,"#define S%d(",statement->number) ;
         if (block->depth > 0)
         { fprintf(file,"%s",program->names->iterators[0]) ;
           for(j=1;j<block->depth;j++)
@@ -372,7 +372,7 @@ CloogOptions * options ;
         }
         fprintf(file,") {total++;") ;
 	if (block->depth > 0)
-        { fprintf(file," printf(\"S%d \%%d",statement->number+1) ;
+        { fprintf(file," printf(\"S%d \%%d",statement->number) ;
           for(j=1;j<block->depth;j++)
           fprintf(file," \%%d") ;
           

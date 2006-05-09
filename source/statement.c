@@ -100,7 +100,7 @@ int level ;
   { /* Go to the right level. */
     for (i=0; i<level; i++)
     fprintf(file,"|\t") ;
-    fprintf(file,"+-- CloogStatement %d \n",statement->number+1) ;
+    fprintf(file,"+-- CloogStatement %d \n",statement->number) ;
     
     statement = statement->next ;
  
@@ -114,7 +114,7 @@ int level ;
       
       for (i=0; i<level; i++)
       fprintf(file,"|\t") ;
-      fprintf(file,"|   CloogStatement %d \n",statement->number+1) ;
+      fprintf(file,"|   CloogStatement %d \n",statement->number) ;
       statement = statement->next ;
     }
   }
@@ -184,7 +184,7 @@ CloogStatement * cloog_statement_malloc()
   cloog_statement_leak_up() ;
   
   /* We set the various fields with default values. */
-  statement->number = -1 ;
+  statement->number = 0;
   statement->usr  = NULL ; /* To fill it is actually user's job ! */
   statement->next = NULL ;
   
