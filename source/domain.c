@@ -244,6 +244,117 @@ CloogDomain * cloog_domain_convex(CloogDomain * domain)
 
 
 /**
+ * cloog_domain_simplified_hull:
+ * Given a list (union) of polyhedra, this function returns a single
+ * polyhedron that contains this union and uses only contraints that
+ * appear in one or more of the polyhedra in the list.
+ * 
+ * We simply iterate over all constraints of all polyhedra and test
+ * whether all rays of the other polyhedra satisfy/saturate the constraint.
+ */
+static CloogDomain *cloog_domain_simplified_hull(CloogDomain * domain)
+{
+  int dim = cloog_domain_dimension(domain);
+  int i, j, k, l;
+  int nb_pol = 0, nb_constraints = 0;
+  Polyhedron *P;
+  CloogMatrix **rays, *matrix;
+  Value tmp;
+  CloogDomain *bounds;
+
+  value_init(tmp);
+  for (P = domain->polyhedron; P; P = P->next) {
+    ++nb_pol;
+    nb_constraints += P->NbConstraints;
+  }
+  matrix = cloog_matrix_alloc(nb_constraints, 1 + dim + 1);
+  nb_constraints = 0;
+  rays = (CloogMatrix **)malloc(nb_pol * sizeof(CloogMatrix*));
+  for (P = domain->polyhedron, i = 0; P; P = P->next, ++i)
+    rays[i] = Polyhedron2Rays(P);
+
+  for (P = domain->polyhedron, i = 0; P; P = P->next, ++i) {
+    CloogMatrix *constraints = Polyhedron2Constraints(P);
+    for (j = 0; j < constraints->NbRows; ++j) {
+      for (k = 0; k < nb_pol; ++k) {
+	if (i == k)
+	  continue;
+	for (l = 0; l < rays[k]->NbRows; ++l) {
+	  Inner_Product(constraints->p[j]+1, rays[k]->p[l]+1, dim+1, &tmp);
+	  if (value_neg_p(tmp))
+	    break;
+	  if ((value_zero_p(constraints->p[j][0]) || 
+	       value_zero_p(rays[k]->p[l][0])) && value_pos_p(tmp))
+	    break;
+	}
+	if (l < rays[k]->NbRows)
+	  break;
+      }
+      if (k == nb_pol)
+	Vector_Copy(constraints->p[j], matrix->p[nb_constraints++], 1+dim+1);
+    }
+    Matrix_Free(constraints);
+  }
+
+  for (P = domain->polyhedron, i = 0; P; P = P->next, ++i)
+    Matrix_Free(rays[i]);
+  free(rays);
+  value_clear(tmp);
+
+  matrix->NbRows = nb_constraints;
+  bounds = cloog_domain_matrix2domain(matrix);
+  cloog_matrix_free(matrix);
+
+  return bounds;
+}
+
+
+/**
+ * cloog_domain_simple_convex:
+ * Given a list (union) of polyhedra, this function returns a "simple"
+ * convex hull of this union.  In particular, the constraints of the
+ * the returned polyhedron consist of (parametric) lower and upper
+ * bounds on individual variables and constraints that appear in the
+ * original polyhedra.
+ *
+ * nb_par is the number of parameters of the domain.
+ */
+CloogDomain * cloog_domain_simple_convex(CloogDomain * domain, int nb_par)
+{
+  int i;
+  int dim = cloog_domain_dimension(domain) - nb_par;
+  CloogDomain *convex = NULL;
+
+  if (cloog_domain_isconvex(domain))
+    return cloog_domain_copy(domain);
+
+  for (i = 0; i < dim; ++i) {
+    CloogDomain *bounds = cloog_domain_bounds(domain, i, nb_par);
+
+    if (!convex)
+      convex = bounds;
+    else {
+      CloogDomain *temp = cloog_domain_intersection(convex, bounds);
+      cloog_domain_free(bounds);
+      cloog_domain_free(convex);
+      convex = temp;
+    }
+  }
+  if (dim > 1) {
+    CloogDomain *temp, *bounds;
+
+    bounds = cloog_domain_simplified_hull(domain);
+    temp = cloog_domain_intersection(convex, bounds);
+    cloog_domain_free(bounds);
+    cloog_domain_free(convex);
+    convex = temp;
+  }
+
+  return convex;
+}
+
+
+/**
  * cloog_domain_simplify function:
  * Given two polyhedral domains (pol1) and (pol2) inside two CloogDomain
  * structures, this function finds the largest domain set (or the smallest list
@@ -716,6 +827,44 @@ CloogDomain * cloog_domain_project(CloogDomain * domain, int level, int nb_par)
   cloog_matrix_free(matrix) ;
 
   return(projected_domain) ;
+}  
+
+
+/**
+ * cloog_domain_bounds:
+ * Given a list (union) of polyhedra "domain", this function returns a single
+ * polyhedron with constraints that reflect the (parametric) lower and
+ * upper bound on dimension "dim".
+ *
+ * nb_par is the number of parameters of the domain.
+ */
+CloogDomain * cloog_domain_bounds(CloogDomain * domain, int dim, int nb_par)
+{
+  int row, nb_rows, nb_columns, difference;
+  CloogDomain * projected_domain, *extended_domain, *bounds;
+  CloogMatrix * matrix ;
+
+  nb_rows = 1 + nb_par + 1;
+  nb_columns = domain->polyhedron->Dimension + 1 ;
+  difference = nb_columns - nb_rows ;
+  
+  if (difference == 0)
+    return(cloog_domain_convex(domain));
+  
+  matrix = cloog_matrix_alloc(nb_rows, nb_columns);
+     
+  value_set_si(matrix->p[0][dim], 1);
+  for (row = 1; row < nb_rows; row++)
+    value_set_si(matrix->p[row][row+difference], 1);
+  
+  projected_domain = cloog_domain_image(domain,matrix) ;
+  extended_domain = cloog_domain_preimage(projected_domain, matrix);
+  cloog_domain_free(projected_domain);
+  cloog_matrix_free(matrix) ;
+  bounds = cloog_domain_convex(extended_domain);
+  cloog_domain_free(extended_domain);
+
+  return bounds;
 }  
 
 

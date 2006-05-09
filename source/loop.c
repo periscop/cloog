@@ -834,14 +834,14 @@ static CloogLoop *cloog_loop_merge_inner_list(CloogLoop *a, CloogLoop *b,
  * - July 3rd->11th 2003: memory leaks hunt and correction.
  * - June      22nd 2005: Adaptation for GMP.
  */ 
-CloogLoop * cloog_loop_merge(CloogLoop * loop)
+CloogLoop * cloog_loop_merge(CloogLoop * loop, int nb_par, CloogOptions * options)
 { Value one ;
   CloogLoop * res, * merge, * now, * Q, * P, * new_inner, * next, * old ;
   CloogDomain * new_domain, * temp ;
 
   if ((loop == NULL) || (loop->next == NULL))
   return loop ;
-  
+
   value_init_c(one) ;
   value_set_si(one,1) ;
   
@@ -874,7 +874,10 @@ CloogLoop * cloog_loop_merge(CloogLoop * loop)
       { cloog_domain_free(temp) ;
         new_inner = cloog_loop_merge_inner_list(Q->inner, P->inner, old);
         temp = cloog_domain_union(P->domain,Q->domain) ;
-        new_domain = cloog_domain_convex(temp) ;
+	if (options->sh)
+	  new_domain = cloog_domain_simple_convex(temp, nb_par);
+	else
+	  new_domain = cloog_domain_convex(temp);
         cloog_domain_free(temp) ;
         /* Q and P are no more used (but their content yes !).*/
         cloog_loop_free_parts(P,1,0,0,0) ;
@@ -1363,7 +1366,7 @@ CloogOptions * options ;
 
   /* 3. Separate all projections into disjoint polyhedra. */
   res = ((options->f > level+scalar) || (options->f < 0)) ?
-        cloog_loop_merge(loop) : cloog_loop_separate(loop) ;
+        cloog_loop_merge(loop, nb_par, options) : cloog_loop_separate(loop);
     
   /* 3b. -correction- sort the loops to determine their textual order. */
   res = cloog_loop_sort(res,level,nb_par) ;

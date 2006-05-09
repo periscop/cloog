@@ -64,6 +64,7 @@ void cloog_options_print(FILE * foo, CloogOptions * options)
   fprintf(foo,"f           = %3d,\n",options->f) ;
   fprintf(foo,"stop        = %3d,\n",options->stop) ;
   fprintf(foo,"strides     = %3d,\n",options->strides) ;
+  fprintf(foo,"sh          = %3d,\n",options->sh);
   fprintf(foo,"OPTIONS FOR PRETTY PRINTING\n") ;
   fprintf(foo,"esp         = %3d,\n",options->esp) ;
   fprintf(foo,"csp         = %3d,\n",options->csp) ;
@@ -250,6 +251,7 @@ CloogOptions * cloog_options_malloc(void)
   options->f           =  1 ;  /* First level to optimize: the first. */
   options->stop        = -1 ;  /* Generate all the code. */
   options->strides     =  0 ;  /* Generate a code with unit strides. */
+  options->sh	       =  0;   /* Compute actual convex hull. */
   options->name	       = "";
   /* OPTIONS FOR PRETTY PRINTING */
   options->esp         =  0 ;  /* We don't want Equality SPreading.*/
@@ -307,6 +309,8 @@ CloogOptions ** options ;
     else
     if (strcmp(argc[i],"-strides")   == 0)
     cloog_options_set(&(*options)->strides,argv,argc,&i) ;
+    else if (strcmp(argc[i],"-sh")   == 0)
+      cloog_options_set(&(*options)->sh,argv,argc,&i) ;
     else
     if (strcmp(argc[i],"-otl") == 0)
     cloog_options_set(&(*options)->otl,argv,argc,&i) ;
