@@ -868,6 +868,7 @@ void insert_guard(CloogMatrix *matrix, CloogMatrix *equal, int level,
     for (j=0;j<copy->NbRows;j++)
     if (value_notzero_p(copy->p[j][i]) &&
         (value_zero_p(copy->p[j][level]) || (nb_iter < level))) {
+      struct clast_term *t;
       if (i <= nb_iter)
       { if (i <= infos->names->nb_scattering)
         name = infos->names->scattering[i-1] ;
@@ -877,10 +878,14 @@ void insert_guard(CloogMatrix *matrix, CloogMatrix *equal, int level,
       else
       name = infos->names->parameters[i-(nb_iter+1)] ;
       
-      g->eq[nb_and].LHS = &new_clast_term(one, name)->expr;
+      g->eq[nb_and].LHS = &(t = new_clast_term(one, name))->expr;
       if (value_zero_p(copy->p[j][0])) {
+	/* put the "denominator" in the LHS */
+	value_assign(t->val, copy->p[j][i]);
+	value_set_si(copy->p[j][i], 1);
 	g->eq[nb_and].sign = 0;
         g->eq[nb_and].RHS = clast_line(copy,equal,j,i,infos) ;
+	value_assign(copy->p[j][i], t->val);
       } else {
         if (value_pos_p(copy->p[j][i])) {
 	    minmax = 1;

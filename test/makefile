@@ -248,6 +248,18 @@ test:
 		else \
 			echo "$$x passed" ; \
 	        fi ; \
+	        echo "Verify file equality (-f -1 -l 2 -override)" ; \
+		x=equality ; \
+		$(ROOT)/obj_$(TARGET)/cloog$(EXEC_SUFFIX) $$x.cloog \
+		-f -1 -l 2 -override  > ttemp ; \
+		diff -w --ignore-matching-lines='CLooG' ttemp $$x.c ; \
+		result=$$?; \
+		if [ "$$result" -eq "1" ] ; then \
+			echo "!!! Error: $$x is not the same" ; \
+			failedtest=`expr $$failedtest + 1` ; \
+		else \
+			echo "$$x passed" ; \
+	        fi ; \
 	rm ttemp ; \
 	if [ $$failedtest != 0 ] ; then \
 		echo "$$failedtest tests failed" ; \
