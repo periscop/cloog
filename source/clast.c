@@ -44,6 +44,8 @@ static struct clast_expr *clast_minmax(CloogMatrix *matrix,
 					CloogInfos *infos);
 static void insert_guard(CloogMatrix *matrix, int level,
 			  struct clast_stmt ***next, CloogInfos *infos);
+static void insert_modulo_guard(CloogMatrix *matrix, int num, int level,
+			        struct clast_stmt ***next, CloogInfos *infos);
 static void insert_equality(CloogMatrix *matrix, int num,
 			 int level, struct clast_stmt ***next, CloogInfos *infos);
 static void insert_for(CloogMatrix *matrix, int level,
@@ -948,7 +950,127 @@ void insert_guard(CloogMatrix *matrix, int level,
   return;
 }
  
-  
+
+/**
+ * insert_modulo_guard:
+ * This function inserts a modulo guard corresponding to an equality.
+ * See insert_equality.
+ * - matrix is the polyhedron containing all the constraints,
+ * - num is the line number of the constraint in matrix we want to print,
+ * - level is the column number of the element in matrix we want to use,
+ * - the infos structure gives the user some options about code printing,
+ *   the number of parameters in matrix (nb_par), and the arrays of iterator
+ *   names and parameters (iters and params). 
+ */
+void insert_modulo_guard(CloogMatrix *matrix, int num, int level,
+			 struct clast_stmt ***next, CloogInfos *infos)
+{
+  int i, nb_elts = 0, len, nb_iter, in_stride = 0;
+  Vector *line_vector;
+  Value *line, val;
+
+  if (value_one_p(matrix->p[num][level]) || value_mone_p(matrix->p[num][level]))
+    return;
+
+  value_init_c(val);
+
+  len = matrix->NbColumns;
+  nb_iter = matrix->NbColumns - 2 - infos->names->nb_parameters;
+
+  line_vector = Vector_Alloc(len);
+  line = line_vector->p;
+  if (value_neg_p(matrix->p[num][level]))
+    Vector_Copy(matrix->p[num]+1, line+1, len-1);
+  else {
+    value_set_si(val, -1);
+    Vector_Scale(matrix->p[num]+1, line+1, val, len-1);
+  }
+  value_oppose(line[level], line[level]);
+  assert(value_pos_p(line[level]));
+
+  for (i = 1, nb_elts = 0; i <= len-1; ++i) {
+    if (i == level)
+      continue;
+    value_pmodulus(line[i],line[i],line[level]);
+    if (value_zero_p(line[i]))
+      continue;
+
+    if (i <= nb_iter) {
+      value_modulus(val,infos->stride[i-1],line[level]);
+      /* We need to know if an element of the equality has not to be printed
+       * because of a stride that guarantees that this element can be divided by
+       * the current coefficient. Because when there is a constant element, it
+       * is included in the stride calculation (more exactly in the strided
+       * iterator new lower bound: the 'offset') and we have not to print it.
+       */
+      if (value_zero_p(val)) {
+	in_stride = 1;
+	continue;
+      }
+    }
+
+    if (i <= len-2)
+      nb_elts++;
+  }
+
+  if (nb_elts || (value_notzero_p(line[len-1]) && (!in_stride))) {
+    struct clast_reduction *r;
+    struct clast_expr *e;
+    struct clast_guard *g;
+    char * name;
+
+    r = new_clast_reduction(clast_red_sum, nb_elts+1);
+    nb_elts = 0;
+
+    /* First, the modulo guard : the iterators... */
+    for (i=1;i<=nb_iter;i++) {
+      if (i == level || value_zero_p(line[i]))
+	continue;
+      value_modulus(val,infos->stride[i-1],line[level]);
+      if (value_zero_p(val))
+	continue;
+
+      if (i <= infos->names->nb_scattering)
+	name = infos->names->scattering[i-1];
+      else
+	name = infos->names->iterators[i-infos->names->nb_scattering-1];
+
+      r->elts[nb_elts++] = &new_clast_term(line[i], name)->expr;
+    }
+
+    /* ...the parameters... */
+    for (i=nb_iter+1;i<=len-2;i++) {
+      if (value_zero_p(line[i]))
+	continue;
+
+      name = infos->names->parameters[i-nb_iter-1] ;
+      r->elts[nb_elts++] = &new_clast_term(line[i], name)->expr;
+    }
+
+    /* ...the constant. */
+    if (value_notzero_p(line[len-1]))
+      r->elts[nb_elts++] = &new_clast_term(line[len-1], NULL)->expr;
+
+    /* our initial computation may have been an overestimate */
+    r->n = nb_elts;
+
+    e = &new_clast_binary(clast_bin_mod, &r->expr, line[level])->expr;
+    g = new_clast_guard(1);
+    g->eq[0].LHS = e;
+    value_set_si(val, 0);
+    g->eq[0].RHS = &new_clast_term(val, NULL)->expr;
+    g->eq[0].sign = 0;
+
+    **next = &g->stmt;
+    *next = &g->then;
+  }
+
+  Vector_Free(line_vector);
+
+  value_clear_c(val);
+}
+
+
 /**
  * insert_equality function:
  * This function inserts an equality 
@@ -973,112 +1095,12 @@ void insert_guard(CloogMatrix *matrix, int level,
  */
 void insert_equality(CloogMatrix *matrix, int num, 
 		     int level, struct clast_stmt ***next, CloogInfos *infos)
-{ int i, sign, nb_elts=0, nb_iter=0, in_stride=0 ;
-  char * name ;
-  Value * line, val ;
-  struct clast_reduction *r;
+{
   struct clast_expr *e;
   struct clast_assignment *ass;
-  struct clast_guard *g;
 
-  value_init_c(val) ;
+  insert_modulo_guard(matrix, num, level, next, infos);
 
-  line = matrix->p[num] ;
-  sign = value_pos_p(line[level]) ? -1 : 1 ;
-  if (sign == 1)
-    value_oppose(line[level], line[level]);
-  nb_iter = matrix->NbColumns - 2 - infos->names->nb_parameters ;
-
-  for (i = 1, nb_elts = 0; i <= matrix->NbColumns - 2; ++i) {
-      if (i == level)
-	continue;
-      value_modulus(val,line[i],line[level]);
-      if (value_notzero_p(val))
-	nb_elts++;
-  }
-  r = new_clast_reduction(clast_red_sum, nb_elts+1);
-  nb_elts = 0;
-
-  /* First, the modulo guard : the iterators... */
-  for (i=1;i<=nb_iter;i++)
-  { value_modulus(val,line[i],line[level]) ;
-    if ((i != level) && value_notzero_p(line[i]) && value_notzero_p(val))
-    { value_modulus(val,infos->stride[i-1],line[level]) ;
-      if (value_notzero_p(val))
-      { if (sign == -1)
-	value_oppose(val,line[i]) ;
-	else
-	value_assign(val,line[i]) ;
-
-	value_pmodulus(val, val, line[level]);
-	
-	if (i <= infos->names->nb_scattering)
-        name = infos->names->scattering[i-1] ;
-        else
-        name = infos->names->iterators[i-infos->names->nb_scattering-1] ;
-      
-	r->elts[nb_elts++] = &new_clast_term(val, name)->expr;
-      }
-      else
-      /* We need to know if an element of the equality has not to be printed
-       * because of a stride that guarantees that this element can be divided by
-       * the current coefficient. Because when there is a constant element, it
-       * is included in the stride calculation (more exactly in the strided
-       * iterator new lower bound: the 'offset') and we have not to print it.
-       */
-      if (value_notone_p(infos->stride[i-1]))
-      in_stride = 1 ;
-    }
-  }
-
-  /* ...the parameters... */
-  for (i=nb_iter+1;i<=matrix->NbColumns-2;i++)
-  { value_modulus(val,line[i],line[level]) ;
-    if (value_notzero_p(line[i]) && value_notzero_p(val))
-    { if (sign == -1)
-      value_oppose(val,line[i]) ;
-      else
-      value_assign(val,line[i]) ;
-
-      value_pmodulus(val, val, line[level]);
-	
-      name = infos->names->parameters[i-nb_iter-1] ;
-      r->elts[nb_elts++] = &new_clast_term(val, name)->expr;
-    }
-  }    
-
-  /* ...the constant. */
-  value_modulus(val,line[matrix->NbColumns-1],line[level]) ;
-  if ((nb_elts || (value_notzero_p(val) && (!in_stride))) &&
-      value_notone_p(line[level]) && value_notmone_p(line[level]))
-  { if (sign == -1)
-    value_oppose(val,line[matrix->NbColumns-1]) ;
-    else
-    value_assign(val,line[matrix->NbColumns-1]) ;
-    
-    value_pmodulus(val, val, line[level]);
-    if (value_notzero_p(val))
-      r->elts[nb_elts++] = &new_clast_term(val, NULL)->expr;
-  
-    /* our initial computation may have been an overestimate */
-    r->n = nb_elts;
-    
-    e = &new_clast_binary(clast_bin_mod, &r->expr, line[level])->expr;
-    g = new_clast_guard(1);
-    g->eq[0].LHS = e;
-    value_set_si(val, 0);
-    g->eq[0].RHS = &new_clast_term(val, NULL)->expr;
-    g->eq[0].sign = 0;
-
-    **next = &g->stmt;
-    *next = &g->then;
-  } else
-      free_clast_reduction(r);
-
-  /* change sign of line[level] back to original */
-  if (sign == 1)
-    value_oppose(line[level], line[level]);
- 
   if (!clast_equal_add(infos->equal,matrix,level,num,infos))
   { /* Finally, the equality. */
 		
@@ -1103,7 +1125,6 @@ void insert_equality(CloogMatrix *matrix, int num,
     *next = &(**next)->next;
   }
 
-  value_clear_c(val) ;
   return;
 }
 
