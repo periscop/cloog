@@ -310,9 +310,9 @@ CloogOptions * options ;
                              nb_levels + program->names->nb_parameters + 1) ;
 	
   if (program->language == 'f')
-  infos->language = LANGUAGE_FORTRAN ;
+    options->language = LANGUAGE_FORTRAN ;
   else
-  infos->language = LANGUAGE_C ;
+    options->language = LANGUAGE_C ;
  
   if (program->language == 'f')
   { fprintf(file,"! Generated from %s by CLooG v%s %s bits in %.2fs.\n",
@@ -429,7 +429,7 @@ CloogOptions * options ;
   }
   
   root = cloog_clast_create(program->loop, equal, infos);
-  pprint(file, root, indentation, infos);
+  pprint(file, root, indentation, options);
   cloog_clast_free(root);
   
   /* The end of the compilable code in case of 'compilable' option. */

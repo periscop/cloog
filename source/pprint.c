@@ -95,9 +95,9 @@ void pprint_sum(FILE *dst, struct clast_reduction *r)
     }
 }
 
-void pprint_expr(struct clooginfos *i, FILE *dst, struct clast_expr *e);
+void pprint_expr(struct cloogoptions *i, FILE *dst, struct clast_expr *e);
 
-void pprint_binary(struct clooginfos *i, FILE *dst, struct clast_binary *b)
+void pprint_binary(struct cloogoptions *i, FILE *dst, struct clast_binary *b)
 {
     const char *s1 = NULL, *s2 = NULL, *s3 = NULL;
     int group = b->LHS->type == expr_red && 
@@ -149,7 +149,7 @@ void pprint_binary(struct clooginfos *i, FILE *dst, struct clast_binary *b)
     fprintf(dst, "%s", s3);
 }
 
-void pprint_minmax_f(struct clooginfos *info, FILE *dst, struct clast_reduction *r)
+void pprint_minmax_f(struct cloogoptions *info, FILE *dst, struct clast_reduction *r)
 {
     int i;
     if (r->n == 0)
@@ -163,7 +163,7 @@ void pprint_minmax_f(struct clooginfos *info, FILE *dst, struct clast_reduction 
     fprintf(dst, ")");
 }
 
-void pprint_minmax_c(struct clooginfos *info, FILE *dst, struct clast_reduction *r)
+void pprint_minmax_c(struct cloogoptions *info, FILE *dst, struct clast_reduction *r)
 {
     int i;
     for (i = 1; i < r->n; ++i)
@@ -177,7 +177,7 @@ void pprint_minmax_c(struct clooginfos *info, FILE *dst, struct clast_reduction 
     }
 }
 
-void pprint_reduction(struct clooginfos *i, FILE *dst, struct clast_reduction *r)
+void pprint_reduction(struct cloogoptions *i, FILE *dst, struct clast_reduction *r)
 {
     switch (r->type) {
     case clast_red_sum:
@@ -199,7 +199,7 @@ void pprint_reduction(struct clooginfos *i, FILE *dst, struct clast_reduction *r
     }
 }
 
-void pprint_expr(struct clooginfos *i, FILE *dst, struct clast_expr *e)
+void pprint_expr(struct cloogoptions *i, FILE *dst, struct clast_expr *e)
 {
     if (!e)
 	return;
@@ -218,7 +218,7 @@ void pprint_expr(struct clooginfos *i, FILE *dst, struct clast_expr *e)
     }
 }
 
-void pprint_equation(struct clooginfos *i, FILE *dst, struct clast_equation *eq)
+void pprint_equation(struct cloogoptions *i, FILE *dst, struct clast_equation *eq)
 {
     pprint_expr(i, dst, eq->LHS);
     if (eq->sign == 0)
@@ -230,7 +230,7 @@ void pprint_equation(struct clooginfos *i, FILE *dst, struct clast_equation *eq)
     pprint_expr(i, dst, eq->RHS);
 }
 
-void pprint_assignment(struct clooginfos *i, FILE *dst, 
+void pprint_assignment(struct cloogoptions *i, FILE *dst, 
 			struct clast_assignment *a)
 {
     if (a->LHS)
@@ -238,34 +238,34 @@ void pprint_assignment(struct clooginfos *i, FILE *dst,
     pprint_expr(i, dst, a->RHS);
 }
 
-void pprint_user_stmt(struct clooginfos *i, FILE *dst,
+void pprint_user_stmt(struct cloogoptions *options, FILE *dst,
 		       struct clast_user_stmt *u)
 {
     struct clast_stmt *t;
     fprintf(dst, "S%d", u->statement->number);
-    if (i->options->cpp || u->substitutions)
+    if (options->cpp || u->substitutions)
 	fprintf(dst, "(");
     for (t = u->substitutions; t; t = t->next) {
 	assert(t->type == stmt_ass);
-	pprint_assignment(i, dst, (struct clast_assignment *)t);
+	pprint_assignment(options, dst, (struct clast_assignment *)t);
 	if (t->next)
 	    fprintf(dst, ",");
     }
-    if (i->options->cpp || u->substitutions)
+    if (options->cpp || u->substitutions)
 	fprintf(dst, ")");
-    if (i->language != LANGUAGE_FORTRAN)
+    if (options->language != LANGUAGE_FORTRAN)
 	fprintf(dst, " ;");
     fprintf(dst, "\n");
 }
 
-void pprint_stmt_list(struct clooginfos *infos, FILE *dst, int indent,
+void pprint_stmt_list(struct cloogoptions *options, FILE *dst, int indent,
 		       struct clast_stmt *s);
 
-void pprint_guard(struct clooginfos *infos, FILE *dst, int indent,
+void pprint_guard(struct cloogoptions *options, FILE *dst, int indent,
 		   struct clast_guard *g)
 {
     int k;
-    if (infos->language == LANGUAGE_FORTRAN)
+    if (options->language == LANGUAGE_FORTRAN)
 	fprintf(dst,"IF ");
     else
 	fprintf(dst,"if ");
@@ -273,62 +273,62 @@ void pprint_guard(struct clooginfos *infos, FILE *dst, int indent,
 	fprintf(dst,"(");
     for (k = 0; k < g->n; ++k) {
 	if (k > 0) {
-	    if (infos->language == LANGUAGE_FORTRAN)
+	    if (options->language == LANGUAGE_FORTRAN)
 		fprintf(dst," .AND. ");
 	    else
 		fprintf(dst," && ");
 	}
 	fprintf(dst,"(");
-        pprint_equation(infos, dst, &g->eq[k]);
+        pprint_equation(options, dst, &g->eq[k]);
 	fprintf(dst,")");
     }
     if (g->n > 1)
 	fprintf(dst,")");
-    if (infos->language == LANGUAGE_FORTRAN)
+    if (options->language == LANGUAGE_FORTRAN)
 	fprintf(dst," THEN\n");
     else
 	fprintf(dst," {\n");
 
-    pprint_stmt_list(infos, dst, indent + INDENT_STEP, g->then);
+    pprint_stmt_list(options, dst, indent + INDENT_STEP, g->then);
 
     fprintf(dst, "%*s", indent, "");
-    if (infos->language == LANGUAGE_FORTRAN)
+    if (options->language == LANGUAGE_FORTRAN)
 	fprintf(dst,"END IF\n"); 
     else
 	fprintf(dst,"}\n"); 
 }
 
-void pprint_for(struct clooginfos *infos, FILE *dst, int indent,
+void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
 		 struct clast_for *f)
 {
-    if (infos->language == LANGUAGE_FORTRAN)
+    if (options->language == LANGUAGE_FORTRAN)
 	fprintf(dst, "DO ");
     else
 	fprintf(dst, "for (");
 
     if (f->LB) {
 	fprintf(dst, "%s=", f->iterator);
-	pprint_expr(infos, dst, f->LB);
-    } else if (infos->language == LANGUAGE_FORTRAN) {
+	pprint_expr(options, dst, f->LB);
+    } else if (options->language == LANGUAGE_FORTRAN) {
 	fprintf(stderr,"[CLooG]ERROR: unbounded loops not allowed in FORTRAN.\n");
 	exit(1);
     }
 
-    if (infos->language == LANGUAGE_FORTRAN)
+    if (options->language == LANGUAGE_FORTRAN)
 	fprintf(dst,", ");
     else
 	fprintf(dst,";");
 
     if (f->UB) { 
-	if (infos->language != LANGUAGE_FORTRAN)
+	if (options->language != LANGUAGE_FORTRAN)
 	    fprintf(dst,"%s<=", f->iterator);
-	pprint_expr(infos, dst, f->UB);
-    } else if (infos->language == LANGUAGE_FORTRAN) {
+	pprint_expr(options, dst, f->UB);
+    } else if (options->language == LANGUAGE_FORTRAN) {
 	fprintf(stderr,"[CLooG]ERROR: unbounded loops not allowed in FORTRAN.\n");
 	exit(1);
     }
 
-    if (infos->language == LANGUAGE_FORTRAN) {
+    if (options->language == LANGUAGE_FORTRAN) {
 	if (value_gt_si(f->stride, 1))
 	    value_print(dst, VALUE_FMT, f->stride);
 	fprintf(dst,"\n");
@@ -341,39 +341,39 @@ void pprint_for(struct clooginfos *infos, FILE *dst, int indent,
 	fprintf(dst, ";%s++) {\n", f->iterator);
     }
 
-    pprint_stmt_list(infos, dst, indent + INDENT_STEP, f->body);
+    pprint_stmt_list(options, dst, indent + INDENT_STEP, f->body);
 
     fprintf(dst, "%*s", indent, "");
-    if (infos->language == LANGUAGE_FORTRAN)
+    if (options->language == LANGUAGE_FORTRAN)
 	fprintf(dst,"END DO\n") ; 
     else
 	fprintf(dst,"}\n") ; 
 }
 
-void pprint_stmt_list(struct clooginfos *infos, FILE *dst, int indent,
+void pprint_stmt_list(struct cloogoptions *options, FILE *dst, int indent,
 		       struct clast_stmt *s)
 {
     for ( ; s; s = s->next) {
 	fprintf(dst, "%*s", indent, "");
 	switch (s->type) {
 	case stmt_ass:
-	    pprint_assignment(infos, dst, (struct clast_assignment *) s);
-	    if (infos->language != LANGUAGE_FORTRAN)
+	    pprint_assignment(options, dst, (struct clast_assignment *) s);
+	    if (options->language != LANGUAGE_FORTRAN)
 		fprintf(dst, " ;");
 	    fprintf(dst, "\n");
 	    break;
 	case stmt_user:
-	    pprint_user_stmt(infos, dst, (struct clast_user_stmt *) s);
+	    pprint_user_stmt(options, dst, (struct clast_user_stmt *) s);
 	    break;
 	case stmt_for:
-	    pprint_for(infos, dst, indent, (struct clast_for *) s);
+	    pprint_for(options, dst, indent, (struct clast_for *) s);
 	    break;
 	case stmt_guard:
-	    pprint_guard(infos, dst, indent, (struct clast_guard *) s);
+	    pprint_guard(options, dst, indent, (struct clast_guard *) s);
 	    break;
 	case stmt_block:
 	    fprintf(dst, "{\n");
-	    pprint_stmt_list(infos, dst, indent + INDENT_STEP, 
+	    pprint_stmt_list(options, dst, indent + INDENT_STEP, 
 				((struct clast_block *)s)->body);
 	    fprintf(dst, "%*s", indent, "");
 	    fprintf(dst, "}\n");
@@ -404,7 +404,7 @@ extern int cloog_value_max ;
  *                       Pretty Printing (dirty) functions                    *
  ******************************************************************************/
 
-void pprint(FILE *foo, struct clast_stmt *root, int indent, CloogInfos *infos)
+void pprint(FILE *foo, struct clast_stmt *root, int indent, CloogOptions *options)
 {
-    pprint_stmt_list(infos, foo, indent, root);
+    pprint_stmt_list(options, foo, indent, root);
 }

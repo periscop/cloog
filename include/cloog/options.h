@@ -84,6 +84,7 @@ struct cloogoptions
   int compilable; /* 1 to generate a compilable code by using
                    * preprocessing, 0 otherwise.
                    */
+  int language;   /* 1 to generate FORTRAN, 0 for C otherwise. */
 
   /* MISC OPTIONS */
   char * name ;   /* Name of the input file. */

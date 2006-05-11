@@ -15,7 +15,6 @@ extern "C"
  */
 struct clooginfos
 { Value * stride ;           /**< The stride for each iterator. */
-  int language ;             /**< 1 to generate FORTRAN, 0 for C otherwise. */
   int  nb_scattdims ;        /**< Scattering dimension number. */
   int * scaldims ;           /**< Boolean array saying whether a given
                               *   scattering dimension is scalar or not.
