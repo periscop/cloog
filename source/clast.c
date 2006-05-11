@@ -1,6 +1,29 @@
 #include <stdlib.h>
 #include "../include/cloog/cloog.h"
 
+#define ALLOC(type) (type*)malloc(sizeof(type))
+#define ALLOCN(type,n) (type*)malloc((n)*sizeof(type))
+
+/**
+ * CloogInfos structure:
+ * this structure contains all the informations necessary for pretty printing,
+ * they come from the original CloogProgram structure (language, names), from
+ * genereral options (options) or are built only for pretty printing (stride).
+ * This structure is mainly there to reduce the number of function parameters,
+ * since most pprint.c functions need most of its field.
+ */
+struct clooginfos
+{ Value * stride ;           /**< The stride for each iterator. */
+  int  nb_scattdims ;        /**< Scattering dimension number. */
+  int * scaldims ;           /**< Boolean array saying whether a given
+                              *   scattering dimension is scalar or not.
+                              */
+  CloogNames * names ;       /**< Names of iterators and parameters. */
+  CloogOptions * options ;   /**< Options on CLooG's behaviour. */
+} ;
+
+typedef struct clooginfos CloogInfos ;
+
 static int clast_term_equal(struct clast_term *t1, struct clast_term *t2);
 static int clast_binary_equal(struct clast_binary *b1, struct clast_binary *b2);
 static int clast_reduction_equal(struct clast_reduction *r1, 
@@ -1328,11 +1351,39 @@ void insert_loop(CloogLoop * loop, CloogMatrix * equal, int level, int scalar,
 }
 
 
-struct clast_stmt *cloog_clast_create(CloogLoop * loop, CloogMatrix * equal, 
-				      CloogInfos *infos)
+struct clast_stmt *cloog_clast_create(CloogProgram *program,
+				      CloogOptions *options)
 {
+    CloogInfos *infos = ALLOC(CloogInfos);
+    CloogMatrix *equal;
+    int i, nb_levels;
     struct clast_stmt *root = NULL;
     struct clast_stmt **next = &root;
-    insert_loop(loop, equal, 1, 0, &next, infos);
+
+    infos->names    = program->names;
+    infos->options  = options;
+    infos->scaldims = program->scaldims;
+    infos->nb_scattdims = program->nb_scattdims;
+
+    /* Allocation for the array of strides, there is a +1 since the statement can
+    * be included inside an external loop without iteration domain.
+    */ 
+    nb_levels = program->names->nb_scattering+program->names->nb_iterators+1;
+    infos->stride = ALLOCN(Value, nb_levels);
+    for (i = 0; i < nb_levels; ++i)
+	value_init_c(infos->stride[i]);
+
+    equal = cloog_matrix_alloc(nb_levels,
+			       nb_levels + program->names->nb_parameters + 1);
+	
+    insert_loop(program->loop, equal, 1, 0, &next, infos);
+
+    cloog_matrix_free(equal);
+
+    for (i = 0; i < nb_levels; ++i)
+	value_clear_c(infos->stride[i]);
+    free(infos->stride);
+    free(infos);
+
     return root;
 }

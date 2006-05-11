@@ -5,26 +5,6 @@ extern "C"
   {
 #endif 
 
-/**
- * CloogInfos structure:
- * this structure contains all the informations necessary for pretty printing,
- * they come from the original CloogProgram structure (language, names), from
- * genereral options (options) or are built only for pretty printing (stride).
- * This structure is mainly there to reduce the number of function parameters,
- * since most pprint.c functions need most of its field.
- */
-struct clooginfos
-{ Value * stride ;           /**< The stride for each iterator. */
-  int  nb_scattdims ;        /**< Scattering dimension number. */
-  int * scaldims ;           /**< Boolean array saying whether a given
-                              *   scattering dimension is scalar or not.
-                              */
-  CloogNames * names ;       /**< Names of iterators and parameters. */
-  CloogOptions * options ;   /**< Options on CLooG's behaviour. */
-} ;
-
-typedef struct clooginfos CloogInfos ;
-
 struct clast_expr {
     enum { expr_term, expr_bin, expr_red } type;
 };
@@ -97,8 +77,8 @@ struct clast_guard {
 };
 
 
-struct clast_stmt *cloog_clast_create(CloogLoop * loop, CloogMatrix * equal, 
-				      CloogInfos *infos);
+struct clast_stmt *cloog_clast_create(CloogProgram *program,
+				      CloogOptions *options);
 void cloog_clast_free(struct clast_stmt *s);
 
 struct clast_term *new_clast_term(Value c, const char *v);

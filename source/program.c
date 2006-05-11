@@ -284,31 +284,12 @@ void cloog_program_pprint(file, program, options)
 FILE * file ;
 CloogProgram * program ;
 CloogOptions * options ;
-{ int i, j, nb_levels, nb_scattering, indentation=0 ;
+{ int i, j, nb_scattering, indentation=0 ;
   CloogStatement * statement ;
   CloogBlockList * blocklist ;
   CloogBlock * block ;
-  CloogInfos * infos ;
-  CloogMatrix * equal ;
   struct clast_stmt *root;
    
-  infos           = (CloogInfos *)malloc(sizeof(CloogInfos)) ;
-  infos->names    = program->names ;
-  infos->options  = options ;
-  infos->scaldims = program->scaldims ;
-  infos->nb_scattdims = program->nb_scattdims ;
-  
-  /* Allocation for the array of strides, there is a +1 since the statement can
-   * be included inside an external loop without iteration domain.
-   */ 
-  nb_levels       = infos->names->nb_scattering + infos->names->nb_iterators+1 ;
-  infos->stride   = (Value *)malloc((nb_levels)*sizeof(Value)) ;
-  for (i=0;i<nb_levels; i++)
-  value_init_c(infos->stride[i]) ;
-
-  equal = cloog_matrix_alloc(nb_levels,
-                             nb_levels + program->names->nb_parameters + 1) ;
-	
   if (program->language == 'f')
     options->language = LANGUAGE_FORTRAN ;
   else
@@ -428,7 +409,7 @@ CloogOptions * options ;
     indentation += 2 ;
   }
   
-  root = cloog_clast_create(program->loop, equal, infos);
+  root = cloog_clast_create(program, options);
   pprint(file, root, indentation, options);
   cloog_clast_free(root);
   
@@ -437,13 +418,6 @@ CloogOptions * options ;
   { fprintf(file,"\n  printf(\"Number of integral points: %%d.\\n\",total) ;") ;
     fprintf(file,"\n  return 0 ;\n}\n") ;
   }
-
-  for (i=0; i<nb_levels; i++)
-  value_clear_c(infos->stride[i]) ;
-  
-  cloog_matrix_free(equal) ;
-  free(infos->stride) ;
-  free(infos) ;
 }
 
 
