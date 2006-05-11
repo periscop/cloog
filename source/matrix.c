@@ -253,6 +253,10 @@ void cloog_matrix_normalize(CloogMatrix * matrix, int level)
   if (matrix == NULL)
   return ;
 
+  /* Don't "normalize" the constant term. */
+  if (level == matrix->NbColumns-1)
+    return;
+
   /* Let us find an equality for the current level that can be propagated. */
   for (ref=0;ref<matrix->NbRows;ref++)
   if (value_zero_p(matrix->p[ref][0]) && value_notzero_p(matrix->p[ref][level]))
