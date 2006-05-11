@@ -949,6 +949,51 @@ void insert_guard(CloogMatrix *matrix, int level,
   value_clear(one);
   return;
 }
+
+
+/* Computes x, y and g such that g = gcd(a,b) and a*x+b*y = g */
+static void Euclid(Value a, Value b, Value *x, Value *y, Value *g)
+{
+    Value c, d, e, f, tmp;
+
+    value_init(c);
+    value_init(d);
+    value_init(e);
+    value_init(f);
+    value_init(tmp);
+    value_absolute(c, a);
+    value_absolute(d, b);
+    value_set_si(e, 1);
+    value_set_si(f, 0);
+    while(value_pos_p(d)) {
+	value_division(tmp, c, d);
+	value_multiply(tmp, tmp, f);
+	value_subtract(e, e, tmp);
+	value_division(tmp, c, d);
+	value_multiply(tmp, tmp, d);
+	value_subtract(c, c, tmp);
+	value_swap(c, d);
+	value_swap(e, f);
+    }
+    value_assign(*g, c);
+    if (value_zero_p(a))
+	value_set_si(*x, 0);
+    else if (value_pos_p(a))
+	value_assign(*x, e);
+    else value_oppose(*x, e);
+    if (value_zero_p(b))
+	value_set_si(*y, 0);
+    else {
+	value_multiply(tmp, a, *x);
+	value_subtract(tmp, c, tmp);
+	value_division(*y, tmp, b);
+    }
+    value_clear(c);
+    value_clear(d);
+    value_clear(e);
+    value_clear(f);
+    value_clear(tmp);
+}
  
 
 /**
@@ -965,17 +1010,21 @@ void insert_guard(CloogMatrix *matrix, int level,
 void insert_modulo_guard(CloogMatrix *matrix, int num, int level,
 			 struct clast_stmt ***next, CloogInfos *infos)
 {
-  int i, nb_elts = 0, len, nb_iter, in_stride = 0;
+  int i, j, k, nb_elts = 0, len, nb_iter, in_stride = 0, nb_par;
   Vector *line_vector;
-  Value *line, val;
+  Value *line, val, x, y, g;
 
   if (value_one_p(matrix->p[num][level]) || value_mone_p(matrix->p[num][level]))
     return;
 
   value_init_c(val);
+  value_init_c(x);
+  value_init_c(y);
+  value_init_c(g);
 
   len = matrix->NbColumns;
-  nb_iter = matrix->NbColumns - 2 - infos->names->nb_parameters;
+  nb_par = infos->names->nb_parameters;
+  nb_iter = matrix->NbColumns - 2 - nb_par;
 
   line_vector = Vector_Alloc(len);
   line = line_vector->p;
@@ -988,27 +1037,77 @@ void insert_modulo_guard(CloogMatrix *matrix, int num, int level,
   value_oppose(line[level], line[level]);
   assert(value_pos_p(line[level]));
 
-  for (i = 1, nb_elts = 0; i <= len-1; ++i) {
+  nb_elts = 0;
+  for (i = nb_iter; i >= 1; --i) {
     if (i == level)
       continue;
     value_pmodulus(line[i],line[i],line[level]);
     if (value_zero_p(line[i]))
       continue;
 
-    if (i <= nb_iter) {
-      value_modulus(val,infos->stride[i-1],line[level]);
-      /* We need to know if an element of the equality has not to be printed
-       * because of a stride that guarantees that this element can be divided by
-       * the current coefficient. Because when there is a constant element, it
-       * is included in the stride calculation (more exactly in the strided
-       * iterator new lower bound: the 'offset') and we have not to print it.
-       */
-      if (value_zero_p(val)) {
-	in_stride = 1;
+    /* Look for an earlier variable that is also a multiple of line[level]
+     * and check whether we can use the corresponding affine expression
+     * to "reduce" the modulo guard, where reduction means that we eliminate
+     * a variable, possibly at the expense of introducing other variables
+     * with smaller index.
+     */
+    for (j = level-1; j >= 0; --j) {
+      if (value_cmp_si(infos->equal->p[j][0], EQTYPE_EXAFFINE) != 0)
 	continue;
+      value_modulus(val, infos->equal->p[j][1+j], line[level]);
+      if (value_notzero_p(val))
+	continue;
+      value_modulus(val, infos->equal->p[j][i], line[level]);
+      if (value_zero_p(val))
+	continue;
+      for (k = j; k > i; --k) {
+	if (value_zero_p(infos->equal->p[j][k]))
+	  continue;
+	value_modulus(val, infos->equal->p[j][k], line[level]);
+	if (value_notzero_p(val))
+	  break;
       }
+      if (k > i)
+	 continue;
+      Euclid(infos->equal->p[j][i], line[level], &x, &y, &g);
+      value_modulus(val, line[i], g);
+      if (value_notzero_p(val))
+	continue;
+      value_division(val, line[i], g);
+      value_oppose(val, val);
+      value_multiply(val, val, x);
+      value_set_si(y, 1);
+      /* Add (infos->equal->p[j][i])^{-1} * line[i] times the equality */
+      Vector_Combine(line+1, infos->equal->p[j]+1, line+1, y, val, i);
+      Vector_Combine(line+len-nb_par-1,
+		     infos->equal->p[j]+infos->equal->NbColumns-nb_par-1,
+		     line+len-nb_par-1, y, val, nb_par+1);
+      break;
+    }
+    if (j >= 0) {
+      value_pmodulus(line[i],line[i],line[level]);
+      assert(value_zero_p(line[i]));
+      continue;
     }
 
+    value_modulus(val,infos->stride[i-1],line[level]);
+    /* We need to know if an element of the equality has not to be printed
+     * because of a stride that guarantees that this element can be divided by
+     * the current coefficient. Because when there is a constant element, it
+     * is included in the stride calculation (more exactly in the strided
+     * iterator new lower bound: the 'offset') and we have not to print it.
+     */
+    if (value_zero_p(val)) {
+      in_stride = 1;
+      continue;
+    }
+
+    nb_elts++;
+  }
+  for (i = nb_iter+1; i <= len-1; ++i) {
+    value_pmodulus(line[i],line[i],line[level]);
+    if (value_zero_p(line[i]))
+      continue;
     if (i <= len-2)
       nb_elts++;
   }
@@ -1068,6 +1167,9 @@ void insert_modulo_guard(CloogMatrix *matrix, int num, int level,
   Vector_Free(line_vector);
 
   value_clear_c(val);
+  value_clear_c(x);
+  value_clear_c(y);
+  value_clear_c(g);
 }
 
 
