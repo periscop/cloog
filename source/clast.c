@@ -20,6 +20,7 @@ struct clooginfos
                               */
   CloogNames * names ;       /**< Names of iterators and parameters. */
   CloogOptions * options ;   /**< Options on CLooG's behaviour. */
+  CloogMatrix *equal;        /**< Matrix of equalities. */
 } ;
 
 typedef struct clooginfos CloogInfos ;
@@ -34,26 +35,24 @@ static int clast_equal_add(CloogMatrix *equal, CloogMatrix *matrix, int level,
 			    int line, CloogInfos *infos);
 static void clast_equal_del(CloogMatrix * equal, int level);
 
-static struct clast_stmt * clast_equal(CloogMatrix *equal, CloogInfos *infos);
-static struct clast_stmt * clast_equal_cpp(CloogMatrix *equal, int level, 
-					    CloogInfos *infos);
-static struct clast_expr *clast_line(CloogMatrix *matrix, CloogMatrix *equal, 
+static struct clast_stmt * clast_equal(CloogInfos *infos);
+static struct clast_stmt * clast_equal_cpp(int level, CloogInfos *infos);
+static struct clast_expr *clast_line(CloogMatrix *matrix,
 				  int line_num, int level, CloogInfos *infos);
-static struct clast_expr *clast_minmax(CloogMatrix *matrix, CloogMatrix *equal, 
+static struct clast_expr *clast_minmax(CloogMatrix *matrix,
 					int level, int max, int guard, 
 					CloogInfos *infos);
-static void insert_guard(CloogMatrix *matrix, CloogMatrix *equal, int level, 
+static void insert_guard(CloogMatrix *matrix, int level,
 			  struct clast_stmt ***next, CloogInfos *infos);
-static void insert_equality(CloogMatrix *matrix, CloogMatrix *equal, int num, 
+static void insert_equality(CloogMatrix *matrix, int num,
 			 int level, struct clast_stmt ***next, CloogInfos *infos);
-static void insert_for(CloogMatrix *matrix, CloogMatrix *equal, int level,
+static void insert_for(CloogMatrix *matrix, int level,
 			struct clast_stmt ***next, CloogInfos *infos);
 static void insert_scalar(CloogLoop *loop, int level, int *scalar, 
 			   struct clast_stmt ***next, CloogInfos *infos);
-static void insert_block(CloogBlock *block, CloogMatrix *equal, int level,
+static void insert_block(CloogBlock *block, int level,
 			  struct clast_stmt ***next, CloogInfos *infos);
-static void insert_loop(CloogLoop * loop, CloogMatrix * equal, int level, 
-			int scalar,
+static void insert_loop(CloogLoop * loop, int level, int scalar,
 			struct clast_stmt ***next, CloogInfos *infos);
 
 
@@ -540,20 +539,20 @@ void clast_equal_del(CloogMatrix * equal, int level)
 /**
  * clast_equal function:
  * This function returns the content an equality matrix (equal) into a clast_stmt.
- * - equal is the matrix of equalities,
  * - the infos structure gives the user all options on code printing and more. 
  **
  * - July   2nd 2002: first version. 
  * - March 16th 2003: return now a string instead of printing directly and do
  *                    not write 'Sx()' if there is no spreading, but only 'Sx'. 
  */
-struct clast_stmt * clast_equal(CloogMatrix *equal, CloogInfos *infos)
+struct clast_stmt * clast_equal(CloogInfos *infos)
 { 
   int i, iterator ;
   Value type ;
   struct clast_expr *e;
   struct clast_stmt *a = NULL;
   struct clast_stmt **next = &a;
+  CloogMatrix *equal = infos->equal;
 
   value_init_c(type) ;
   
@@ -570,7 +569,7 @@ struct clast_stmt * clast_equal(CloogMatrix *equal, CloogInfos *infos)
        */
       value_assign(type,equal->p[i][0]) ;
       value_set_si(equal->p[i][0],0) ;
-      e = clast_line(equal,equal,i,i+1,infos) ;
+      e = clast_line(equal,i,i+1,infos) ;
       value_assign(equal->p[i][0],type) ;
       *next = &new_clast_assignment(infos->names->iterators[iterator], e)->stmt;
       next = &(*next)->next;
@@ -590,21 +589,20 @@ struct clast_stmt * clast_equal(CloogMatrix *equal, CloogInfos *infos)
  * By opposition to pprint_equal, the result is less human-readable. For
  * instance this function will print (i,i+3,k,3) where pprint_equal would
  * return (j=i+3,l=3).
- * - equal is the matrix of equalities,
  * - level is the number of loops enclosing the statement,
  * - the infos structure gives the user all options on code printing and more.
  **
  * - March    12th 2004: first version. 
  * - November 21th 2005: (debug) now works well with GMP version. 
  */
-struct clast_stmt * clast_equal_cpp(CloogMatrix *equal, int level, 
-				    CloogInfos *infos)
+struct clast_stmt * clast_equal_cpp(int level, CloogInfos *infos)
 { 
   int i ;
   Value type ;
   struct clast_expr *e;
   struct clast_stmt *a = NULL;
   struct clast_stmt **next = &a;
+  CloogMatrix *equal = infos->equal;
 
   value_init_c(type) ;
   
@@ -616,7 +614,7 @@ struct clast_stmt * clast_equal_cpp(CloogMatrix *equal, int level,
        */
       value_assign(type,equal->p[i][0]) ;
       value_set_si(equal->p[i][0],0) ;
-      e = clast_line(equal,equal,i,i+1,infos) ;
+      e = clast_line(equal,i,i+1,infos) ;
       value_assign(equal->p[i][0],type) ;
     } else {
       value_set_si(type, 1);
@@ -649,7 +647,7 @@ struct clast_stmt * clast_equal_cpp(CloogMatrix *equal, int level,
  * - November 2nd 2001: first version. 
  * - June    27th 2003: 64 bits version ready.
  */
-struct clast_expr *clast_line(CloogMatrix *matrix, CloogMatrix *equal, 
+struct clast_expr *clast_line(CloogMatrix *matrix,
 			      int line_num, int level, CloogInfos *infos)
 { 
   int i, nb_iter, sign, nb_elts=0 ;
@@ -807,7 +805,7 @@ struct clast_expr *clast_line(CloogMatrix *matrix, CloogMatrix *equal,
  **
  * - November 2nd 2001: first version. 
  */
-struct clast_expr *clast_minmax(CloogMatrix *matrix, CloogMatrix *equal, 
+struct clast_expr *clast_minmax(CloogMatrix *matrix,
 				int level, int max, int guard, 
 				CloogInfos *infos)
 { int i, n;
@@ -828,7 +826,7 @@ struct clast_expr *clast_minmax(CloogMatrix *matrix, CloogMatrix *equal,
 	   (!max && value_neg_p(matrix->p[i][level]))) &&
 	  (!guard || value_zero_p(matrix->p[i][guard])) &&
 	  (value_notzero_p(matrix->p[i][0])))
-    	r->elts[n++] = clast_line(matrix,equal,i,level,infos);
+    	r->elts[n++] = clast_line(matrix,i,level,infos);
 
   return &r->expr;
 }
@@ -861,7 +859,7 @@ struct clast_expr *clast_minmax(CloogMatrix *matrix, CloogMatrix *equal,
  *                       domain unions, now it should be fixed directly in
  *                       cloog_loop_simplify).
  */
-void insert_guard(CloogMatrix *matrix, CloogMatrix *equal, int level, 
+void insert_guard(CloogMatrix *matrix, int level, 
 		  struct clast_stmt ***next, CloogInfos *infos)
 { 
   int i, j, k, l, guarded, minmax=-1, nb_and = 0, nb_iter ;
@@ -907,7 +905,7 @@ void insert_guard(CloogMatrix *matrix, CloogMatrix *equal, int level,
 	value_assign(t->val, copy->p[j][i]);
 	value_set_si(copy->p[j][i], 1);
 	g->eq[nb_and].sign = 0;
-        g->eq[nb_and].RHS = clast_line(copy,equal,j,i,infos) ;
+        g->eq[nb_and].RHS = clast_line(copy,j,i,infos) ;
 	value_assign(copy->p[j][i], t->val);
       } else {
         if (value_pos_p(copy->p[j][i])) {
@@ -919,7 +917,7 @@ void insert_guard(CloogMatrix *matrix, CloogMatrix *equal, int level,
 	}
       
         guarded = (nb_iter >= level) ? level : 0 ;
-        g->eq[nb_and].RHS = clast_minmax(copy,equal,i,minmax,guarded,infos) ;
+        g->eq[nb_and].RHS = clast_minmax(copy,i,minmax,guarded,infos) ;
       }
       nb_and ++ ;
 
@@ -973,7 +971,7 @@ void insert_guard(CloogMatrix *matrix, CloogMatrix *equal, int level,
  * - July 14th 2003: (debug) no more print the constant in the modulo guard when
  *                   it was previously included in a stride calculation.
  */
-void insert_equality(CloogMatrix *matrix, CloogMatrix *equal, int num, 
+void insert_equality(CloogMatrix *matrix, int num, 
 		     int level, struct clast_stmt ***next, CloogInfos *infos)
 { int i, sign, nb_elts=0, nb_iter=0, in_stride=0 ;
   char * name ;
@@ -1081,7 +1079,7 @@ void insert_equality(CloogMatrix *matrix, CloogMatrix *equal, int num,
   if (sign == 1)
     value_oppose(line[level], line[level]);
  
-  if (!clast_equal_add(equal,matrix,level,num,infos))
+  if (!clast_equal_add(infos->equal,matrix,level,num,infos))
   { /* Finally, the equality. */
 		
     /* If we have to make a block by dimension, we start the block. Function
@@ -1094,7 +1092,7 @@ void insert_equality(CloogMatrix *matrix, CloogMatrix *equal, int num,
       *next = &b->body;
     }
 		
-    e = clast_line(matrix,equal,num,level,infos) ;
+    e = clast_line(matrix,num,level,infos) ;
     if (level <= infos->names->nb_scattering)
 	ass = new_clast_assignment(infos->names->scattering[level-1], e);
     else
@@ -1130,7 +1128,7 @@ void insert_equality(CloogMatrix *matrix, CloogMatrix *equal, int num,
  * - March 6th 2003: infinite domain support. 
  * - June 29th 2003: non-unit strides support.
  */
-void insert_for(CloogMatrix *matrix, CloogMatrix *equal, int level,
+void insert_for(CloogMatrix *matrix, int level,
 		struct clast_stmt ***next, CloogInfos *infos)
 {
   char * iterator ;
@@ -1143,8 +1141,8 @@ void insert_for(CloogMatrix *matrix, CloogMatrix *equal, int level,
   else
   iterator = infos->names->iterators[level-infos->names->nb_scattering-1] ;
   
-  e1 = clast_minmax(matrix,equal,level,1,0,infos) ;
-  e2 = clast_minmax(matrix,equal,level,0,0,infos) ;
+  e1 = clast_minmax(matrix,level,1,0,infos) ;
+  e2 = clast_minmax(matrix,level,0,0,infos) ;
 
   /* If min and max are not equal there is a 'for' else, there is a '='.
    * In the special case e1 = e2 = NULL, this is an infinite loop
@@ -1155,7 +1153,7 @@ void insert_for(CloogMatrix *matrix, CloogMatrix *equal, int level,
     **next = &f->stmt;
     *next = &f->body;
   }
-  else if (!clast_equal_add(equal,matrix,level,ONE_TIME_LOOP,infos)) {
+  else if (!clast_equal_add(infos->equal,matrix,level,ONE_TIME_LOOP,infos)) {
     if (infos->options->block) {
 	struct clast_block *b = new_clast_block();
 	**next = &b->stmt;
@@ -1228,7 +1226,7 @@ void insert_scalar(CloogLoop *loop, int level, int *scalar,
  **
  * - September 21th 2003: first version (pick from pprint function). 
  */
-void insert_block(CloogBlock *block, CloogMatrix *equal, int level,
+void insert_block(CloogBlock *block, int level,
 		  struct clast_stmt ***next, CloogInfos *infos)
 {
     CloogStatement * statement ;
@@ -1239,9 +1237,9 @@ void insert_block(CloogBlock *block, CloogMatrix *equal, int level,
 
     for (statement = block->statement; statement; statement = statement->next) {
 	if (infos->options->cpp == 0)
-	    subs = clast_equal(equal,infos);
+	    subs = clast_equal(infos);
 	else
-	    subs = clast_equal_cpp(equal,level,infos);
+	    subs = clast_equal_cpp(level,infos);
 
 	**next = &new_clast_user_stmt(statement, subs)->stmt;
 	*next = &(**next)->next;
@@ -1286,7 +1284,7 @@ void insert_block(CloogBlock *block, CloogMatrix *equal, int level,
  * - September 15th 2005: (debug) don't close equality braces when unnecessary.
  * - October   16th 2005: (debug) scalar value is saved for next loops.
  */
-void insert_loop(CloogLoop * loop, CloogMatrix * equal, int level, int scalar,
+void insert_loop(CloogLoop * loop, int level, int scalar,
 		 struct clast_stmt ***next, CloogInfos *infos)
 {
     int i, equality=0, scalar_level;
@@ -1302,12 +1300,13 @@ void insert_loop(CloogLoop * loop, CloogMatrix * equal, int level, int scalar,
     */ 
     temp = cloog_domain_domain2matrix(loop->domain);
     cloog_matrix_normalize(temp,level);
-    matrix = cloog_matrix_simplify(temp,equal,level,infos->names->nb_parameters);
+    matrix = cloog_matrix_simplify(temp,infos->equal,level,
+				   infos->names->nb_parameters);
     cloog_matrix_free(temp);
     value_assign(infos->stride[level-1],loop->stride);
 
     /* First of all we have to print the guard. */
-    insert_guard(matrix,equal,level, next, infos);
+    insert_guard(matrix,level, next, infos);
 
     /* Then we print scalar dimensions. */ 
     scalar_level = scalar ;
@@ -1324,30 +1323,30 @@ void insert_loop(CloogLoop * loop, CloogMatrix * equal, int level, int scalar,
 	   * PolyLib can give more than one equality, we use just the first one
 	   * (this is a PolyLib problem, but all equalities are equivalent).
 	   */
-	  insert_equality(matrix,equal,i,level, next, infos);
+	  insert_equality(matrix,i,level, next, infos);
 	  equality = 1 ;   
 	  break ;
 	}
       
 	if (!equality)
-	    insert_for(matrix,equal,level, next, infos);
+	    insert_for(matrix, level, next, infos);
     }
 
     /* Finally, if there is an included statement block, print it. */
-    insert_block(loop->block,equal,level+equality, next, infos);
+    insert_block(loop->block, level+equality, next, infos);
 
     /* Go to the next level. */
     if (loop->inner != NULL)
-	insert_loop(loop->inner,equal,level+1,scalar, next, infos);
+	insert_loop(loop->inner, level+1,scalar, next, infos);
 
-    clast_equal_del(equal,level);
+    clast_equal_del(infos->equal,level);
     cloog_matrix_free(matrix);
 
     /* Go to the next loop on the same level. */
     while (*top)
 	top = &(*top)->next;
     if (loop->next != NULL)
-	insert_loop(loop->next,equal,level,scalar_level, &top,infos);
+	insert_loop(loop->next, level,scalar_level, &top,infos);
 }
 
 
@@ -1355,7 +1354,6 @@ struct clast_stmt *cloog_clast_create(CloogProgram *program,
 				      CloogOptions *options)
 {
     CloogInfos *infos = ALLOC(CloogInfos);
-    CloogMatrix *equal;
     int i, nb_levels;
     struct clast_stmt *root = NULL;
     struct clast_stmt **next = &root;
@@ -1373,12 +1371,12 @@ struct clast_stmt *cloog_clast_create(CloogProgram *program,
     for (i = 0; i < nb_levels; ++i)
 	value_init_c(infos->stride[i]);
 
-    equal = cloog_matrix_alloc(nb_levels,
+    infos->equal = cloog_matrix_alloc(nb_levels,
 			       nb_levels + program->names->nb_parameters + 1);
 	
-    insert_loop(program->loop, equal, 1, 0, &next, infos);
+    insert_loop(program->loop, 1, 0, &next, infos);
 
-    cloog_matrix_free(equal);
+    cloog_matrix_free(infos->equal);
 
     for (i = 0; i < nb_levels; ++i)
 	value_clear_c(infos->stride[i]);
