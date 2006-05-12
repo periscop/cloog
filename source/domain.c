@@ -364,8 +364,46 @@ CloogDomain * cloog_domain_simple_convex(CloogDomain * domain, int nb_par)
  * NB: this function do not work as expected with unions of polyhedra...
  */ 
 CloogDomain * cloog_domain_simplify(CloogDomain * dom1, CloogDomain * dom2)
-{ return (cloog_domain_alloc(DomainSimplify(dom1->polyhedron,
-                                            dom2->polyhedron,MAX_RAYS))) ;
+{
+  CloogMatrix *M, *M2;
+  CloogDomain *dom;
+  Polyhedron *P = dom1->polyhedron;
+
+  /* DomainSimplify doesn't remove all redundant equalities,
+   * so we remove them here first in case both dom1 and dom2
+   * are single polyhedra (i.e., not unions of polyhedra).
+   */
+  if (!dom1->polyhedron->next && !dom2->polyhedron->next &&
+      P->NbEq && dom2->polyhedron->NbEq) {
+    int i, row;
+    int rows = P->NbEq + dom2->polyhedron->NbEq;
+    int cols = P->Dimension+2;
+    int rank;
+    M = cloog_matrix_alloc(rows, cols);
+    M2 = cloog_matrix_alloc(P->NbConstraints, cols);
+    Vector_Copy(dom2->polyhedron->Constraint[0], M->p[0], 
+		dom2->polyhedron->NbEq * cols);
+    rank = dom2->polyhedron->NbEq;
+    row = 0;
+    for (i = 0; i < P->NbEq; ++i) {
+      Vector_Copy(P->Constraint[i], M->p[rank], cols);
+      if (Gauss(M, rank+1, cols-1) > rank) {
+	Vector_Copy(P->Constraint[i], M2->p[row++], cols);
+	rank++;
+      }
+    }
+    if (row < P->NbEq) {
+      Vector_Copy(P->Constraint[P->NbEq], M2->p[row], 
+		  (P->NbConstraints - P->NbEq) * cols);
+      P = Constraints2Polyhedron(M2, MAX_RAYS);
+    }
+    cloog_matrix_free(M2);
+    cloog_matrix_free(M);
+  }
+  dom = cloog_domain_alloc(DomainSimplify(P, dom2->polyhedron,MAX_RAYS));
+  if (P != dom1->polyhedron)
+    Polyhedron_Free(P);
+  return dom;
 }
 
 
