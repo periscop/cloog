@@ -61,6 +61,7 @@ struct cloognames
   char ** scattering ;     /**< The scattering names (an array of strings). */
   char ** iterators ;      /**< The iterator names   (an array of strings). */
   char ** parameters ;     /**< The parameter names  (an array of strings). */
+  int references;          /**< Number of references to this structure. */
 } ;
 typedef struct cloognames CloogNames ;
 
@@ -88,6 +89,7 @@ char ** cloog_names_read_strings(FILE *, int, char *, char) ;
  *                            Processing functions                            *
  ******************************************************************************/
 CloogNames * cloog_names_malloc() ;
+CloogNames * cloog_names_copy(CloogNames *names);
 CloogNames * cloog_names_alloc(int,int,int,int,char **,char **,char **,char **);
 char ** cloog_names_generate_items(int, char *, char) ;
 CloogNames * cloog_names_generate(int, int, int, int, char, char, char, char) ;

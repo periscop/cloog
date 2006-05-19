@@ -177,6 +177,7 @@ void cloog_names_print_structure(FILE * file, CloogNames * names, int level)
   }
   else
   fprintf(file,"+-- No CloogNames\n") ;
+  fprintf(file, "Number of active references: %d\n", names->references);
 }
 
 
@@ -200,10 +201,15 @@ void cloog_names_print(FILE * file, CloogNames * names)
 
 /**
  * cloog_names_free function:
- * This function frees the allocated memory for a CloogNames structure.
+ * This function decrements the number of active references to 
+ * a CloogNames structure and frees the allocated memory for this structure
+ * if the count drops to zero.
  */
 void cloog_names_free(CloogNames * names)
 { int i ;
+
+  if (--names->references)
+    return;
 
   if (names->scalars != NULL)
   { for (i=0;i<names->nb_scalars;i++)
@@ -229,6 +235,17 @@ void cloog_names_free(CloogNames * names)
     free(names->parameters) ;
   }
   free(names) ;
+}
+
+
+/**
+ * cloog_names_copy function:
+ * As usual in CLooG, "copy" means incrementing the reference count.
+ */ 
+CloogNames *cloog_names_copy(CloogNames *names)
+{
+  names->references++;
+  return names;
 }
 
 
@@ -351,6 +368,7 @@ CloogNames * cloog_names_malloc()
   names->scattering    = NULL ;
   names->iterators     = NULL ;
   names->parameters    = NULL ;
+  names->references    = 1;
   
   return names ;
 }  

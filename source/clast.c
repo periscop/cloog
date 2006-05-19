@@ -93,6 +93,15 @@ struct clast_reduction *new_clast_reduction(enum clast_red_type t, int n)
     return r;
 }
 
+struct clast_root *new_clast_root(CloogNames *names)
+{
+    struct clast_root *r = malloc(sizeof(struct clast_root));
+    r->stmt.type = stmt_root;
+    r->stmt.next = NULL;
+    r->names = cloog_names_copy(names);
+    return r;
+}
+
 struct clast_assignment *new_clast_assignment(const char *lhs,
 					      struct clast_expr *rhs)
 {
@@ -195,6 +204,12 @@ void free_clast_expr(struct clast_expr *e)
     }
 }
 
+void free_clast_root(struct clast_root *r)
+{
+    cloog_names_free(r->names);
+    free(r);
+}
+
 void free_clast_assignment(struct clast_assignment *a)
 {
     free_clast_expr(a->RHS);
@@ -239,6 +254,9 @@ void cloog_clast_free(struct clast_stmt *s)
     while (s) {
 	next = s->next;
 	switch (s->type) {
+	case stmt_root:
+	    free_clast_root((struct clast_root *) s);
+	    break;
 	case stmt_ass:
 	    free_clast_assignment((struct clast_assignment *) s);
 	    break;
@@ -1478,8 +1496,8 @@ struct clast_stmt *cloog_clast_create(CloogProgram *program,
 {
     CloogInfos *infos = ALLOC(CloogInfos);
     int i, nb_levels;
-    struct clast_stmt *root = NULL;
-    struct clast_stmt **next = &root;
+    struct clast_stmt *root = &new_clast_root(program->names)->stmt;
+    struct clast_stmt **next = &root->next;
 
     infos->names    = program->names;
     infos->options  = options;

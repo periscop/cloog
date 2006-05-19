@@ -33,8 +33,14 @@ struct clast_binary {
 };
 
 struct clast_stmt {
-    enum { stmt_ass, stmt_block, stmt_for, stmt_guard, stmt_user } type;
+    enum { stmt_ass, stmt_block, stmt_for,
+	   stmt_guard, stmt_user, stmt_root } type;
     struct clast_stmt	*next;
+};
+
+struct clast_root {
+    struct clast_stmt	stmt;
+    CloogNames *	names;       /**< Names of iterators and parameters. */
 };
 
 struct clast_assignment {
@@ -85,6 +91,7 @@ struct clast_term *new_clast_term(Value c, const char *v);
 struct clast_binary *new_clast_binary(enum clast_bin_type t, 
 				      struct clast_expr *lhs, Value rhs);
 struct clast_reduction *new_clast_reduction(enum clast_red_type t, int n);
+struct clast_root *new_clast_root(CloogNames *names);
 struct clast_assignment *new_clast_assignment(const char *lhs,
 					      struct clast_expr *rhs);
 struct clast_user_stmt *new_clast_user_stmt(CloogStatement *stmt, 
@@ -98,6 +105,7 @@ void free_clast_term(struct clast_term *t);
 void free_clast_binary(struct clast_binary *b);
 void free_clast_reduction(struct clast_reduction *r);
 void free_clast_expr(struct clast_expr *e);
+void free_clast_root(struct clast_root *r);
 void free_clast_assignment(struct clast_assignment *a);
 void free_clast_user_stmt(struct clast_user_stmt *u);
 void free_clast_for(struct clast_for *f);

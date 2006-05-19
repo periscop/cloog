@@ -354,6 +354,8 @@ void pprint_stmt_list(struct cloogoptions *options, FILE *dst, int indent,
 		       struct clast_stmt *s)
 {
     for ( ; s; s = s->next) {
+	if (s->type == stmt_root)
+	    continue;
 	fprintf(dst, "%*s", indent, "");
 	switch (s->type) {
 	case stmt_ass:
