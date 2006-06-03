@@ -150,7 +150,9 @@ CLOOGTEST_FORTRAN =                    \
 CLOOGTEST_STRIDED =                    \
 	nul_basic1                     \
 	nul_basic2                     \
-	nul_lcpc
+	nul_lcpc		       \
+	reservoir/stride	       \
+	reservoir/stride2
 
 generate:
 	@echo "             /*-----------------------------------------------*"

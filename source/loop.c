@@ -1084,15 +1084,19 @@ void cloog_loop_stride(CloogLoop * loop, int level, int nb_par)
   if (value_notone_p(stride))
   { /* Update the stride value. */
     value_assign(loop->stride,stride) ;
-    /* Update the lower bound (too late to do something more intelligent !). */
-    /* Here we want potential = ((lower-offset)%stride). */
-    value_substract(potential,lower,offset) ;
-    value_modulus(potential,potential,stride) ;
-    while (value_notzero_p(potential)) 
-    { value_increment(lower,lower) ;
-      value_substract(potential,lower,offset) ;
-      value_modulus(potential,potential,stride) ;
-    }   
+    /* The new lower bound l' is such that 
+     *      (l' + offset) % s = 0 and l <= l' <= l+(s-1)
+     * Let l' = k s - offset, then 
+     *	    k s - offset <= l + (s-1) <= k s - offset + (s-1)
+     * Or   l' = floor((l+offset+(s-1))/s) * s - offset
+     *         = (floor((l+offset-1)/s) + 1) * s - offset
+     */
+    value_addto(lower, lower, offset);
+    value_decrement(lower, lower);
+    value_pdivision(lower, lower, stride);
+    value_increment(lower, lower);
+    value_multiply(lower, lower, stride);
+    value_subtract(lower, lower, offset);
     cloog_domain_lowerbound_update(loop->domain,level,lower) ;
   }
   
