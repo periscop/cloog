@@ -1063,11 +1063,12 @@ void cloog_loop_stride(CloogLoop * loop, int level, int nb_par)
     if ((first_search) || (value_notone_p(stride)))
     { cloog_domain_stride(inner->domain,level,nb_par,&potential,&offset) ;
       if (value_notone_p(potential) && (!first_search))
-      { /* Offsets must be the same. */
-        if (value_eq(offset,ref_offset))
+      { /* Offsets must be the same for common stride. */
 	Gcd(potential,stride,&stride) ;
-        else
-        value_set_si(stride,1) ;
+	value_modulus(offset, offset, stride);
+	value_modulus(ref_offset, ref_offset, stride);
+        if (value_ne(offset,ref_offset))
+	    value_set_si(stride, 1);
       }
       else
       { value_assign(stride,potential) ;
