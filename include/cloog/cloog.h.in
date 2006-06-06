@@ -89,6 +89,10 @@
 #define value_multiply_si(ref,v1,i2)   ((ref) = value_mult((v1),(i2)))
 #endif
 
+#ifndef value_subtract
+#define value_subtract value_substract
+#endif
+
 
 /******************************************************************************
  *                             POLYLIB MACROS                                 *
