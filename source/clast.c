@@ -886,11 +886,11 @@ void insert_guard(CloogMatrix *matrix, int level,
   char * name;
   CloogMatrix * copy ;
   struct clast_guard *g;
+  Value one;
 
   if (matrix == NULL)
     return;
 
-  Value one;
   value_init(one);
   value_set_si(one, 1);
   
