@@ -401,8 +401,9 @@ CloogOptions * options ;
       for(i=2;i<=program->names->nb_parameters;i++)
       fprintf(file,", %s=PARVAL",program->names->parameters[i-1]) ; 
       
-      fprintf(file,", total=0 ;\n") ;
+      fprintf(file,";\n");
     }
+    fprintf(file,"  int total=0;\n");
     fprintf(file,"\n") ;
     
     /* And we adapt the identation. */
