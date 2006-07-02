@@ -1029,111 +1029,57 @@ void cloog_domain_stride(domain, strided_level, nb_par, stride, offset)
 CloogDomain * domain ;
 int strided_level, nb_par ;
 Value  * stride, * offset;
-{ int i, j, valid, looking_level, looking_max, dimension ;
-  Value looking_coeff, strided_coeff, ref_offset, potential, constant, tmp ;
+{ int i, dimension;
   Polyhedron * polyhedron ;
-
-  value_init_c(looking_coeff) ;
-  value_init_c(strided_coeff) ;
-  value_init_c(ref_offset) ;
-  value_init_c(potential) ;
-  value_init_c(constant) ;
-  value_init_c(tmp) ;
-
-  value_set_si(ref_offset,0) ;
-  value_set_si(potential,0) ;
-  value_set_si(*stride,0) ;
+  int n_col, n_row, rank;
+  CloogMatrix *M;
+  Matrix *U;
+  Vector *V;
 
   polyhedron = domain->polyhedron ;
   dimension = polyhedron->Dimension ;
 
-  /* Looking for a non-unit stride. */
-  looking_max = dimension - nb_par + 1 ;
-  for (looking_level=strided_level+1;looking_level<looking_max;looking_level++)
-  { for (i=0; i<polyhedron->NbConstraints; i++)  
-    { value_assign(strided_coeff, polyhedron->Constraint[i][strided_level]) ;
-      value_assign(looking_coeff, polyhedron->Constraint[i][looking_level]) ;
-    
-      /* A potential interesting constraint is an equality such as the
-       * coefficient of the potentially non-unit strided iterator and the
-       * looking one are not zeros, and such as the looking coefficient do
-       * not divide the strided one.
-       */
-      valid = 1 ;
-      if (value_zero_p(polyhedron->Constraint[i][0]) && 
-          value_notzero_p(strided_coeff) && 
-          value_notzero_p(looking_coeff))
-      {value_modulus(tmp, strided_coeff, looking_coeff) ;
-	if (value_notzero_p(tmp))
-	{ /* We verify that all the coefficient except the strided and the
-           * looking one give 0 by modulo looking_coef.
-           */
-	  for (j=1;j<strided_level;j++) 
-	  { value_modulus(tmp, polyhedron->Constraint[i][j], looking_coeff) ;
-            if (value_notzero_p(tmp))
-            { valid = 0 ;
-              break ;
-            }
-          }
-	      
-          if (valid)
-          for (j=looking_level+1; j<=dimension; j++)
-          { value_modulus(tmp, polyhedron->Constraint[i][j], looking_coeff);
-            if (value_notzero_p(tmp))
-            { valid = 0 ;
-	      break ;
-            }
-          }
+  /* Look at all equalities involving strided_level and the inner
+   * iterators.  We can ignore the outer iterators and the parameters
+   * here because the lower bound on strided_level is assumed to
+   * be a constant.
+   */
+  n_col = (1+dimension-nb_par) - strided_level;
+  for (i=0, n_row=0; i < polyhedron->NbEq; i++)
+    if (First_Non_Zero(polyhedron->Constraint[i]+strided_level, n_col) != -1)
+      ++n_row;
 
-          /* If there is a non-unit stride, we take its absolute value.*/
-          if (valid)
-          { value_assign(constant, polyhedron->Constraint[i][dimension+1]) ;
-            value_modulus(*offset, constant, looking_coeff) ;
-	  
-            if (value_pos_p(looking_coeff))
-            value_assign(potential, looking_coeff) ;
-            else
-            value_oppose(potential, looking_coeff) ;
-          }
-        }
-      }
-    }
-
-    /* If a stride was found, we have to verify that the offset and the
-     * stride values are compatible with previous values (offsets must be the
-     * same, and we have to consider the GCD of the strides.
-     */
-    if (value_notzero_p(potential))
-    { if (value_notzero_p(*stride))
-      { if (value_ne(*offset, ref_offset))
-        { value_set_si(*offset, 0) ;
-          value_set_si(*stride, 1) ;
-	  break ;
-        }
-        else
-        Gcd(*stride,potential,stride);/* Gcd(a,b,*result) in polylib/vector.h */
-      }
-      else
-      { /* We set the reference values. */
-        value_assign(*stride, potential) ;
-        value_assign(ref_offset, *offset) ;
-      }
-      value_set_si(potential, 0) ;
-    }
+  M = cloog_matrix_alloc(n_row+1, n_col+1);
+  for (i=0, n_row = 0; i < polyhedron->NbEq; i++) {
+    if (First_Non_Zero(polyhedron->Constraint[i]+strided_level, n_col) == -1)
+      continue;
+    Vector_Copy(polyhedron->Constraint[i]+strided_level, M->p[n_row], n_col);
+    value_assign(M->p[n_row][n_col], polyhedron->Constraint[i][1+dimension]);
+    ++n_row;
   }
+  value_set_si(M->p[n_row][n_col], 1);
 
-  /* If no non-unit stride was found, this is because the stride is 1. */
-  if (value_zero_p(*stride))
-  { value_set_si(*offset, 0) ;
-    value_set_si(*stride, 1) ;
+  /* Then look at the general solution to the above equalities. */
+  rank = SolveDiophantine(M, &U, &V);
+  cloog_matrix_free(M);
+
+  if (rank == -1) {
+    /* There is no solution, so the body of this loop will
+     * never execute.  We just leave the constraints alone here so
+     * that they will ensure the body will not be executed.
+     * We should probably propagate this information up so that
+     * the loop can be removed entirely.
+     */ 
+    value_set_si(*offset, 0);
+    value_set_si(*stride, 1);
+  } else {
+    /* Compute the gcd of the coefficients defining strided_level. */
+    Vector_Gcd(U->p[0], U->NbColumns, stride);
+    value_oppose(*offset, V->p[0]);
+    value_pmodulus(*offset, *offset, *stride);
   }
-  
-  value_clear_c(looking_coeff) ;
-  value_clear_c(strided_coeff) ;
-  value_clear_c(ref_offset) ;
-  value_clear_c(potential) ;
-  value_clear_c(constant) ;
-  value_clear_c(tmp) ;
+  Matrix_Free(U);
+  Vector_Free(V);
 
   return ;
 }

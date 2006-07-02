@@ -151,6 +151,9 @@ CLOOGTEST_STRIDED =                    \
 	nul_basic1                     \
 	nul_basic2                     \
 	nul_lcpc		       \
+	multi-stride		       \
+	multi-stride2		       \
+	reservoir/bastoul3	       \
 	reservoir/stride	       \
 	reservoir/stride2
 
