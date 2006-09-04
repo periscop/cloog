@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <assert.h>
 #include "../include/cloog/cloog.h"
 
 #define ALLOC(type) (type*)malloc(sizeof(type))
