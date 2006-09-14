@@ -104,7 +104,7 @@ CLOOG_INS_INC = $(prefix)/include
 INCFLAGS = -I $(CLOOG_INC)
 LDFLAGS  = @LDFLAGS@ $(LIBS) $(EXTRA_LIBS) # -static
 CFLAGS   = -c -Wall $(INCFLAGS) $(CPPFLAGS) \
-	   -fomit-frame-pointer -O2 $(EXTRA_FLAGS)
+	   -fomit-frame-pointer -O2 $(EXTRA_FLAGS) -fPIC
 
 
 #/*****************************************************************************
