@@ -139,7 +139,7 @@ CLOOGTEST_C =                          \
 	./reservoir/two   
 
 #	./reservoir/long               \
-#	faber                          \
+#	faber
 
 CLOOGTEST_FORTRAN =                    \
 	dartef                         \
@@ -176,11 +176,11 @@ valgrind:
 	@echo "              *-----------------------------------------------*/"
 	for x in $(CLOOGTEST_C) ; do \
 		echo "Valgrinding $$x.c" ; \
-		valgrind $(ROOT)/obj_$(TARGET)/cloog$(EXEC_SUFFIX) $$x.cloog ; \
+		valgrind $(top_builddir)/cloog$(EXEEXT) $$x.cloog ; \
 	done ; \
 	for x in $(CLOOGTEST_FORTRAN) ; do \
 		echo "Valgrinding $$x.f" ; \
-		valgrind $(ROOT)/obj_$(TARGET)/cloog$(EXEC_SUFFIX) $$x.cloog ; \
+		valgrind $(top_builddir)/cloog$(EXEEXT) $$x.cloog ; \
 	done
 
 test:
@@ -191,7 +191,7 @@ test:
 	echo "--- Testing C files..." ; \
 	for x in $(CLOOGTEST_C) ; do \
 		echo "Verify file $$x" ; \
-		$(ROOT)/obj_$(TARGET)/cloog$(EXEC_SUFFIX) $$x.cloog > ttemp ; \
+		$(top_builddir)/cloog$(EXEEXT) $$x.cloog > ttemp ; \
 		diff -w --ignore-matching-lines='CLooG' ttemp $$x.c ; \
 		result=$$?; \
 		if [ "$$result" -eq "1" ] ; then \
@@ -204,7 +204,7 @@ test:
 	echo "--- Testing FORTRAN files..." ; \
 	for x in $(CLOOGTEST_FORTRAN) ; do \
 		echo "Verify file $$x" ; \
-		$(ROOT)/obj_$(TARGET)/cloog$(EXEC_SUFFIX) $$x.cloog > ttemp ; \
+		$(top_builddir)/cloog$(EXEEXT) $$x.cloog > ttemp ; \
 		diff -w --ignore-matching-lines='CLooG' ttemp $$x.f ; \
 		result=$$?; \
 		if [ "$$result" -eq "1" ] ; then \
@@ -217,7 +217,7 @@ test:
 	echo "--- Testing STRIDED files..." ; \
 	for x in $(CLOOGTEST_STRIDED) ; do \
 		echo "Verify file $$x" ; \
-		$(ROOT)/obj_$(TARGET)/cloog$(EXEC_SUFFIX) $$x.cloog \
+		$(top_builddir)/cloog$(EXEEXT) $$x.cloog \
 		-strides 1 > ttemp ; \
 		diff -w --ignore-matching-lines='CLooG' ttemp $$x.c ; \
 		result=$$?; \
@@ -231,7 +231,7 @@ test:
 	echo "--- Testing SPECIAL OPTIONS files..." ; \
 	        echo "Verify file vasilache (-f 8 -l 9)" ; \
 		x=vasilache ; \
-		$(ROOT)/obj_$(TARGET)/cloog$(EXEC_SUFFIX) $$x.cloog \
+		$(top_builddir)/cloog$(EXEEXT) $$x.cloog \
 		-f 8 -l 9 > ttemp ; \
 		diff -w --ignore-matching-lines='CLooG' ttemp $$x.c ; \
 		result=$$?; \
@@ -243,7 +243,7 @@ test:
 	        fi ; \
 	        echo "Verify file merge (-f -1)" ; \
 		x=merge ; \
-		$(ROOT)/obj_$(TARGET)/cloog$(EXEC_SUFFIX) $$x.cloog \
+		$(top_builddir)/cloog$(EXEEXT) $$x.cloog \
 		-f -1  > ttemp ; \
 		diff -w --ignore-matching-lines='CLooG' ttemp $$x.c ; \
 		result=$$?; \
@@ -255,7 +255,7 @@ test:
 	        fi ; \
 	        echo "Verify file equality (-f -1 -l 2 -override)" ; \
 		x=equality ; \
-		$(ROOT)/obj_$(TARGET)/cloog$(EXEC_SUFFIX) $$x.cloog \
+		$(top_builddir)/cloog$(EXEEXT) $$x.cloog \
 		-f -1 -l 2 -override  > ttemp ; \
 		diff -w --ignore-matching-lines='CLooG' ttemp $$x.c ; \
 		result=$$?; \
@@ -267,7 +267,7 @@ test:
 	        fi ; \
 	        echo "Verify file equality (-f -1 -l 4 -esp 1 -override)" ; \
 		x=equality2; \
-		$(ROOT)/obj_$(TARGET)/cloog$(EXEC_SUFFIX) $$x.cloog \
+		$(top_builddir)/cloog$(EXEEXT) $$x.cloog \
 		-f -1 -l 4 -esp 1 -override > ttemp ; \
 		diff -w --ignore-matching-lines='CLooG' ttemp $$x.c ; \
 		result=$$?; \
@@ -283,6 +283,3 @@ test:
 	else \
 	        echo "CLooG works correctly :-) !" ; \
         fi
-
-# Include the shared compilation rules
-include $(ROOT)/makefile

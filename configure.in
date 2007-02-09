@@ -41,37 +41,28 @@ dnl ***************************************************************************/
 AC_PREREQ(2.13)
 AC_INIT(source/cloog.c)
 AC_CONFIG_AUX_DIR(autoconf)
-RELEASE="0.14.0"
+AM_INIT_AUTOMAKE(cloog, 0.14.0)
 dnl default version
-VERSION="64"
+BITS="64"
 
 dnl /**************************************************************************
 dnl  *                              Checking                                  *
 dnl  **************************************************************************/
 
-
-dnl Checks for typedefs, structures, and compiler characteristics.
-AC_CANONICAL_SYSTEM 
-
-
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_LN_S
-AC_PROG_RANLIB
 AC_PROG_MAKE_SET
 AC_CHECK_PROG(CD, cd)
 dnl Configure needs an empty install.sh file with this, i HATE that...
 AC_PROG_INSTALL
+AC_PROG_LIBTOOL
 
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_SIZE_T
 
-
-dnl Checks for libraries.
-dnl Replace `main' with a function in -lc:
-AC_CHECK_LIB(c,main)
 
 
 dnl Checks for header files.
@@ -82,60 +73,9 @@ dnl Checks for library functions.
 AC_CHECK_FUNCS(strtol)
 
 
-dnl Set some system dependant values.
-case "$target" in
-  i*-pc-cygwin)
-	SHEXT="dll"
-	EXEC_SUFFIX=".exe"	
-	EXTRA_FLAGS="-DCYGWIN"
-	EXTRA_LIBS="-lcygwin -lkernel32"
-	CLOOGLIB="cloogstaticlib"
-	INSTALL_CLOOGLIB="install_cloogstaticlib" ;;
-  *)
-	SHEXT="so"
-	EXEC_SUFFIX=""
-	EXTRA_FLAGS=""
-	EXTRA_LIBS=""
-	CLOOGLIB="cloogsharedlib cloogstaticlib"
-	INSTALL_CLOOGLIB="install_cloogsharedlib install_cloogstaticlib" ;;
-esac
-
-dnl Test whether we are using SUN's ld rather than Solaris ld
-dnl If so, we need to add -G -Bdynamic to the linking options
-dnl This is a hack to avoid having to hack the piplib makefiles
-dnl and configure scripts. (by Allen Leung)
-
-SOLARIS_LD=no
-case $target_os in
-    solaris*)
-        case `which ld` in
-           /usr/ccs/bin/ld|/usr/ucb/ld)
-               SOLARIS_LD=yes
-               ;;
-           *)
-               ld -shared 2>&1 | grep 'fatal: option -h'
-               if test "$?" = "0"; then
-                   SOLARIS_LD=yes
-               fi
-               ;;
-        esac
-        ;;
-    *)
-        ;;
-esac
-SOLARIS_LDFLAGS=''
-if test "$SOLARIS_LD" = "yes"; then
-   SOLARIS_LDFLAGS='-G -Bdynamic'
-fi
-
 dnl /**************************************************************************
 dnl  *                             Option setting                             *
 dnl  **************************************************************************/
-
-
-dnl The two different packages that can be built and installed.
-CLOOG="cloog"
-INSTALL_CLOOG="install_cloog"
 
 dnl Some default values cause I'm not sure whether autoconf set them, while
 dnl documentation says it does...
@@ -146,28 +86,6 @@ gmp_library_package="yes"
 MP_BITS="MP"
 MP_DFLAGS=-DLINEAR_VALUE_IS_MP
 NEED_MP="no"
-GMP_INC="/usr/local/include"
-GMP_LIB="/usr/local/lib"
-
-
-dnl Options.
-dnl --with-cloog=yes, --with-cloog=no ou --without-cloog
-AC_ARG_WITH(cloog,
-            [  --without-cloog         disable the compilation of cloog],
-            [ echo "Package cloog : $withval" &&
-              if test "$withval"="no" ; then 	
-                CLOOG=""
-                INSTALL_CLOOG=""
-              fi ])
-
-dnl --with-lib=yes,   --with-lib=no   ou --without-lib
-AC_ARG_WITH(lib,
-            [  --without-lib           disable the compilation of cloog's lib],
-            [ echo "Package clooglib : $withval" &&
-              if test "$withval"="no" ; then 	
-                CLOOGLIB=""
-                INSTALL_CLOOGLIB=""
-              fi ])
 
 dnl --with-polylib=polylib-path
 AC_ARG_WITH(polylib,
@@ -176,7 +94,7 @@ AC_ARG_WITH(polylib,
             [ polylib_package=yes ])
 AC_ARG_WITH(bits,
 	    [  --with-bits=32|64|gmp   PolyLib library type to use],
-	    [ echo "polylib$withval"; VERSION=$withval ])
+	    [ echo "polylib$withval"; BITS=$withval ])
 
 dnl --with-gmp=gmp-path
 AC_ARG_WITH(gmp,
@@ -201,19 +119,15 @@ AC_ARG_WITH(gmp_library,
           GMP_LIB=$gmp_library_package &&
 	  NEED_MP="yes"])
 
-dnl Packages to build.
-PACKAGES="$CLOOGLIB $CLOOG"
-INSTALL_PACKAGES="$INSTALL_CLOOGLIB $INSTALL_CLOOG"
-
 
 dnl /**************************************************************************
 dnl  *                          Where is PolyLib?                             *
 dnl  **************************************************************************/
 
 polylibs="64 32"
-case "$VERSION" in
+case "$BITS" in
     32|64|gmp)
-	polylibs=$VERSION
+	polylibs=$BITS
     ;;
 esac
 
@@ -231,8 +145,8 @@ else
     CPPFLAGS="-I$POLYLIB_DIR/include $CPPFLAGS"
     LDFLAGS="-L$POLYLIB_DIR/lib $LDFLAGS"
   fi
-  for VERSION in $polylibs; do
-    cl_cv_polylib="polylib$VERSION"
+  for BITS in $polylibs; do
+    cl_cv_polylib="polylib$BITS"
     AC_CHECK_LIB($cl_cv_polylib,PolyhedronTSort,[break])
     cl_cv_polylib=missing
   done
@@ -264,7 +178,7 @@ else
     AC_CHECK_HEADER(gmp.h,
                     [AC_CHECK_LIB(gmp,
 		                  __gmpz_init,
-		                  [EXTRA_LIBS="$EXTRA_LIBS -lgmp"],
+		                  [LIBS="$LIBS -lgmp"],
 				  [echo "Can't find gmp library." &&
 				   echo "MP version will not be builded." &&
 				   TO_BUILD_MP=""])],
@@ -279,23 +193,17 @@ else
     if test "$gmp_package" != "yes" ; then
       echo "(GMP path has been set by user)"
       GMP_DIR=$gmp_package
-      GMP_LIB=$GMP_DIR/lib
-      GMP_INC=$GMP_DIR/include
-      EXTRA_INC="-I$GMP_INC"
-      EXTRA_LIBS="$EXTRA_LIBS -L$GMP_LIB"
       dnl Useful for AC_CHECK_X to find what we want.
       CPPFLAGS="-I$GMP_DIR/include $CPPFLAGS"
       LDFLAGS="-L$GMP_DIR/lib $LDFLAGS"
     fi
     
     if test "$gmp_include_package" != "yes" ; then
-      CPPFLAGS="-I$GMP_DIR/include $CPPFLAGS"
-      EXTRA_INC="-I$GMP_INC"
+      CPPFLAGS="-I$GMP_INC $CPPFLAGS"
     fi
     
     if test "$gmp_library_package" != "yes" ; then
-      EXTRA_LIBS="$EXTRA_LIBS -L$GMP_LIB"
-      LDFLAGS="-L$GMP_DIR/lib $LDFLAGS"
+      LDFLAGS="-L$GMP_LIB $LDFLAGS"
     fi
      
     AC_CHECK_HEADER(gmp.h,
@@ -303,7 +211,7 @@ else
                     [AC_MSG_ERROR(Can't find gmp headers.)])
     AC_CHECK_LIB(gmp,
                  __gmpz_init,
-                 [EXTRA_LIBS="$EXTRA_LIBS -lgmp"],
+                 [LIBS="$LIBS -lgmp"],
                  [AC_MSG_ERROR(Can't find gmp library.)])
     
     AC_MSG_RESULT(yes)
@@ -317,27 +225,18 @@ dnl  **************************************************************************/
 
 
 dnl Substitutions to do in Makefile.in.
-AC_SUBST(RELEASE)
 AC_SUBST(target)
 AC_SUBST(CC)
 AC_SUBST(LN_S)
-AC_SUBST(RANLIB)
 AC_SUBST(SHEXT)
-AC_SUBST(EXEC_SUFFIX)
-AC_SUBST(EXTRA_FLAGS)
-AC_SUBST(EXTRA_LIBS)
 
-AC_SUBST(POLYLIB_LIB)
 AC_SUBST(prefix)
 AC_SUBST(exec_prefix)
 AC_SUBST(INSTALL)
-AC_SUBST(PACKAGES)
-AC_SUBST(INSTALL_PACKAGES)
 
-AC_SUBST(VERSION)
+AC_SUBST(BITS)
 
-dnl Makefile creation (Allen Leung's fix).
-AC_OUTPUT(makefile:autoconf/makefile.in include/cloog/cloog.h autoconf/Doxyfile)
+AC_OUTPUT(Makefile test/Makefile include/cloog/cloog.h autoconf/Doxyfile)
 
 
 echo "             /*-----------------------------------------------*"
