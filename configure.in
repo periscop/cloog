@@ -129,48 +129,6 @@ AC_ARG_WITH(gmp-library,
 
 
 dnl /**************************************************************************
-dnl  *                          Where is PolyLib?                             *
-dnl  **************************************************************************/
-
-polylibs="64 32"
-case "$BITS" in
-    32|64|gmp)
-	polylibs=$BITS
-    ;;
-esac
-
-dnl Checking for PolyLib
-AC_SUBST(cl_cv_polylib)
-AC_MSG_CHECKING(whether PolyLib works)
-
-if test -n "$polylib_package"; then
-  AC_MSG_RESULT()
-  CPPFLAGS="-I$polylib_package/include $CPPFLAGS"
-  LDFLAGS="-L$polylib_package/lib $LDFLAGS"
-else
-  if test -n "$polylib_include" -a -n "$polylib_library"; then
-    AC_MSG_RESULT()
-    CPPFLAGS="-I$polylib_include $CPPFLAGS"
-    LDFLAGS="-L$polylib_library $LDFLAGS"
-  fi
-fi
-
-for BITS in $polylibs; do
-  cl_cv_polylib="polylib$BITS"
-  AC_CHECK_LIB($cl_cv_polylib,PolyhedronTSort,[break])
-  cl_cv_polylib=missing
-done
-if test "$cl_cv_polylib" = "missing"; then
-  AC_MSG_ERROR(Can't find PolyLib.)
-else
-  LIBS="-l$cl_cv_polylib $LIBS"
-fi
-AC_CHECK_HEADER(polylib/$cl_cv_polylib.h,[],
-                [AC_MSG_ERROR(Can't find PolyLib headers.)])
-
-
-
-dnl /**************************************************************************
 dnl  *                            Where is GMP?                               *
 dnl  **************************************************************************/
 
@@ -227,6 +185,48 @@ else
     AC_MSG_RESULT(yes)
   fi
 fi
+
+
+dnl /**************************************************************************
+dnl  *                          Where is PolyLib?                             *
+dnl  **************************************************************************/
+
+polylibs="64 32"
+case "$BITS" in
+    32|64|gmp)
+	polylibs=$BITS
+    ;;
+esac
+
+dnl Checking for PolyLib
+AC_SUBST(cl_cv_polylib)
+AC_MSG_CHECKING(whether PolyLib works)
+
+if test -n "$polylib_package"; then
+  AC_MSG_RESULT()
+  CPPFLAGS="-I$polylib_package/include $CPPFLAGS"
+  LDFLAGS="-L$polylib_package/lib $LDFLAGS"
+else
+  if test -n "$polylib_include" -a -n "$polylib_library"; then
+    AC_MSG_RESULT()
+    CPPFLAGS="-I$polylib_include $CPPFLAGS"
+    LDFLAGS="-L$polylib_library $LDFLAGS"
+  fi
+fi
+
+for BITS in $polylibs; do
+  cl_cv_polylib="polylib$BITS"
+  AC_CHECK_LIB($cl_cv_polylib,PolyhedronTSort,[break])
+  cl_cv_polylib=missing
+done
+if test "$cl_cv_polylib" = "missing"; then
+  AC_MSG_ERROR(Can't find PolyLib.)
+else
+  LIBS="-l$cl_cv_polylib $LIBS"
+fi
+AC_CHECK_HEADER(polylib/$cl_cv_polylib.h,[],
+                [AC_MSG_ERROR(Can't find PolyLib headers.)])
+
 
 
 dnl /**************************************************************************
