@@ -41,6 +41,7 @@ SUBDIRS = test
 bin_PROGRAMS = cloog
 lib_LTLIBRARIES = libcloog.la
 
+INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 AM_CFLAGS = -Wall -fomit-frame-pointer
 libcloog_la_SOURCES = \
 	source/block.c \

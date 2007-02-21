@@ -41,16 +41,16 @@
 # define CLOOG_VERSION "@VERSION@"
 
 # include <polylib/@cl_cv_polylib@.h>
-# include "./options.h"
-# include "./matrix.h"
-# include "./domain.h"
-# include "./statement.h"
-# include "./block.h"
-# include "./names.h"
-# include "./loop.h"
-# include "./program.h"
-#include "clast.h"
-# include "./pprint.h"
+#include <cloog/options.h>
+#include <cloog/matrix.h>
+#include <cloog/domain.h>
+#include <cloog/statement.h>
+#include <cloog/block.h>
+#include <cloog/names.h>
+#include <cloog/loop.h>
+#include <cloog/program.h>
+#include <cloog/clast.h>
+#include <cloog/pprint.h>
 
 
 /******************************************************************************
