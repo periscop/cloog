@@ -91,10 +91,18 @@ dnl --with-polylib=polylib-path
 AC_ARG_WITH(polylib,
             [  --with-polylib=DIR      DIR Location of the PolyLib],
             [ echo "Package polylib : $withval" && polylib_package=$withval],
-            [ polylib_package=yes ])
+            [ polylib_package= ])
 AC_ARG_WITH(bits,
 	    [  --with-bits=32|64|gmp   PolyLib library type to use],
 	    [ echo "polylib$withval"; BITS=$withval ])
+AC_ARG_WITH(polylib-include,
+            [  --with-polylib-include=DIR  Location of PolyLib include files],
+            [ polylib_include=$withval],
+            [ polylib_include= ])
+AC_ARG_WITH(polylib-library,
+            [--with-polylib-library=DIR  Location of PolyLib library],
+            [polylib_library=$withval],
+            [polylib_library= ])
 
 dnl --with-gmp=gmp-path
 AC_ARG_WITH(gmp,
@@ -134,30 +142,32 @@ esac
 dnl Checking for PolyLib
 AC_SUBST(cl_cv_polylib)
 AC_MSG_CHECKING(whether PolyLib works)
-if test "$polylib_package" = "no"; then
-  AC_MSG_RESULT(no)
+
+if test -n "$polylib_package"; then
+  AC_MSG_RESULT()
+  CPPFLAGS="-I$polylib_package/include $CPPFLAGS"
+  LDFLAGS="-L$polylib_package/lib $LDFLAGS"
+else
+  if test -n "$polylib_include" -a -n "$polylib_library"; then
+    AC_MSG_RESULT()
+    CPPFLAGS="-I$polylib_include $CPPFLAGS"
+    LDFLAGS="-L$polylib_library $LDFLAGS"
+  fi
+fi
+
+for BITS in $polylibs; do
+  cl_cv_polylib="polylib$BITS"
+  AC_CHECK_LIB($cl_cv_polylib,PolyhedronTSort,[break])
+  cl_cv_polylib=missing
+done
+if test "$cl_cv_polylib" = "missing"; then
   AC_MSG_ERROR(Can't find PolyLib.)
 else
-  AC_MSG_RESULT()
-  if test "$polylib_package" != "yes"; then
-    POLYLIB_DIR=$polylib_package
-    POLYLIB_LIB=$POLYLIB_DIR/lib
-    CPPFLAGS="-I$POLYLIB_DIR/include $CPPFLAGS"
-    LDFLAGS="-L$POLYLIB_DIR/lib $LDFLAGS"
-  fi
-  for BITS in $polylibs; do
-    cl_cv_polylib="polylib$BITS"
-    AC_CHECK_LIB($cl_cv_polylib,PolyhedronTSort,[break])
-    cl_cv_polylib=missing
-  done
-  if test "$cl_cv_polylib" = "missing"; then
-    AC_MSG_ERROR(Can't find PolyLib.)
-  else
-    LIBS="-l$cl_cv_polylib $LIBS"
-  fi
-  AC_CHECK_HEADER(polylib/$cl_cv_polylib.h,[],
-               [AC_MSG_ERROR(Can't find PolyLib headers.)])
+  LIBS="-l$cl_cv_polylib $LIBS"
 fi
+AC_CHECK_HEADER(polylib/$cl_cv_polylib.h,[],
+                [AC_MSG_ERROR(Can't find PolyLib headers.)])
+
 
 
 dnl /**************************************************************************
