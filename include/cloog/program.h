@@ -92,7 +92,7 @@ CloogProgram * cloog_program_read(FILE *, CloogOptions *) ;
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
-CloogProgram * cloog_program_malloc() ;
+CloogProgram * cloog_program_malloc(void);
 CloogProgram * cloog_program_generate(CloogProgram *, CloogOptions *) ;
 void cloog_program_block(CloogProgram *, CloogDomainList *) ;
 void cloog_program_extract_scalars(CloogProgram *program, CloogDomainList *) ;

@@ -96,7 +96,7 @@ struct clast_assignment *new_clast_assignment(const char *lhs,
 					      struct clast_expr *rhs);
 struct clast_user_stmt *new_clast_user_stmt(CloogStatement *stmt, 
 						struct clast_stmt *subs);
-struct clast_block *new_clast_block();
+struct clast_block *new_clast_block(void);
 struct clast_for *new_clast_for(const char *it, struct clast_expr *LB, 
 				struct clast_expr *UB, Value stride);
 struct clast_guard *new_clast_guard(int n);

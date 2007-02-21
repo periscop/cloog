@@ -88,7 +88,7 @@ char ** cloog_names_read_strings(FILE *, int, char *, char) ;
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
-CloogNames * cloog_names_malloc() ;
+CloogNames * cloog_names_malloc(void);
 CloogNames * cloog_names_copy(CloogNames *names);
 CloogNames * cloog_names_alloc(int,int,int,int,char **,char **,char **,char **);
 char ** cloog_names_generate_items(int, char *, char) ;

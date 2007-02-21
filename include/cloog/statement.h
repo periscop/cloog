@@ -69,7 +69,7 @@ void cloog_statement_free(CloogStatement *) ;
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
-CloogStatement * cloog_statement_malloc() ;
+CloogStatement * cloog_statement_malloc(void);
 CloogStatement * cloog_statement_alloc(int) ;
 CloogStatement * cloog_statement_copy(CloogStatement *) ;
 void cloog_statement_add(CloogStatement**, CloogStatement**, CloogStatement*) ;

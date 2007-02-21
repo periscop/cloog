@@ -96,9 +96,9 @@ void cloog_block_list_free(CloogBlockList *) ;
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
-CloogBlock     * cloog_block_malloc() ;
+CloogBlock     * cloog_block_malloc(void);
 CloogBlock     * cloog_block_alloc(CloogStatement*,CloogMatrix*,int,Value*,int);
-CloogBlockList * cloog_block_list_malloc() ;
+CloogBlockList * cloog_block_list_malloc(void);
 CloogBlockList * cloog_block_list_alloc(CloogBlock *) ;
 CloogBlock     * cloog_block_copy(CloogBlock * block) ;
 void             cloog_block_merge(CloogBlock *, CloogBlock *) ;

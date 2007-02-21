@@ -92,7 +92,7 @@ CloogLoop * cloog_loop_read(FILE *, int, int) ;
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
-CloogLoop * cloog_loop_malloc() ;
+CloogLoop * cloog_loop_malloc(void);
 CloogLoop * cloog_loop_generate(CloogLoop *, CloogDomain *, int, int,
                                 int *, int, int, CloogOptions *) ;
 CloogLoop * cloog_loop_simplify(CloogLoop *, CloogDomain *, int, int) ;

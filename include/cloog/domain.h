@@ -91,8 +91,8 @@ typedef struct cloogdomainlist CloogDomainList ;
 /******************************************************************************
  *                          Memory leak hunt functions                        *
  ******************************************************************************/
-void cloog_value_leak_up() ;
-void cloog_value_leak_down() ;
+void cloog_value_leak_up(void);
+void cloog_value_leak_down(void);
 
 
 /******************************************************************************
@@ -143,7 +143,7 @@ CloogDomainList * cloog_domain_list_read(FILE *) ;
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
-CloogDomain * cloog_domain_malloc() ;
+CloogDomain * cloog_domain_malloc(void);
 CloogDomain * cloog_domain_alloc(Polyhedron *) ;
 CloogDomain * cloog_domain_compact(CloogDomain *) ;
 int           cloog_domain_isempty(CloogDomain *) ;
