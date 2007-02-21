@@ -105,14 +105,14 @@ AC_ARG_WITH(gmp,
           GMP_LIB=$gmp_package/lib &&
           NEED_MP="yes"])
 
-AC_ARG_WITH(gmp_include,
+AC_ARG_WITH(gmp-include,
         [  --with-gmp-include=DIR  DIR where gmp.h is installed],
 	[ echo "Package gmp-include : $withval" &&
 	  gmp_include_package=$withval &&
           GMP_INC=$gmp_include_package &&
 	  NEED_MP="yes"])
 
-AC_ARG_WITH(gmp_library,
+AC_ARG_WITH(gmp-library,
         [  --with-gmp-library=DIR  DIR where the gmp library is installed],
 	[ echo "Package gmp-library : $withval" &&
 	  gmp_library_package=$withval &&
