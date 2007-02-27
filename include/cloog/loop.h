@@ -96,11 +96,7 @@ CloogLoop * cloog_loop_malloc(void);
 CloogLoop * cloog_loop_generate(CloogLoop *, CloogDomain *, int, int,
                                 int *, int, int, CloogOptions *) ;
 CloogLoop * cloog_loop_simplify(CloogLoop *, CloogDomain *, int, int) ;
-CloogLoop * cloog_loop_fast_simplify(CloogLoop *, CloogDomain *, int, int) ;
-CloogLoop * cloog_loop_clean(CloogLoop *) ;
 void cloog_loop_scatter(CloogLoop *, CloogDomain *) ;
-void cloog_loop_strides(CloogLoop *, int) ;
-void cloog_loop_normalize(CloogLoop * loop, int) ;
 
 
 #if defined(__cplusplus)
