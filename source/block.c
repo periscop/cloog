@@ -64,14 +64,14 @@ int cloog_block_freed = 0 ;
 int cloog_block_max = 0 ;
 
 
-void cloog_block_leak_up()
+static void cloog_block_leak_up()
 { cloog_block_allocated ++ ;
   if ((cloog_block_allocated - cloog_block_freed) > cloog_block_max)
   cloog_block_max = cloog_block_allocated - cloog_block_freed ;
 }
 
 
-void cloog_block_leak_down()
+static void cloog_block_leak_down()
 { cloog_block_freed ++ ;
 }
 

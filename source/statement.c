@@ -66,14 +66,14 @@ int cloog_statement_freed = 0 ;
 int cloog_statement_max = 0 ;
 
 
-void cloog_statement_leak_up()
+static void cloog_statement_leak_up()
 { cloog_statement_allocated ++ ;
   if ((cloog_statement_allocated-cloog_statement_freed) > cloog_statement_max)
   cloog_statement_max = cloog_statement_allocated - cloog_statement_freed ;
 }
 
 
-void cloog_statement_leak_down()
+static void cloog_statement_leak_down()
 { cloog_statement_freed ++ ;
 }
 

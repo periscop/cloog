@@ -77,14 +77,14 @@ int cloog_domain_freed = 0 ;
 int cloog_domain_max = 0 ;
 
 
-void cloog_domain_leak_up()
+static void cloog_domain_leak_up()
 { cloog_domain_allocated ++ ;
   if ((cloog_domain_allocated-cloog_domain_freed) > cloog_domain_max)
   cloog_domain_max = cloog_domain_allocated - cloog_domain_freed ;
 }
 
 
-void cloog_domain_leak_down()
+static void cloog_domain_leak_down()
 { cloog_domain_freed ++ ;
 }
 
@@ -147,8 +147,8 @@ CloogDomain * cloog_domain_matrix2domain(CloogMatrix * matrix)
  * matrix of constraints.
  */
 CloogMatrix * cloog_domain_domain2matrix(CloogDomain * domain)
-{ cloog_matrix_leak_up() ;
-  return Polyhedron2Constraints(domain->polyhedron) ;
+{
+  return cloog_matrix_matrix(Polyhedron2Constraints(domain->polyhedron));
 }
 
 

@@ -67,14 +67,14 @@ int cloog_matrix_freed = 0 ;
 int cloog_matrix_max = 0 ;
 
 
-void cloog_matrix_leak_up()
+static void cloog_matrix_leak_up()
 { cloog_matrix_allocated ++ ;
   if ((cloog_matrix_allocated-cloog_matrix_freed) > cloog_matrix_max)
   cloog_matrix_max = cloog_matrix_allocated - cloog_matrix_freed ;
 }
 
 
-void cloog_matrix_leak_down()
+static void cloog_matrix_leak_down()
 { cloog_matrix_freed ++ ;
 }
 
@@ -121,6 +121,17 @@ void cloog_matrix_free(CloogMatrix * matrix)
 CloogMatrix * cloog_matrix_alloc(unsigned nb_rows, unsigned nb_columns)
 { cloog_matrix_leak_up() ;
   return Matrix_Alloc(nb_rows,nb_columns) ;
+}
+
+
+/**
+ * cloog_matrix_matrix function:
+ * This function converts a PolyLib Matrix to a CloogMatrix structure.
+ */
+CloogMatrix * cloog_matrix_matrix(Matrix *matrix)
+{
+  cloog_matrix_leak_up();
+  return matrix;
 }
 
 

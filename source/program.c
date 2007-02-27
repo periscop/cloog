@@ -237,9 +237,8 @@ void cloog_program_dump_cloog(FILE * foo, CloogProgram * program)
 
     /* The polyhedra themselves. */
     polyhedron = cloog_domain_polyhedron(loop->domain) ;
-    while (polyhedron != NULL)
-    { matrix = Polyhedron2Constraints(polyhedron) ;
-      cloog_matrix_leak_up() ;
+    while (polyhedron != NULL) {
+      matrix = cloog_matrix_matrix(Polyhedron2Constraints(polyhedron));
       cloog_matrix_print(foo,matrix) ;
       cloog_matrix_free(matrix) ;
       polyhedron = polyhedron->next ;
