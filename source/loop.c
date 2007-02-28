@@ -263,7 +263,7 @@ int domain, block, inner, next ;
 
 /**
  * cloog_loop_read function:
- * This function reads loop data into a file (foo, posibly stdin) and
+ * This function reads loop data into a file (foo, possibly stdin) and
  * returns a pointer to a CloogLoop structure containing the read information.
  * This function can be used only for input file reading, when one loop is
  * associated with one statement.
