@@ -328,7 +328,8 @@ CloogOptions * options ;
 
     /* The value of parameters. */
     fprintf(file,"/* Parameter value. */\n") ;
-    fprintf(file,"#define PARVAL %d\n\n",options->compilable) ;    
+    for (i = 1; i <= program->names->nb_parameters; i++)
+      fprintf(file, "#define PARVAL%d %d\n", i, options->compilable);
     
     /* The macros. */
     fprintf(file,"/* Useful macros. */\n") ;
@@ -396,9 +397,9 @@ CloogOptions * options ;
     }
     if (program->names->nb_parameters > 0)
     { fprintf(file,"  /* Parameters. */\n") ;
-      fprintf(file,"  int %s=PARVAL",program->names->parameters[0]) ; 
+      fprintf(file, "  int %s=PARVAL1",program->names->parameters[0]);
       for(i=2;i<=program->names->nb_parameters;i++)
-      fprintf(file,", %s=PARVAL",program->names->parameters[i-1]) ; 
+        fprintf(file, ", %s=PARVAL%d", program->names->parameters[i-1], i);
       
       fprintf(file,";\n");
     }
