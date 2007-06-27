@@ -44,8 +44,8 @@ extern "C"
 
 /* Uncomment the following line if you want some information about
  * maximum total allocated memory for code generation.
- */
 #define CLOOG_MEMORY 
+ */
 #define CLOOG_SCALARS
 
 
