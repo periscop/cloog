@@ -88,21 +88,15 @@ MP_DFLAGS=-DLINEAR_VALUE_IS_MP
 NEED_MP="no"
 
 dnl --with-polylib=polylib-path
-AC_ARG_WITH(polylib,
-            [  --with-polylib=DIR      DIR Location of the PolyLib],
-            [ echo "Package polylib : $withval" && polylib_package=$withval],
-            [ polylib_package= ])
+AC_ARG_WITH(polylib_prefix,
+	    [AS_HELP_STRING([--with-polylib-prefix=DIR],
+			    [Location of PolyLib installation])])
+AC_ARG_WITH(polylib_builddir,
+	    [AS_HELP_STRING([--with-polylib-builddir=DIR],
+			    [Location of PolyLib builddir])])
 AC_ARG_WITH(bits,
 	    [  --with-bits=32|64|gmp   PolyLib library type to use],
 	    [ echo "polylib$withval"; BITS=$withval ])
-AC_ARG_WITH(polylib-include,
-            [  --with-polylib-include=DIR  Location of PolyLib include files],
-            [ polylib_include=$withval],
-            [ polylib_include= ])
-AC_ARG_WITH(polylib-library,
-            [--with-polylib-library=DIR  Location of PolyLib library],
-            [polylib_library=$withval],
-            [polylib_library= ])
 
 dnl --with-gmp=gmp-path
 AC_ARG_WITH(gmp,
@@ -200,29 +194,50 @@ esac
 
 dnl Checking for PolyLib
 AC_SUBST(cl_cv_polylib)
-AC_MSG_CHECKING(whether PolyLib works)
+AC_SUBST(POLYLIB_CPPFLAGS)
+AC_SUBST(POLYLIB_LDFLAGS)
+AC_SUBST(POLYLIB_LIBS)
 
-if test -n "$polylib_package"; then
-  AC_MSG_RESULT()
-  CPPFLAGS="-I$polylib_package/include $CPPFLAGS"
-  LDFLAGS="-L$polylib_package/lib $LDFLAGS"
-else
-  if test -n "$polylib_include" -a -n "$polylib_library"; then
-    AC_MSG_RESULT()
-    CPPFLAGS="-I$polylib_include $CPPFLAGS"
-    LDFLAGS="-L$polylib_library $LDFLAGS"
-  fi
+if test "x$with_polylib_prefix" != "x" -a "x$with_polylib_builddir" != "x"; then
+	AC_MSG_ERROR(
+	[--with-polylib-prefix and --with-polylib-builddir are mutually exclusive])
 fi
 
-for BITS in $polylibs; do
-  cl_cv_polylib="polylib$BITS"
-  AC_CHECK_LIB($cl_cv_polylib,PolyhedronTSort,[break])
-  cl_cv_polylib=missing
-done
-if test "$cl_cv_polylib" = "missing"; then
-  AC_MSG_ERROR(Can't find PolyLib.)
+AC_MSG_CHECKING(for location of PolyLib)
+if test "x$with_polylib_builddir" != "x"; then
+	AC_MSG_RESULT(built in $with_polylib_builddir)
+	polylib_srcdir=`echo @srcdir@ | $with_polylib_builddir/config.status --file=-`
+	AC_MSG_NOTICE(PolyLib sources in $polylib_srcdir)
+	CPPFLAGS="-I$with_polylib_builddir/include -I$polylib_srcdir/include $CPPFLAGS"
+	for BITS in $polylibs; do
+		cl_cv_polylib="polylib$BITS"
+		if test -f "$with_polylib_builddir/lib$cl_cv_polylib.la"; then
+			LIBS="$with_polylib_builddir/lib$cl_cv_polylib.la $LIBS"
+			break;
+		fi
+		cl_cv_polylib=missing
+	done
 else
-  LIBS="-l$cl_cv_polylib $LIBS"
+	if test "x$with_polylib_prefix" != "x"; then
+		AC_MSG_RESULT(installed in $with_polylib_prefix)
+		CPPFLAGS="-I$with_polylib_prefix/include $CPPFLAGS"
+		LDFLAGS="-L$with_polylib_prefix/lib $LDFLAGS"
+		LD_LIBRARY_PATH="$with_polylib_prefix/lib:$LD_LIBRARY_PATH"
+		export LD_LIBRARY_PATH
+	else
+		AC_MSG_RESULT(installed in standard location)
+	fi
+	for BITS in $polylibs; do
+		cl_cv_polylib="polylib$BITS"
+		AC_CHECK_LIB($cl_cv_polylib,PolyhedronTSort,[
+			LIBS="-l$cl_cv_polylib $LIBS"
+			break
+		])
+		cl_cv_polylib=missing
+	done
+fi
+if test "$cl_cv_polylib" = "missing"; then
+	AC_MSG_ERROR(Can't find PolyLib.)
 fi
 AC_CHECK_HEADER(polylib/$cl_cv_polylib.h,[],
                 [AC_MSG_ERROR(Can't find PolyLib headers.)])
