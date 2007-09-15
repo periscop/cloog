@@ -90,7 +90,10 @@ NEED_MP="no"
 dnl --with-polylib=polylib-path
 AC_ARG_WITH(polylib_prefix,
 	    [AS_HELP_STRING([--with-polylib-prefix=DIR],
-			    [Location of PolyLib installation])])
+			    [Prefix of PolyLib installation])])
+AC_ARG_WITH(polylib_exec_prefix,
+	    [AS_HELP_STRING([--with-polylib-exec-prefix=DIR],
+			    [Exec prefix of PolyLib installation])])
 AC_ARG_WITH(polylib_builddir,
 	    [AS_HELP_STRING([--with-polylib-builddir=DIR],
 			    [Location of PolyLib builddir])])
@@ -198,6 +201,10 @@ AC_SUBST(POLYLIB_CPPFLAGS)
 AC_SUBST(POLYLIB_LDFLAGS)
 AC_SUBST(POLYLIB_LIBS)
 
+if test "x$with_polylib_prefix" != "x" -a "x$with_polylib_exec_prefix" = "x"
+then
+	with_polylib_exec_prefix=$with_polylib_prefix
+fi
 if test "x$with_polylib_prefix" != "x" -a "x$with_polylib_builddir" != "x"; then
 	AC_MSG_ERROR(
 	[--with-polylib-prefix and --with-polylib-builddir are mutually exclusive])
@@ -219,10 +226,10 @@ if test "x$with_polylib_builddir" != "x"; then
 	done
 else
 	if test "x$with_polylib_prefix" != "x"; then
-		AC_MSG_RESULT(installed in $with_polylib_prefix)
+		AC_MSG_RESULT(installed in $with_polylib_exec_prefix)
 		CPPFLAGS="-I$with_polylib_prefix/include $CPPFLAGS"
-		LDFLAGS="-L$with_polylib_prefix/lib $LDFLAGS"
-		LD_LIBRARY_PATH="$with_polylib_prefix/lib:$LD_LIBRARY_PATH"
+		LDFLAGS="-L$with_polylib_exec_prefix/lib $LDFLAGS"
+		LD_LIBRARY_PATH="$with_polylib_exec_prefix/lib:$LD_LIBRARY_PATH"
 		export LD_LIBRARY_PATH
 	else
 		AC_MSG_RESULT(installed in standard location)
