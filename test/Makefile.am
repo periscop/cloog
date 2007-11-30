@@ -100,6 +100,7 @@ CLOOGTEST_C =                          \
 	test                           \
 	thomasset                      \
 	tiling                         \
+	uday_scalars		       \
 	vivien                         \
 	vivien2                        \
 	wavefront                      \

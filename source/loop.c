@@ -1134,27 +1134,30 @@ CloogLoop * cloog_loop_stop(CloogLoop * loop, CloogDomain * context)
 
 
 /**
- * cloog_loop_scalar_ge function:
- * This function returns 1 if loop 'l1' is greater or equal to loop 'l2' for the
+ * cloog_loop_scalar_gt function:
+ * This function returns 1 if loop 'l1' is greater than loop 'l2' for the
  * scalar dimension vector that begins at dimension 'scalar', 0 otherwise. What
  * we want to know is whether a loop is scheduled before another one or not.
  * This function solves the problem when the considered dimension for scheduling
  * is a scalar dimension. Since there may be a succession of scalar dimensions,
  * this function will reason about the vector of scalar dimension that begins
  * at dimension 'level+scalar' and finish to the first non-scalar dimension.
- * - l1 and l2 are the loops to compare,
- * - level is the current non-scalar dimension,
- * - scaldims is the boolean array saying whether a dimension is scalar or not,
- * - nb_scattdims is the size of the scaldims array,
- * - scalar is the current scalar dimension.
+ * \param l1 Loop to be compared with l2.
+ * \param l2 Loop to be compared with l1.
+ * \param level Current non-scalar dimension.
+ * \param scaldims Boolean array saying whether a dimension is scalar or not.
+ * \param nb_scattdims Size of the scaldims array.
+ * \param scalar Current scalar dimension.
+ * \return 1 if (l1 > l2), 0 otherwise.
  **
- * - September 9th 2005 : first version.
+ * - September 9th 2005: first version.
+ * - October  15nd 2007: now "greater than" instead of "greater or equal".
  */
-int cloog_loop_scalar_ge(l1, l2, level, scaldims, nb_scattdims, scalar)
+int cloog_loop_scalar_gt(l1, l2, level, scaldims, nb_scattdims, scalar)
 CloogLoop * l1, * l2 ;
 int level, * scaldims, nb_scattdims, scalar ;
 { while ((scalar < l1->inner->block->nb_scaldims) && scaldims[level+scalar-1])
-  { if (value_ge(l1->inner->block->scaldims[scalar],
+  { if (value_gt(l1->inner->block->scaldims[scalar],
                  l2->inner->block->scaldims[scalar]))
     scalar ++ ;
     else
@@ -1202,64 +1205,46 @@ int level, * scaldims, nb_scattdims, scalar ;
  * be a succession of scalar dimensions, this function will reason about the
  * vector of scalar dimension that begins at dimension 'level+scalar' and
  * finish to the first non-scalar dimension.
- * - loop is the loop list to sort,
- * - level is the current non-scalar dimension,
- * - scaldims is the boolean array saying whether a dimension is scalar or not,
- * - nb_scattdims is the size of the scaldims array,
- * - scalar is the current scalar dimension.
+ * \param loop Loop list to sort.
+ * \param level Current non-scalar dimension.
+ * \param scaldims Boolean array saying whether a dimension is scalar or not.
+ * \param nb_scattdims Size of the scaldims array.
+ * \param scalar Current scalar dimension.
+ * \return A pointer to the sorted list.
  **
  * - July      2nd 2005: first developments.
  * - September 2nd 2005: first version.
+ * - October  15nd 2007: complete rewrite to remove bugs, now a bubble sort.
  */
 CloogLoop * cloog_loop_scalar_sort(loop, level, scaldims, nb_scattdims, scalar)
 CloogLoop * loop ;
 int level, * scaldims, nb_scattdims, scalar ;
-{ CloogLoop * unsorted, * previous_unsorted, * current, *  previous_current ;
-
-  if (loop == NULL)
-  return NULL ;
+{ int ok ;
+  CloogLoop * previous, * current, * next;
   
-  /* We start from the second element.*/
-  unsorted = loop->next ;
-  previous_unsorted = loop ;
-  
-  while (unsorted != NULL)
-  { /* We look for the unsorted element place in the list. */
+  do {
+    ok = 1;
+    previous = NULL;
     current = loop ;
-    previous_current = NULL ;
+    next = current->next;
+    while (next != NULL) {
+      if (cloog_loop_scalar_gt(current,next,level,scaldims,nb_scattdims,scalar)) {
+        ok = 0;
 
-    while((current != unsorted) &&
-          (cloog_loop_scalar_ge(unsorted,current,level,
-	                        scaldims,nb_scattdims,scalar)))
-    { previous_current = current ;
-      current = current->next ;
+        if (previous != NULL)
+	  previous->next = next;
+	else
+	  loop = next;
+	
+        current->next = next->next;
+        next->next = current;
+      }
+      previous = current;
+      current = next;
+      next = current->next;
     }
+  } while (!ok);
 
-    if (current == unsorted)
-    { /* If the unsorted element is yet at the right place, restart with the
-       * next unsorted element.
-       */ 
-      previous_unsorted = unsorted ;
-      unsorted = unsorted->next ;
-    }
-    else
-    { /* We have to insert the unsorted element after previous_current. */
-      previous_unsorted->next = unsorted->next ;
-      if (previous_current == NULL)
-      { /* Insertion at the very first place. */
-        unsorted->next = loop ;
-        loop = unsorted ;
-      }
-      else
-      { /* Insertion after previous_current. */
-        unsorted->next = previous_current->next ;
-        previous_current->next = unsorted ;
-      }
-      /* Restart with the next unsorted element. */
-      unsorted = previous_unsorted->next ;
-    }
-  }
-    
   return loop ;
 }
 
