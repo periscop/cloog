@@ -12,6 +12,7 @@
 @c % release 1.1: december   5th 2002
 @c % release 1.2: april     22th 2003
 @c % release 2.0: november  21th 2005 (and now in texinfo instead of LaTeX)
+@c % release 2.1: october   15th 2007
 @c %
 @c %/**************************************************************************
 @c % *               CLooG : the Chunky Loop Generator (experimental)         *
@@ -33,9 +34,9 @@
 @setfilename cloog.info
 @settitle CLooG - a loop generator for scanning polyhedra
 
-@set EDITION 2.0
-@set VERSION 0.14.0
-@set UPDATED November 17th 2005
+@set EDITION 2.1
+@set VERSION 0.14.1
+@set UPDATED October 15th 2007
 @setchapternewpage odd
 
 @c %**end of header
@@ -49,7 +50,7 @@ This manual is for CLooG version @value{VERSION}, a software
 which generates loops for scanning Z-polyhedra. That is, CLooG produces a
 code visiting each integral point of a union of parametrized
 polyhedra. CLooG is designed to avoid control overhead and to produce a very
-effective code.
+efficient code.
 
 It would be quite kind to refer the following paper in any publication that
 results from the use of the CLooG software or its library:
@@ -175,7 +176,7 @@ have been requested by the users themselves.
 Thus you are very welcome and encouraged
 to post reports on bugs, wishes, critics, comments, suggestions or
 successful experiences in the forum of @code{http://www.CLooG.org}
-(preferably) or to send them to cedric.bastoul@@inria.fr directly.
+or to send them to cedric.bastoul@@inria.fr directly.
 
 @menu
 * Basics::
@@ -815,6 +816,7 @@ input file @code{basic.cloog} with default options by typing:
 @menu
 * Last Depth to Optimize Control::
 * First Depth to Optimize Control::
+* Simplify Convex Hull::
 * Once Time Loop Elimination::
 * Equality Spreading::
 * Constant Spreading::
@@ -914,6 +916,48 @@ for (i=1;i<=N;i++) @{
 @end group
 @end example
 
+@node Simplify Convex Hull
+@subsection  Simplify Convex Hull @code{-sh <boolean>}
+
+     @code{-sh <boolean>}: this option enables (@code{boolean=1})
+     or forbids (@code{boolean=0}) a simplification step
+     that may simplify some constraints.
+     This option works only for generated code without
+     code duplication (it means, you have to tune @code{-f} and
+     @code{-l} options first to generate only a loop nest with internal
+     guards). For instance, with the input file @code{test/union.cloog}, a user
+     can generate different pseudo-codes  as shown below.
+     Default value is 0.
+@example
+@group
+/* Generated using test/union.cloog and @strong{option -f -1 -l 2 -override} */
+for (i=0;i<=11;i++) @{
+  for (j=max(0,5*i-50);j<=min(15,5*i+10);j++) @{
+    if ((i <= 10) && (j <= 10)) @{
+      S1 ;
+    @}
+    if ((i >= 1) && (j >= 5)) @{
+      S2 ;
+    @}
+  @}
+@}
+@end group
+@end example
+@example
+@group
+/* Generated using the same input file but @strong{option -sh 1 -f -1 -l 2 -override} */
+for (i=0;i<=11;i++) @{
+  for (j=0;j<=15;j++) @{
+    if ((i <= 10) && (j <= 10)) @{
+      S1 ;
+    @}
+    if ((i >= 1) && (j >= 5)) @{
+      S2 ;
+    @}
+  @}
+@}
+@end group
+@end example
 
 @node Once Time Loop Elimination
 @subsection Once Time Loop Elimination @code{-otl <boolean>}
@@ -1645,7 +1689,7 @@ of blocks.
 @group
 struct cloogloop
 @{ CloogDomain * domain ;       /* Iteration domain. */
-  int stride ;                 /* Loop stride. */
+  Value stride ;               /* Loop stride. */
   CloogBlock * block ;         /* Included statement block.*/
   struct cloogloop * inner ;   /* Loop at the next level. */
   struct cloogloop * next ;    /* Next loop at the same level. */
@@ -1706,7 +1750,7 @@ enough scattering dimension, iterator and parameter names.
 @group
 struct cloogprogram
 @{ char language ;              /* The language of the program. */
-  int  scattdims ;             /* Scattering dimension number. */
+  int  nb_scattdims ;          /* Scattering dimension number. */
   CloogNames  * names ;        /* Iterators and parameters names. */
   CloogDomain * context ;      /* The context of the program. */
   CloogLoop   * loop ;         /* The loops of the program. */
@@ -1718,7 +1762,7 @@ typedef struct cloogprogram CloogProgram ;
 
 @noindent The @code{CloogProgram} structure represents a static control program kernel.
 @code{language} precises the language (@code{c} for C or @code{f} for FORTRAN).
-@code{scattdims} gives the number of scattering dimensions.
+@code{nb_scattdims} gives the number of scattering dimensions.
 @code{context} is a pointer to the constraints on the program parameters,
 it can't be the
 @code{NULL} pointer even if there are no constraints on parameters. In such a
@@ -1859,6 +1903,7 @@ struct cloogoptions
 @{ int l ;                     /* -l option.          */
   int f ;                     /* -f option.          */
   int strides ;               /* -strides option.    */
+  int sh ;                    /* -sh option.         */
   int esp ;                   /* -esp option.        */
   int csp ;                   /* -csp option.        */
   int fsp ;                   /* -fsp option.        */
@@ -1878,6 +1923,7 @@ As a reminder, the default values are:
 @item @math{l = -1} (optimize control until the innermost loops),
 @item @math{f = 1} (optimize control from the outermost loops),
 @item @math{strides = 0} (use only unit strides),
+@item @math{sh = 0} (do not simplify convex hulls),
 @item @math{esp = 0} (do not spread complex equalities),
 @item @math{csp = 1} (spread constant values),
 @item @math{fsp = 1} (start to spread from the first iterators),
