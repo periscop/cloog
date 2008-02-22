@@ -40,6 +40,7 @@
 # include <sys/types.h>
 # include <sys/time.h>
 # include <sys/resource.h>
+#include <stdarg.h>
 # include <stdlib.h>
 # include <stdio.h>
 # include <string.h>
@@ -273,6 +274,23 @@ void cloog_program_print(FILE * file, CloogProgram * program)
 }
 
 
+static void print_comment(FILE *file, CloogOptions *options,
+			  const char *fmt, ...)
+{
+  va_list args;
+
+  va_start(args, fmt);
+  if (options->language == LANGUAGE_FORTRAN) {
+    fprintf(file, "! ");
+    vfprintf(file, fmt, args);
+    fprintf(file, "\n");
+  } else {
+    fprintf(file, "/* ");
+    vfprintf(file, fmt, args);
+    fprintf(file, " */\n");
+  }
+}
+
 /**
  * cloog_program_pprint function:
  * This function prints the content of a CloogProgram structure (program) into a
@@ -294,24 +312,13 @@ CloogOptions * options ;
   else
     options->language = LANGUAGE_C ;
  
-  if (program->language == 'f')
-  { fprintf(file,"! Generated from %s by CLooG v%s %s bits in %.2fs.\n",
-            options->name,CLOOG_RELEASE,CLOOG_VERSION,options->time) ;
+  print_comment(file, options, "Generated from %s by %s in %.2fs.",
+		options->name, cloog_version(), options->time);
 #ifdef CLOOG_MEMORY
-    fprintf(file,"! CLooG asked for %d KBytes.\n",options->memory) ;
-    fprintf(stderr,"[CLooG]INFO: %.2fs and %dKB used for code generation.\n",
-            options->time,options->memory) ;
+  print_comment(file, options, "CLooG asked for %d KBytes.", options->memory);
+  fprintf(stderr, "[CLooG]INFO: %.2fs and %dKB used for code generation.\n",
+	  options->time,options->memory);
 #endif
-  }
-  else
-  { fprintf(file,"/* Generated from %s by CLooG v%s %s bits in %.2fs. */\n",
-            options->name,CLOOG_RELEASE,CLOOG_VERSION,options->time) ;
-#ifdef CLOOG_MEMORY
-    fprintf(file,"/* CLooG asked for %d KBytes. */\n",options->memory) ;
-    fprintf(stderr,"[CLooG]INFO: %.2fs and %dKB used for code generation.\n",
-            options->time,options->memory) ;
-#endif
-  }
   
   /* If the option "compilable" is set, we provide the whole stuff to generate
    * a compilable code. This code just do nothing, but now the user can edit

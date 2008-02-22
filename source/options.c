@@ -167,8 +167,7 @@ void cloog_options_help()
  * - August 5th 2002: first version.
  */
 void cloog_options_version()
-{ printf("CLooG %s %s bits       The Chunky Loop Generator\n",
-         CLOOG_RELEASE,CLOOG_VERSION) ;
+{ printf("%s       The Chunky Loop Generator\n", cloog_version());
   printf(
   "-----\n"
   "This is a loop generator for scanning Z-polyhedra. It is based on the "

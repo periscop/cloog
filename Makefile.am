@@ -53,7 +53,8 @@ libcloog_la_SOURCES = \
 	source/options.c \
 	source/pprint.c \
 	source/program.c \
-	source/statement.c
+	source/statement.c \
+	source/version.c
 LDADD = libcloog.la
 cloog_SOURCES = source/cloog.c
 
@@ -68,12 +69,17 @@ pkginclude_HEADERS = \
 	include/cloog/options.h \
 	include/cloog/pprint.h \
 	include/cloog/program.h \
-	include/cloog/statement.h
+	include/cloog/statement.h \
+	include/cloog/version.h
+
+version.h: @GIT_INDEX@
+	echo '#define CLOOG_HEAD "'`$(top_builddir)/genversion.sh`'"' > $@
 
 EXTRA_DIST = autoconf/Doxyfile.in doc test
 
 dist-hook:
 	rm -f $(distdir)/test/Makefile
+	$(top_builddir)/genversion.sh > $(distdir)/CLOOG_HEAD
 
 #/*****************************************************************************
 # *                                   Rules                                   *

@@ -37,10 +37,8 @@
  *  THIS FILE HAS BEEN AUTOMATICALLY GENERATED FROM clooh.h.in BY configure   *
  ******************************************************************************/
 
-# define CLOOG_RELEASE "@RELEASE@"
-# define CLOOG_VERSION "@VERSION@"
-
 # include <polylib/@cl_cv_polylib@.h>
+#include <cloog/version.h>
 #include <cloog/options.h>
 #include <cloog/matrix.h>
 #include <cloog/domain.h>

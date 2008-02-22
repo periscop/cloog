@@ -249,6 +249,10 @@ fi
 AC_CHECK_HEADER(polylib/$cl_cv_polylib.h,[],
                 [AC_MSG_ERROR(Can't find PolyLib headers.)])
 
+AC_SUBST(GIT_INDEX)
+if test -f $srcdir/.git/HEAD; then
+	GIT_INDEX="$srcdir/.git/index"
+fi
 
 
 dnl /**************************************************************************
@@ -268,7 +272,12 @@ AC_SUBST(INSTALL)
 
 AC_SUBST(BITS)
 
-AC_OUTPUT(Makefile test/Makefile include/cloog/cloog.h autoconf/Doxyfile)
+AC_CONFIG_FILES(Makefile test/Makefile include/cloog/cloog.h autoconf/Doxyfile)
+AC_CONFIG_FILES(source/version.c)
+AC_CONFIG_FILES([genversion.sh], [chmod +x genversion.sh])
+AC_CONFIG_COMMANDS([version.h],
+	[echo '#define CLOOG_HEAD "'`./genversion.sh`'"' > version.h])
+AC_OUTPUT
 
 
 echo "             /*-----------------------------------------------*"
