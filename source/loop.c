@@ -1220,28 +1220,18 @@ CloogLoop * cloog_loop_scalar_sort(loop, level, scaldims, nb_scattdims, scalar)
 CloogLoop * loop ;
 int level, * scaldims, nb_scattdims, scalar ;
 { int ok ;
-  CloogLoop * previous, * current, * next;
+  CloogLoop **current;
   
   do {
     ok = 1;
-    previous = NULL;
-    current = loop ;
-    next = current->next;
-    while (next != NULL) {
-      if (cloog_loop_scalar_gt(current,next,level,scaldims,nb_scattdims,scalar)) {
+    for (current = &loop; (*current)->next; current = &(*current)->next) {
+      CloogLoop *next = (*current)->next;
+      if (cloog_loop_scalar_gt(*current,next,level,scaldims,nb_scattdims,scalar)) {
         ok = 0;
-
-        if (previous != NULL)
-	  previous->next = next;
-	else
-	  loop = next;
-	
-        current->next = next->next;
-        next->next = current;
+	(*current)->next = next->next;
+	next->next = *current;
+	*current = next;
       }
-      previous = current;
-      current = next;
-      next = current->next;
     }
   } while (!ok);
 
