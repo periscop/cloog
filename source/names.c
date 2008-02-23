@@ -409,11 +409,14 @@ char ** scalars, ** scattering, ** iterators, ** parameters ;
 /**
  * cloog_names_generate_items function:
  * This function returns a pointer to an array of strings with entries set
- * thanks to the function's parameters.
+ * based on the function's parameters.
  * - nb_items will be the number of entries in the string array.
- * - prefix is the name prefix of each item.
- * - first_item is the name of the first item (without prefix), the nb_items-1
- *   following items will be the nb_items-1 following letters in ASCII code.
+ * - prefix is the name prefix of each item or NULL.
+ *   If not NULL, then the remainder of the name will be an integer
+ *   in the range [0, nb_items-1].
+ * - first_item is the name of the first item (if prefix == NULL),
+ *   the nb_items-1 following items will be the nb_items-1
+ *   following letters in ASCII code.
  **
  * - September 9th 2002 : first version, extracted from cloog_names_generate.
  */
@@ -438,7 +441,7 @@ char ** cloog_names_generate_items(int nb_items, char * prefix, char first_item)
     if (prefix == NULL)
     sprintf(names[i],"%c",first_item+i) ;
     else
-    sprintf(names[i],"%s%c",prefix,first_item+i) ;
+      sprintf(names[i], "%s%d", prefix, 1+i);
   }
   
   return names ;

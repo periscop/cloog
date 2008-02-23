@@ -540,7 +540,7 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
       p->nb_scattdims = cloog_domain_dimension(scatteringl->domain) - 
                         cloog_domain_dimension(p->loop->domain) ;
       nb_scattering = p->nb_scattdims  ;
-      scattering = cloog_names_read_strings(file,p->nb_scattdims,prefix,'1') ;
+      scattering = cloog_names_read_strings(file, p->nb_scattdims, prefix, -1);
     
       /* The boolean array for scalar dimensions is created and set to 0. */
       p->scaldims = (int *)malloc(p->nb_scattdims*(sizeof(int))) ;
