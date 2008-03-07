@@ -35,7 +35,7 @@
 @settitle CLooG - a loop generator for scanning polyhedra
 
 @set EDITION 2.1
-@set VERSION 0.14.1
+@include gitversion.texi
 @set UPDATED October 15th 2007
 @setchapternewpage odd
 
@@ -225,7 +225,7 @@ parameter manipulation, just replace them with any scalar value that fits
 A graphical representation of this part of the 2-dimensional space, where
 the integral points are represented using heavy dots would be for instance:
 
-@image{./images/basic,6cm}
+@image{images/basic,6cm}
 
 The affine constraints of both the domain and the context are what we will
 provide to CLooG as input (in a particular shape that will be described later).
@@ -358,7 +358,7 @@ The corresponding abstract syntax tree is given in the following figure.
 It directly gives the scattering functions (schedules) for all the
 statements of the program.
 
-@image{./images/tree,6cm}
+@image{images/tree,6cm}
 
 @tex
 $$

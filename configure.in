@@ -251,7 +251,7 @@ AC_CHECK_HEADER(polylib/$cl_cv_polylib.h,[],
 
 AC_SUBST(GIT_INDEX)
 if test -f $srcdir/.git/HEAD; then
-	GIT_INDEX="$srcdir/.git/index"
+	GIT_INDEX="\$(top_srcdir)/.git/index"
 fi
 
 
@@ -273,10 +273,13 @@ AC_SUBST(INSTALL)
 AC_SUBST(BITS)
 
 AC_CONFIG_FILES(Makefile test/Makefile include/cloog/cloog.h autoconf/Doxyfile)
+AC_CONFIG_FILES(doc/Makefile)
 AC_CONFIG_FILES(source/version.c)
 AC_CONFIG_FILES([genversion.sh], [chmod +x genversion.sh])
 AC_CONFIG_COMMANDS([version.h],
 	[echo '#define CLOOG_HEAD "'`./genversion.sh`'"' > version.h])
+AC_CONFIG_COMMANDS([doc/gitversion.texi],
+	[echo '@set VERSION '`./genversion.sh`'' > doc/gitversion.texi])
 AC_OUTPUT
 
 

@@ -1,5 +1,5 @@
 #! /bin/sh
-srcdir=@srcdir@
+srcdir=@abs_srcdir@
 PACKAGE=@PACKAGE@
 VERSION=@VERSION@
 

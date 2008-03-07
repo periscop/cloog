@@ -36,7 +36,7 @@
 # *                                                                           *
 # *****************************************************************************/
 
-SUBDIRS = test
+SUBDIRS = . doc test
 
 bin_PROGRAMS = cloog
 lib_LTLIBRARIES = libcloog.la
@@ -75,11 +75,12 @@ pkginclude_HEADERS = \
 version.h: @GIT_INDEX@
 	echo '#define CLOOG_HEAD "'`$(top_builddir)/genversion.sh`'"' > $@
 
-EXTRA_DIST = autoconf/Doxyfile.in doc test
+EXTRA_DIST = autoconf/Doxyfile.in doc/images test
 
 dist-hook:
 	rm -f $(distdir)/test/Makefile
 	$(top_builddir)/genversion.sh > $(distdir)/CLOOG_HEAD
+	(cd doc; make cloog.pdf) && cp doc/cloog.pdf $(distdir)/doc/
 
 #/*****************************************************************************
 # *                                   Rules                                   *
