@@ -215,14 +215,21 @@ if test "x$with_polylib_builddir" != "x"; then
 	AC_MSG_RESULT(built in $with_polylib_builddir)
 	polylib_srcdir=`echo @srcdir@ | $with_polylib_builddir/config.status --file=-`
 	AC_MSG_NOTICE(PolyLib sources in $polylib_srcdir)
+	polylib_polylibs=`echo @polylibs@ | $with_polylib_builddir/config.status --file=-`
+	AC_MSG_NOTICE(Configured polylibs: $polylib_polylibs)
 	CPPFLAGS="-I$with_polylib_builddir/include -I$polylib_srcdir/include $CPPFLAGS"
 	for BITS in $polylibs; do
-		cl_cv_polylib="polylib$BITS"
-		if test -f "$with_polylib_builddir/lib$cl_cv_polylib.la"; then
+		cl_cv_polylib=missing
+		for PL in $polylib_polylibs; do
+			if test "libpolylib$BITS.la" = $PL; then
+				cl_cv_polylib="polylib$BITS"
+				break;
+			fi
+		done
+		if test "$cl_cv_polylib" != "missing"; then
 			LIBS="$with_polylib_builddir/lib$cl_cv_polylib.la $LIBS"
 			break;
 		fi
-		cl_cv_polylib=missing
 	done
 else
 	if test "x$with_polylib_prefix" != "x"; then
