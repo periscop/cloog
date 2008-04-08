@@ -54,7 +54,7 @@ extern "C"
  *  Matrix;
  */
 
-#define CloogMatrix Matrix
+typedef Matrix CloogMatrix;
 
 /******************************************************************************
  *                              PolyLib interface                             *
