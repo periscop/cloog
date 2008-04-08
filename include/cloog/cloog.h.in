@@ -37,6 +37,9 @@
  *  THIS FILE HAS BEEN AUTOMATICALLY GENERATED FROM clooh.h.in BY configure   *
  ******************************************************************************/
 
+#ifndef CLOOG_H
+#define CLOOG_H
+
 # include <polylib/@cl_cv_polylib@.h>
 #include <cloog/version.h>
 #include <cloog/options.h>
@@ -282,4 +285,4 @@
 #endif /* 'Value' set to |longlong|long|float|char *|int */
 #endif
 
-
+#endif /* !CLOOG_H */
