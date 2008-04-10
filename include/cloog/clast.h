@@ -32,9 +32,22 @@ struct clast_binary {
     Value		RHS;
 };
 
+struct clast_stmt;
+struct clast_stmt_op {
+    void (*free)(struct clast_stmt *);
+};
+
+#define CLAST_STMT_IS_A(stmt, type) ((stmt)->op == &(type))
+
+extern struct clast_stmt_op stmt_root;
+extern struct clast_stmt_op stmt_ass;
+extern struct clast_stmt_op stmt_user;
+extern struct clast_stmt_op stmt_block;
+extern struct clast_stmt_op stmt_for;
+extern struct clast_stmt_op stmt_guard;
+
 struct clast_stmt {
-    enum { stmt_ass, stmt_block, stmt_for,
-	   stmt_guard, stmt_user, stmt_root } type;
+    struct clast_stmt_op    *op;
     struct clast_stmt	*next;
 };
 
@@ -105,12 +118,7 @@ void free_clast_term(struct clast_term *t);
 void free_clast_binary(struct clast_binary *b);
 void free_clast_reduction(struct clast_reduction *r);
 void free_clast_expr(struct clast_expr *e);
-void free_clast_root(struct clast_root *r);
-void free_clast_assignment(struct clast_assignment *a);
-void free_clast_user_stmt(struct clast_user_stmt *u);
-void free_clast_for(struct clast_for *f);
-void free_clast_guard(struct clast_guard *g);
-void free_clast_block(struct clast_block *b);
+void free_clast_stmt(struct clast_stmt *s);
 
 int clast_expr_equal(struct clast_expr *e1, struct clast_expr *e2);
 

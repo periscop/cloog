@@ -94,51 +94,114 @@ struct clast_reduction *new_clast_reduction(enum clast_red_type t, int n)
     return r;
 }
 
+static void free_clast_root(struct clast_stmt *s);
+
+struct clast_stmt_op stmt_root = { free_clast_root };
+
+static void free_clast_root(struct clast_stmt *s)
+{
+    struct clast_root *r = (struct clast_root *)s;
+    assert(CLAST_STMT_IS_A(s, stmt_root));
+    cloog_names_free(r->names);
+    free(r);
+}
+
 struct clast_root *new_clast_root(CloogNames *names)
 {
     struct clast_root *r = malloc(sizeof(struct clast_root));
-    r->stmt.type = stmt_root;
+    r->stmt.op = &stmt_root;
     r->stmt.next = NULL;
     r->names = cloog_names_copy(names);
     return r;
+}
+
+static void free_clast_assignment(struct clast_stmt *s);
+
+struct clast_stmt_op stmt_ass = { free_clast_assignment };
+
+static void free_clast_assignment(struct clast_stmt *s)
+{
+    struct clast_assignment *a = (struct clast_assignment *)s;
+    assert(CLAST_STMT_IS_A(s, stmt_ass));
+    free_clast_expr(a->RHS);
+    free(a);
 }
 
 struct clast_assignment *new_clast_assignment(const char *lhs,
 					      struct clast_expr *rhs)
 {
     struct clast_assignment *a = malloc(sizeof(struct clast_assignment));
-    a->stmt.type = stmt_ass;
+    a->stmt.op = &stmt_ass;
     a->stmt.next = NULL;
     a->LHS = lhs;
     a->RHS = rhs;
     return a;
 }
 
+static void free_clast_user_stmt(struct clast_stmt *s);
+
+struct clast_stmt_op stmt_user = { free_clast_user_stmt };
+
+static void free_clast_user_stmt(struct clast_stmt *s)
+{
+    struct clast_user_stmt *u = (struct clast_user_stmt *)s;
+    assert(CLAST_STMT_IS_A(s, stmt_user));
+    cloog_clast_free(u->substitutions);
+    free(u);
+}
+
 struct clast_user_stmt *new_clast_user_stmt(CloogStatement *stmt, 
 					    struct clast_stmt *subs)
 {
     struct clast_user_stmt *u = malloc(sizeof(struct clast_user_stmt));
-    u->stmt.type = stmt_user;
+    u->stmt.op = &stmt_user;
     u->stmt.next = NULL;
     u->statement = stmt;
     u->substitutions = subs;
     return u;
 }
 
+static void free_clast_block(struct clast_stmt *b);
+
+struct clast_stmt_op stmt_block = { free_clast_block };
+
+static void free_clast_block(struct clast_stmt *s)
+{
+    struct clast_block *b = (struct clast_block *)s;
+    assert(CLAST_STMT_IS_A(s, stmt_block));
+    cloog_clast_free(b->body);
+    free(b);
+}
+
 struct clast_block *new_clast_block()
 {
     struct clast_block *b = malloc(sizeof(struct clast_block));
-    b->stmt.type = stmt_block;
+    b->stmt.op = &stmt_block;
     b->stmt.next = NULL;
     b->body = NULL;
     return b;
+}
+
+static void free_clast_for(struct clast_stmt *s);
+
+struct clast_stmt_op stmt_for = { free_clast_for };
+
+static void free_clast_for(struct clast_stmt *s)
+{
+    struct clast_for *f = (struct clast_for *)s;
+    assert(CLAST_STMT_IS_A(s, stmt_for));
+    free_clast_expr(f->LB);
+    free_clast_expr(f->UB);
+    value_clear(f->stride);
+    cloog_clast_free(f->body);
+    free(f);
 }
 
 struct clast_for *new_clast_for(const char *it, struct clast_expr *LB, 
 				struct clast_expr *UB, Value stride)
 {
     struct clast_for *f = malloc(sizeof(struct clast_for));
-    f->stmt.type = stmt_for;
+    f->stmt.op = &stmt_for;
     f->stmt.next = NULL;
     f->iterator = it;
     f->LB = LB;
@@ -149,12 +212,29 @@ struct clast_for *new_clast_for(const char *it, struct clast_expr *LB,
     return f;
 }
 
+static void free_clast_guard(struct clast_stmt *s);
+
+struct clast_stmt_op stmt_guard = { free_clast_guard };
+
+static void free_clast_guard(struct clast_stmt *s)
+{
+    int i;
+    struct clast_guard *g = (struct clast_guard *)s;
+    assert(CLAST_STMT_IS_A(s, stmt_guard));
+    cloog_clast_free(g->then);
+    for (i = 0; i < g->n; ++i) {
+	free_clast_expr(g->eq[i].LHS);
+	free_clast_expr(g->eq[i].RHS);
+    }
+    free(g);
+}
+
 struct clast_guard *new_clast_guard(int n)
 {
     int i;
     struct clast_guard *g = malloc(sizeof(struct clast_guard) + 
 				   (n-1) * sizeof(struct clast_equation));
-    g->stmt.type = stmt_guard;
+    g->stmt.op = &stmt_guard;
     g->stmt.next = NULL;
     g->then = NULL;
     g->n = n;
@@ -205,48 +285,11 @@ void free_clast_expr(struct clast_expr *e)
     }
 }
 
-void free_clast_root(struct clast_root *r)
+void free_clast_stmt(struct clast_stmt *s)
 {
-    cloog_names_free(r->names);
-    free(r);
-}
-
-void free_clast_assignment(struct clast_assignment *a)
-{
-    free_clast_expr(a->RHS);
-    free(a);
-}
-
-void free_clast_user_stmt(struct clast_user_stmt *u)
-{
-    cloog_clast_free(u->substitutions);
-    free(u);
-}
-
-void free_clast_for(struct clast_for *f)
-{
-    free_clast_expr(f->LB);
-    free_clast_expr(f->UB);
-    value_clear(f->stride);
-    cloog_clast_free(f->body);
-    free(f);
-}
-
-void free_clast_guard(struct clast_guard *g)
-{
-    int i;
-    cloog_clast_free(g->then);
-    for (i = 0; i < g->n; ++i) {
-	free_clast_expr(g->eq[i].LHS);
-	free_clast_expr(g->eq[i].RHS);
-    }
-    free(g);
-}
-
-void free_clast_block(struct clast_block *b)
-{
-    cloog_clast_free(b->body);
-    free(b);
+    assert(s->op);
+    assert(s->op->free);
+    s->op->free(s);
 }
 
 void cloog_clast_free(struct clast_stmt *s)
@@ -254,28 +297,7 @@ void cloog_clast_free(struct clast_stmt *s)
     struct clast_stmt *next;
     while (s) {
 	next = s->next;
-	switch (s->type) {
-	case stmt_root:
-	    free_clast_root((struct clast_root *) s);
-	    break;
-	case stmt_ass:
-	    free_clast_assignment((struct clast_assignment *) s);
-	    break;
-	case stmt_for:
-	    free_clast_for((struct clast_for *) s);
-	    break;
-	case stmt_guard:
-	    free_clast_guard((struct clast_guard *) s);
-	    break;
-	case stmt_user:
-	    free_clast_user_stmt((struct clast_user_stmt *) s);
-	    break;
-	case stmt_block:
-	    free_clast_block((struct clast_block *) s);
-	    break;
-	default:
-	    assert(0);
-	}
+	free_clast_stmt(s);
 	s = next;
     }
 }
@@ -963,7 +985,7 @@ static void insert_guard(CloogMatrix *matrix, int level,
     **next = &g->stmt;
     *next = &g->then;
   } else
-    free_clast_guard(g);
+    free_clast_stmt(&g->stmt);
   
   value_clear(one);
   return;

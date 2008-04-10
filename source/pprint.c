@@ -247,7 +247,7 @@ void pprint_user_stmt(struct cloogoptions *options, FILE *dst,
     if (options->cpp || u->substitutions)
 	fprintf(dst, "(");
     for (t = u->substitutions; t; t = t->next) {
-	assert(t->type == stmt_ass);
+	assert(CLAST_STMT_IS_A(t, stmt_ass));
 	pprint_assignment(options, dst, (struct clast_assignment *)t);
 	if (t->next)
 	    fprintf(dst, ",");
@@ -355,33 +355,27 @@ void pprint_stmt_list(struct cloogoptions *options, FILE *dst, int indent,
 		       struct clast_stmt *s)
 {
     for ( ; s; s = s->next) {
-	if (s->type == stmt_root)
+	if (CLAST_STMT_IS_A(s, stmt_root))
 	    continue;
 	fprintf(dst, "%*s", indent, "");
-	switch (s->type) {
-	case stmt_ass:
+	if (CLAST_STMT_IS_A(s, stmt_ass)) {
 	    pprint_assignment(options, dst, (struct clast_assignment *) s);
 	    if (options->language != LANGUAGE_FORTRAN)
 		fprintf(dst, " ;");
 	    fprintf(dst, "\n");
-	    break;
-	case stmt_user:
+	} else if (CLAST_STMT_IS_A(s, stmt_user)) {
 	    pprint_user_stmt(options, dst, (struct clast_user_stmt *) s);
-	    break;
-	case stmt_for:
+	} else if (CLAST_STMT_IS_A(s, stmt_for)) {
 	    pprint_for(options, dst, indent, (struct clast_for *) s);
-	    break;
-	case stmt_guard:
+	} else if (CLAST_STMT_IS_A(s, stmt_guard)) {
 	    pprint_guard(options, dst, indent, (struct clast_guard *) s);
-	    break;
-	case stmt_block:
+	} else if (CLAST_STMT_IS_A(s, stmt_block)) {
 	    fprintf(dst, "{\n");
 	    pprint_stmt_list(options, dst, indent + INDENT_STEP, 
 				((struct clast_block *)s)->body);
 	    fprintf(dst, "%*s", indent, "");
 	    fprintf(dst, "}\n");
-	    break;
-	default:
+	} else {
 	    assert(0);
 	}
     }
