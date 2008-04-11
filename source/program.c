@@ -611,6 +611,7 @@ CloogProgram * cloog_program_malloc()
   program->names        = NULL ;
   program->blocklist    = NULL ;
   program->scaldims     = NULL ;
+  program->usr          = NULL;
   
   return program ;
 }  

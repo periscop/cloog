@@ -269,6 +269,7 @@ CloogBlock * cloog_block_malloc()
   block->scaldims = NULL ;
   block->depth = 0 ;
   block->references = 1 ;
+  block->usr = NULL;
   
   return block ;
 }  

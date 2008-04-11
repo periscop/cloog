@@ -64,6 +64,10 @@ struct cloogloop
                                *   (filled only after loop generation).
                                */
   CloogBlock * block ;        /**< The included statement block, NULL if none.*/
+  void * usr;		      /**< User field, for library user convenience.
+			       *   This pointer is not freed when the
+			       *   CloogLoop structure is freed.
+			       */
   struct cloogloop * inner ;  /**< Loops at the next level. */
   struct cloogloop * next ;   /**< Next loop at the same level. */
 } ;

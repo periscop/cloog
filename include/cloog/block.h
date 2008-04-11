@@ -63,6 +63,10 @@ struct cloogblock
   Value * scaldims ;            /**< Scalar dimension values. */
   int depth ;                   /**< Original block depth (outer loop number).*/
   int references ;              /**< Number of references to this structure. */
+  void * usr;		        /**< User field, for library user convenience.
+				 *   This pointer is not freed when the
+				 *   CloogBlock structure is freed.
+			         */
 } ;
 typedef struct cloogblock CloogBlock ;
 

@@ -64,6 +64,11 @@ struct cloogprogram
   int * scaldims ;             /**< Boolean array saying whether a given
                                 *   scattering dimension is scalar or not.
 				*/
+  /* Library user reserved field. */
+  void * usr;		       /**< User field, for library user convenience.
+			        *   This pointer is not freed when the
+			        *   CloogProgram structure is freed.
+			        */
 } ;
 typedef struct cloogprogram CloogProgram ;
 

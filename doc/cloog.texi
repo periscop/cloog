@@ -1650,6 +1650,7 @@ struct cloogblock
 @{ CloogStatement * statement ; /* Statement list of the block. */
   CloogMatrix * scattering ;   /* Scattering function of the block. */
   int depth ;                  /* Original block depth.*/
+  void * usr;                  /* Pointer for user's convenience. */
 @} ;
 typedef struct cloogblock CloogBlock ;
 @end group
@@ -1665,7 +1666,8 @@ statement order matters, @code{scattering} is one of
 the statement scattering functions and
 @code{depth} is the number of dimensions of the
 iteration domain (only the unknown, not the tag/parameters/scalar).
-
+@code{usr} is a pointer for library user's convenience. Note this pointer
+is never allocated, freed or printed by CLooG.
 
 @node CloogBlockList
 @subsection CloogBlockList
@@ -1688,9 +1690,10 @@ of blocks.
 @example
 @group
 struct cloogloop
-@{ CloogDomain * domain ;       /* Iteration domain. */
+@{ CloogDomain * domain;       /* Iteration domain. */
   Value stride ;               /* Loop stride. */
   CloogBlock * block ;         /* Included statement block.*/
+  void * usr;                  /* Pointer for user's convenience. */
   struct cloogloop * inner ;   /* Loop at the next level. */
   struct cloogloop * next ;    /* Next loop at the same level. */
 @} ;
@@ -1703,7 +1706,9 @@ First of all, a
 loop has an iteration domain (@code{domain}). The iterator's stride for loop
 increment is @code{stride}. The loop can include a statement block
 in the field @code{block}. If there is no included statement block,
-@code{block} is set to @code{NULL}. @code{inner} is a pointer to the inner
+@code{block} is set to @code{NULL}. @code{usr} is a pointer for library
+user's convenience. Note that this pointer is never allocated, freed or
+printed by CLooG. @code{inner} is a pointer to the inner
 loop, and @code{next} a pointer to the next loop in the textual order. If
 there are no inner loop or no next loop, the corresponding pointer is set
 to @code{NULL}.
@@ -1755,6 +1760,7 @@ struct cloogprogram
   CloogDomain * context ;      /* The context of the program. */
   CloogLoop   * loop ;         /* The loops of the program. */
   CloogBlockList * blocklist ; /* The statement block list. */
+  void * usr;                  /* For library user's convenience. */
 @} ;
 typedef struct cloogprogram CloogProgram ;
 @end group
@@ -1775,6 +1781,8 @@ element names (scattering dimension, iterators, parameters)
 of the final program. @code{names} can be the @code{NULL}
 pointer if the user do not want to use our pretty printing function.
 @code{blocklist} is the linked list of all the statement block structures.
+@code{usr} is a pointer for library user's convenience. Note that this pointer
+is never allocated, freed or printed by CLooG.
 As an example, let us consider the following loop nest:
 @example
 @group
