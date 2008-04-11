@@ -122,6 +122,10 @@ void free_clast_stmt(struct clast_stmt *s);
 
 int clast_expr_equal(struct clast_expr *e1, struct clast_expr *e2);
 
+struct clast_expr *clast_bound_from_constraint(CloogMatrix *matrix,
+					       int line_num, int level,
+					       CloogNames *names);
+
 #if defined(__cplusplus)
   }
 #endif 

@@ -38,8 +38,6 @@ static void clast_equal_del(CloogMatrix * equal, int level);
 
 static struct clast_stmt * clast_equal(CloogInfos *infos);
 static struct clast_stmt * clast_equal_cpp(int level, CloogInfos *infos);
-static struct clast_expr *clast_line(CloogMatrix *matrix,
-				  int line_num, int level, CloogInfos *infos);
 static struct clast_expr *clast_minmax(CloogMatrix *matrix,
 					int level, int max, int guard, 
 					CloogInfos *infos);
@@ -612,7 +610,7 @@ static struct clast_stmt * clast_equal(CloogInfos *infos)
        */
       value_assign(type,equal->p[i][0]) ;
       value_set_si(equal->p[i][0],0) ;
-      e = clast_line(equal,i,i+1,infos) ;
+      e = clast_bound_from_constraint(equal, i, i+1, infos->names);
       value_assign(equal->p[i][0],type) ;
       *next = &new_clast_assignment(infos->names->iterators[iterator], e)->stmt;
       next = &(*next)->next;
@@ -657,7 +655,7 @@ static struct clast_stmt * clast_equal_cpp(int level, CloogInfos *infos)
        */
       value_assign(type,equal->p[i][0]) ;
       value_set_si(equal->p[i][0],0) ;
-      e = clast_line(equal,i,i+1,infos) ;
+      e = clast_bound_from_constraint(equal, i, i+1, infos->names);
       value_assign(equal->p[i][0],type) ;
     } else {
       value_set_si(type, 1);
@@ -674,24 +672,25 @@ static struct clast_stmt * clast_equal_cpp(int level, CloogInfos *infos)
 
  
 /**
- * clast_line function:
- * This function returns a clast_expr containing the printing of the 'right part'
- * of a constraint according to an element.
+ * clast_bound_from_constraint function:
+ * This function returns a clast_expr containing the printing of the
+ * 'right part' of a constraint according to an element.
  * For instance, for the constraint -3*i + 2*j - M >=0 and the element j,
  * we have j >= (3*i + M)/2. As we are looking for integral solutions, this
  * function should return 'ceild(3*i+M,2)'.
  * - matrix is the polyhedron containing all the constraints,
  * - line_num is the line number in domain of the constraint we want to print,
  * - level is the column number in domain of the element we want to use,
- * - the infos structure gives the user some options about code printing,
+ * - names structure gives the user some options about code printing,
  *   the number of parameters in domain (nb_par), and the arrays of iterator
  *   names and parameters (iters and params). 
  **
  * - November 2nd 2001: first version. 
  * - June    27th 2003: 64 bits version ready.
  */
-static struct clast_expr *clast_line(CloogMatrix *matrix,
-				     int line_num, int level, CloogInfos *infos)
+struct clast_expr *clast_bound_from_constraint(CloogMatrix *matrix,
+					       int line_num, int level,
+					       CloogNames *names)
 { 
   int i, nb_iter, sign, nb_elts=0 ;
   char * name;
@@ -715,13 +714,13 @@ static struct clast_expr *clast_line(CloogMatrix *matrix,
     nb_elts = 0;
 
     /* First, we have to print the iterators. */
-    nb_iter = matrix->NbColumns - 2 - infos->names->nb_parameters ;
+    nb_iter = matrix->NbColumns - 2 - names->nb_parameters;
     for (i=1;i<=nb_iter;i++)
-    if ((i != level) && value_notzero_p(line[i]))
-    { if (i <= infos->names->nb_scattering)
-      name = infos->names->scattering[i-1] ;
+    if ((i != level) && value_notzero_p(line[i])) {
+      if (i <= names->nb_scattering)
+        name = names->scattering[i-1];
       else
-      name = infos->names->iterators[i-infos->names->nb_scattering-1] ;
+        name = names->iterators[i-names->nb_scattering-1];
       
       if (sign == -1)
       value_oppose(temp,line[i]) ;
@@ -733,8 +732,8 @@ static struct clast_expr *clast_line(CloogMatrix *matrix,
 
     /* Next, the parameters. */
     for (i=nb_iter+1;i<=matrix->NbColumns-2;i++)
-    if ((i != level) && value_notzero_p(line[i]))
-    { name = infos->names->parameters[i-nb_iter-1] ;
+    if ((i != level) && value_notzero_p(line[i])) {
+      name = names->parameters[i-nb_iter-1];
       
       if (sign == -1)
       value_oppose(temp,line[i]) ;
@@ -869,7 +868,7 @@ static struct clast_expr *clast_minmax(CloogMatrix *matrix,
 	   (!max && value_neg_p(matrix->p[i][level]))) &&
 	  (!guard || value_zero_p(matrix->p[i][guard])) &&
 	  (value_notzero_p(matrix->p[i][0])))
-    	r->elts[n++] = clast_line(matrix,i,level,infos);
+	r->elts[n++] = clast_bound_from_constraint(matrix,i,level,infos->names);
 
   return &r->expr;
 }
@@ -948,7 +947,7 @@ static void insert_guard(CloogMatrix *matrix, int level,
 	value_assign(t->val, copy->p[j][i]);
 	value_set_si(copy->p[j][i], 1);
 	g->eq[nb_and].sign = 0;
-        g->eq[nb_and].RHS = clast_line(copy,j,i,infos) ;
+        g->eq[nb_and].RHS = clast_bound_from_constraint(copy,j,i,infos->names);
 	value_assign(copy->p[j][i], t->val);
       } else {
         if (value_pos_p(copy->p[j][i])) {
@@ -1257,7 +1256,7 @@ static void insert_equality(CloogMatrix *matrix, int num,
       *next = &b->body;
     }
 		
-    e = clast_line(matrix,num,level,infos) ;
+    e = clast_bound_from_constraint(matrix,num,level,infos->names);
     if (level <= infos->names->nb_scattering)
 	ass = new_clast_assignment(infos->names->scattering[level-1], e);
     else
