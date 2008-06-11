@@ -213,7 +213,7 @@ fi
 AC_MSG_CHECKING(for location of PolyLib)
 if test "x$with_polylib_builddir" != "x"; then
 	AC_MSG_RESULT(built in $with_polylib_builddir)
-	polylib_srcdir=`echo @srcdir@ | $with_polylib_builddir/config.status --file=-`
+	polylib_srcdir=`echo @abs_srcdir@ | $with_polylib_builddir/config.status --file=-`
 	AC_MSG_NOTICE(PolyLib sources in $polylib_srcdir)
 	polylib_polylibs=`echo @polylibs@ | $with_polylib_builddir/config.status --file=-`
 	AC_MSG_NOTICE(Configured polylibs: $polylib_polylibs)
