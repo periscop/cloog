@@ -243,9 +243,11 @@ else
 	fi
 	for BITS in $polylibs; do
 		cl_cv_polylib="polylib$BITS"
-		AC_CHECK_LIB($cl_cv_polylib,PolyhedronTSort,[
-			LIBS="-l$cl_cv_polylib $LIBS"
-			break
+		AC_CHECK_HEADER(polylib/$cl_cv_polylib.h,[
+			AC_CHECK_LIB($cl_cv_polylib,PolyhedronTSort,[
+				LIBS="-l$cl_cv_polylib $LIBS"
+				break
+			])
 		])
 		cl_cv_polylib=missing
 	done
@@ -253,8 +255,6 @@ fi
 if test "$cl_cv_polylib" = "missing"; then
 	AC_MSG_ERROR(Can't find PolyLib.)
 fi
-AC_CHECK_HEADER(polylib/$cl_cv_polylib.h,[],
-                [AC_MSG_ERROR(Can't find PolyLib headers.)])
 
 AC_SUBST(GIT_INDEX)
 if test -f $srcdir/.git/HEAD; then
