@@ -1,5 +1,4 @@
-/* Generated from levenshtein-1-2-3.cloog by CLooG v0.14.0 gmp bits in 0.04s. */
-/* CLooG asked for 236 KBytes. */
+/* Generated from levenshtein-1-2-3.cloog by CLooG 0.14.0-63-gb31d016 gmp bits in 0.03s. */
 S1(i = 0,j = 0) ;
 S2(i = 1,j = 0) ;
 S3(i = 1,j = 1) ;
@@ -17,9 +16,8 @@ for (j=1;j<=N;j++) {
   S8 ;
 }
 for (i=N+2;i<=2*M-N-2;i++) {
-  for (j=ceild(i-N-2,2);j<=floord(i-N-1,2);j++) {
-    S7 ;
-  }
+  j = floord(i-N-1,2) ;
+  S7 ;
   if ((i+N)%2 == 0) {
     j = (i-N)/2 ;
     S5 ;

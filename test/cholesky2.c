@@ -1,5 +1,4 @@
-/* Generated from cholesky2.cloog by CLooG v0.14.0 gmp bits in 0.11s. */
-/* CLooG asked for 616 KBytes. */
+/* Generated from cholesky2.cloog by CLooG 0.14.0-63-gb31d016 gmp bits in 0.10s. */
 if (M >= 2) {
   for (c2=1;c2<=M-1;c2++) {
     S1(i = c2) ;
@@ -37,14 +36,13 @@ for (c1=3;c1<=3*M-7;c1++) {
     i = (c1+3)/3 ;
     S2(j = c1/3) ;
   }
-  for (c2=ceild(c1+4,3);c2<=floord(c1+6,3);c2++) {
-    if ((c1+1)%3 == 0) {
-      i = (c1+1)/3 ;
-      S6(j = c2) ;
-    }
-    if (c1%3 == 0) {
-      S2(i = c2,j = c1/3) ;
-    }
+  c2 = floord(c1+6,3) ;
+  if ((c1+1)%3 == 0) {
+    i = (c1+1)/3 ;
+    S6(j = c2) ;
+  }
+  if (c1%3 == 0) {
+    S2(i = c2,j = c1/3) ;
   }
   for (c2=ceild(c1+7,3);c2<=M;c2++) {
     if ((c1+1)%3 == 0) {

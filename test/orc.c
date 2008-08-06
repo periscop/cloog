@@ -1,5 +1,4 @@
-/* Generated from orc.cloog by CLooG v0.14.0 gmp bits in 0.07s. */
-/* CLooG asked for 404 KBytes. */
+/* Generated from orc.cloog by CLooG 0.14.0-63-gb31d016 gmp bits in 0.06s. */
 S1(i = 0) ;
 S2(i = 0,j = 0) ;
 for (p2=1;p2<=22;p2++) {
@@ -36,13 +35,12 @@ for (p1=2;p1<=6;p1++) {
       }
     }
   }
-  for (p2=ceild(-2*p1+69,3);p2<=floord(-2*p1+71,3);p2++) {
-    if ((p1+2)%3 == 0) {
-      i = (p1-1)/3 ;
-      if ((p2+1)%2 == 0) {
-        j = (p2-1)/2 ;
-        S3 ;
-      }
+  p2 = floord(-2*p1+71,3) ;
+  if ((p1+2)%3 == 0) {
+    i = (p1-1)/3 ;
+    if ((p2+1)%2 == 0) {
+      j = (p2-1)/2 ;
+      S3 ;
     }
   }
 }

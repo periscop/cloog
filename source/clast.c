@@ -43,9 +43,10 @@ static struct clast_expr *clast_minmax(CloogMatrix *matrix,
 					CloogInfos *infos);
 static void insert_guard(CloogMatrix *matrix, int level,
 			  struct clast_stmt ***next, CloogInfos *infos);
-static void insert_modulo_guard(CloogMatrix *matrix, int num, int level,
+static void insert_modulo_guard(CloogMatrix *matrix, int upper, int lower,
+				int level,
 			        struct clast_stmt ***next, CloogInfos *infos);
-static void insert_equality(CloogMatrix *matrix, int num,
+static void insert_equation(CloogMatrix *matrix, int upper, int lower,
 			 int level, struct clast_stmt ***next, CloogInfos *infos);
 static void insert_for(CloogMatrix *matrix, int level,
 			struct clast_stmt ***next, CloogInfos *infos);
@@ -1038,41 +1039,58 @@ static void Euclid(Value a, Value b, Value *x, Value *y, Value *g)
 
 /**
  * insert_modulo_guard:
- * This function inserts a modulo guard corresponding to an equality.
- * See insert_equality.
+ * This function inserts a modulo guard corresponding to an equality
+ * or a pair of inequalities.
+ * See insert_equation.
  * - matrix is the polyhedron containing all the constraints,
- * - num is the line number of the constraint in matrix we want to print,
+ * - upper and lower are the line numbers of the constraint in matrix
+ *   we want to print; in particular, if we want to print an equality,
+ *   then lower == -1 and upper is the row of the equality; if we want
+ *   to print an inequality, then upper is the row of the upper bound
+ *   and lower in the row of the lower bound
  * - level is the column number of the element in matrix we want to use,
  * - the infos structure gives the user some options about code printing,
  *   the number of parameters in matrix (nb_par), and the arrays of iterator
  *   names and parameters (iters and params). 
  */
-static void insert_modulo_guard(CloogMatrix *matrix, int num, int level,
+static void insert_modulo_guard(CloogMatrix *matrix, int upper, int lower,
+				int level,
 				struct clast_stmt ***next, CloogInfos *infos)
 {
   int i, j, k, nb_elts = 0, len, nb_iter, in_stride = 0, nb_par;
   Vector *line_vector;
   Value *line, val, x, y, g;
 
-  if (value_one_p(matrix->p[num][level]) || value_mone_p(matrix->p[num][level]))
+  if (value_one_p(matrix->p[upper][level]) ||
+      value_mone_p(matrix->p[upper][level]))
     return;
-
-  value_init_c(val);
-  value_init_c(x);
-  value_init_c(y);
-  value_init_c(g);
 
   len = matrix->NbColumns;
   nb_par = infos->names->nb_parameters;
   nb_iter = matrix->NbColumns - 2 - nb_par;
 
+  value_init_c(val);
+  /* Check if would be emitting the redundant constraint mod(e,m) <= m-1 */
+  if (lower != -1) {
+    value_addto(val, matrix->p[upper][len-1], matrix->p[lower][len-1]);
+    value_add_int(val, val, 1);
+    if (value_eq(val, matrix->p[lower][level])) {
+      value_clear_c(val);
+      return;
+    }
+  }
+
+  value_init_c(x);
+  value_init_c(y);
+  value_init_c(g);
+
   line_vector = Vector_Alloc(len);
   line = line_vector->p;
-  if (value_neg_p(matrix->p[num][level]))
-    Vector_Copy(matrix->p[num]+1, line+1, len-1);
+  if (value_neg_p(matrix->p[upper][level]))
+    Vector_Copy(matrix->p[upper]+1, line+1, len-1);
   else {
     value_set_si(val, -1);
-    Vector_Scale(matrix->p[num]+1, line+1, val, len-1);
+    Vector_Scale(matrix->p[upper]+1, line+1, val, len-1);
   }
   value_oppose(line[level], line[level]);
   assert(value_pos_p(line[level]));
@@ -1137,7 +1155,7 @@ static void insert_modulo_guard(CloogMatrix *matrix, int num, int level,
      * is included in the stride calculation (more exactly in the strided
      * iterator new lower bound: the 'offset') and we have not to print it.
      */
-    if (value_zero_p(val)) {
+    if (lower == -1 && value_zero_p(val)) {
       in_stride = 1;
       continue;
     }
@@ -1195,10 +1213,17 @@ static void insert_modulo_guard(CloogMatrix *matrix, int num, int level,
 
     e = &new_clast_binary(clast_bin_mod, &r->expr, line[level])->expr;
     g = new_clast_guard(1);
-    g->eq[0].LHS = e;
-    value_set_si(val, 0);
-    g->eq[0].RHS = &new_clast_term(val, NULL)->expr;
-    g->eq[0].sign = 0;
+    if (lower == -1) {
+      g->eq[0].LHS = e;
+      value_set_si(val, 0);
+      g->eq[0].RHS = &new_clast_term(val, NULL)->expr;
+      g->eq[0].sign = 0;
+    } else {
+      g->eq[0].LHS = e;
+      value_addto(val, matrix->p[upper][len-1], matrix->p[lower][len-1]);
+      g->eq[0].RHS = &new_clast_term(val, NULL)->expr;
+      g->eq[0].sign = -1;
+    }
 
     **next = &g->stmt;
     *next = &g->then;
@@ -1214,7 +1239,7 @@ static void insert_modulo_guard(CloogMatrix *matrix, int num, int level,
 
 
 /**
- * insert_equality function:
+ * insert_equation function:
  * This function inserts an equality 
  * constraint according to an element in the clast.
  * An equality can be preceded by a 'modulo guard'.
@@ -1235,15 +1260,15 @@ static void insert_modulo_guard(CloogMatrix *matrix, int num, int level,
  * - July 14th 2003: (debug) no more print the constant in the modulo guard when
  *                   it was previously included in a stride calculation.
  */
-static void insert_equality(CloogMatrix *matrix, int num,
+static void insert_equation(CloogMatrix *matrix, int upper, int lower,
 			    int level, struct clast_stmt ***next, CloogInfos *infos)
 {
   struct clast_expr *e;
   struct clast_assignment *ass;
 
-  insert_modulo_guard(matrix, num, level, next, infos);
+  insert_modulo_guard(matrix, upper, lower, level, next, infos);
 
-  if (!clast_equal_add(infos->equal,matrix,level,num,infos))
+  if (lower != -1 || !clast_equal_add(infos->equal, matrix, level, upper, infos))
   { /* Finally, the equality. */
 		
     /* If we have to make a block by dimension, we start the block. Function
@@ -1256,7 +1281,7 @@ static void insert_equality(CloogMatrix *matrix, int num,
       *next = &b->body;
     }
 		
-    e = clast_bound_from_constraint(matrix,num,level,infos->names);
+    e = clast_bound_from_constraint(matrix, upper, level, infos->names);
     if (level <= infos->names->nb_scattering)
 	ass = new_clast_assignment(infos->names->scattering[level-1], e);
     else
@@ -1410,6 +1435,114 @@ static void insert_block(CloogBlock *block, int level,
 }
 
 
+/* Check if the variable at position level is defined by an
+ * equality.  If so, return the row number.  Otherwise, return -1.
+ */
+static int defining_equality(CloogMatrix *matrix, int level)
+{
+	int i;
+
+	for (i = 0; i < matrix->NbRows; i++)
+		if (value_zero_p(matrix->p[i][0]) &&
+		    value_notzero_p(matrix->p[i][level]))
+			return i;
+	return -1;
+}
+
+/* Check if two vectors are eachothers opposite.
+ * Return 1 if they are, 0 if they are not.
+ */
+static int Vector_Opposite(Value *p1, Value *p2, unsigned len)
+{
+	int i;
+
+	for (i = 0; i < len; ++i) {
+		if (value_abs_ne(p1[i], p2[i]))
+			return 0;
+		if (value_zero_p(p1[i]))
+			continue;
+		if (value_eq(p1[i], p2[i]))
+			return 0;
+	}
+	return 1;
+}
+
+/* Check if the variable (e) at position level is defined by a
+ * pair of inequalities
+ *		 <a, i> + -m e +  <b, p> + k1 >= 0
+ *		<-a, i> +  m e + <-b, p> + k2 >= 0
+ * with 0 <= k1 + k2 < m
+ * If so return the row number of the upper bound and set *lower
+ * to the row number of the lower bound.  If not, return -1.
+ *
+ * If the variable at position level occurs in any other constraint,
+ * then we currently return -1.  The modulo guard that we would generate
+ * would still be correct, but we would also need to generate
+ * guards corresponding to the other constraints, and this has not
+ * been implemented yet.
+ */
+static int defining_inequalities(CloogMatrix *matrix, int level, int *lower,
+				 CloogInfos *infos)
+{
+	int i, j, k;
+	Value m;
+	unsigned len = matrix->NbColumns - 2;
+	unsigned nb_par = infos->names->nb_parameters;
+	unsigned nb_iter = len - nb_par;
+
+	for (i = 0; i < matrix->NbRows; i++) {
+		if (value_zero_p(matrix->p[i][level]))
+			continue;
+		if (value_zero_p(matrix->p[i][0]))
+			return -1;
+		if (value_one_p(matrix->p[i][level]))
+			return -1;
+		if (value_mone_p(matrix->p[i][level]))
+			return -1;
+		if (First_Non_Zero(matrix->p[i]+level+1,
+				    (1+nb_iter)-(level+1)) != -1)
+			return -1;
+		for (j = i+1; j < matrix->NbRows; ++j) {
+			if (value_zero_p(matrix->p[j][level]))
+				continue;
+			if (value_zero_p(matrix->p[j][0]))
+				return -1;
+			if (value_one_p(matrix->p[j][level]))
+				return -1;
+			if (value_mone_p(matrix->p[j][level]))
+				return -1;
+			if (First_Non_Zero(matrix->p[j]+level+1,
+					    (1+nb_iter)-(level+1)) != -1)
+				return -1;
+
+			value_init(m);
+			value_addto(m, matrix->p[i][1+len], matrix->p[j][1+len]);
+			if (value_neg_p(m) ||
+			    value_abs_ge(m, matrix->p[i][level])) {
+				value_clear(m);
+				return -1;
+			}
+			value_clear(m);
+
+			if (!Vector_Opposite(matrix->p[i]+1, matrix->p[j]+1,
+						len))
+				return -1;
+			for (k = j+1; k < matrix->NbRows; ++k)
+				if (value_notzero_p(matrix->p[k][level]))
+					return -1;
+			if (value_pos_p(matrix->p[i][level])) {
+				*lower = i;
+				return j;
+			} else {
+				*lower = j;
+				return i;
+			}
+		}
+	}
+	return -1;
+}
+
+
 /**
  * insert_loop function:
  * This function concerts the content of a CloogLoop structure (loop) into a
@@ -1450,7 +1583,7 @@ static void insert_block(CloogBlock *block, int level,
 static void insert_loop(CloogLoop * loop, int level, int scalar,
 			struct clast_stmt ***next, CloogInfos *infos)
 {
-    int i, equality=0, scalar_level;
+    int i, j, equality=0, scalar_level;
     CloogMatrix * matrix, * temp;
     struct clast_stmt **top = *next;
 
@@ -1477,21 +1610,18 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
 
     if ((matrix->NbColumns - 2 - infos->names->nb_parameters >= level)) {
 	/* We scan all the constraints to know in which case we are :
-	 * [[if] equality] or [for].
+	 * [[if] equation] or [for].
 	 */
-	for (i=0;i<matrix->NbRows;i++)
-	if (value_zero_p(matrix->p[i][0]) &&
-	    value_notzero_p(matrix->p[i][level]))
-	{ /* If there is an equality, we can print it directly -no ambiguity-.
+	if ((i = defining_equality(matrix, level)) != -1) {
+	  /* If there is an equality, we can print it directly -no ambiguity-.
 	   * PolyLib can give more than one equality, we use just the first one
 	   * (this is a PolyLib problem, but all equalities are equivalent).
 	   */
-	  insert_equality(matrix,i,level, next, infos);
+	  insert_equation(matrix, i, -1, level, next, infos);
 	  equality = 1 ;   
-	  break ;
-	}
-      
-	if (!equality)
+	} else if ((i = defining_inequalities(matrix, level, &j, infos)) != -1) {
+	    insert_equation(matrix, i, j, level, next, infos);
+	} else
 	    insert_for(matrix, level, next, infos);
     }
 
