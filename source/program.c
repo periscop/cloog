@@ -291,6 +291,89 @@ static void print_comment(FILE *file, CloogOptions *options,
   }
 }
 
+static void print_macros(FILE *file)
+{
+    fprintf(file, "/* Useful macros. */\n") ;
+    fprintf(file,
+	"#define floord(n,d) (((n)<0) ? -((-(n)+(d)-1)/(d)) : (n)/(d))\n");
+    fprintf(file,
+	"#define ceild(n,d)  (((n)<0) ? -((-(n))/(d)) : ((n)+(d)-1)/(d))\n");
+    fprintf(file, "#define max(x,y)    ((x) > (y) ? (x) : (y))\n") ; 
+    fprintf(file, "#define min(x,y)    ((x) < (y) ? (x) : (y))\n\n") ; 
+}
+
+static void print_declarations(FILE *file, int n, char **names)
+{
+    int i;
+
+    fprintf(file, "  int %s", names[0]); 
+    for (i = 1; i < n; i++)
+	fprintf(file, ", %s", names[i]); 
+
+    fprintf(file, ";\n");
+}
+
+static void print_iterator_declarations(FILE *file, CloogProgram *program,
+	CloogOptions *options)
+{
+    CloogNames *names = program->names;
+
+    if (names->nb_scalars && !options->csp) {
+	fprintf(file, "  /* Scalar dimension iterators. */\n");
+	print_declarations(file, names->nb_scalars, names->scalars);
+    }
+    if (names->nb_scattering) {
+	fprintf(file, "  /* Scattering iterators. */\n");
+	print_declarations(file, names->nb_scattering, names->scattering);
+    }
+    if (names->nb_iterators) {
+	fprintf(file, "  /* Original iterators. */\n");
+	print_declarations(file, names->nb_iterators, names->iterators);
+    }
+}
+
+static void print_callable_preamble(FILE *file, CloogProgram *program,
+	CloogOptions *options)
+{
+    int j;
+    CloogBlockList *blocklist;
+    CloogBlock *block;
+    CloogStatement *statement;
+
+    fprintf(file, "extern void hash(int);\n\n");
+
+    print_macros(file);
+
+    for (blocklist = program->blocklist; blocklist; blocklist = blocklist->next) {
+	block = blocklist->block;
+	for (statement = block->statement; statement; statement = statement->next) {
+	    fprintf(file, "#define S%d(", statement->number);
+	    if (block->depth > 0) {
+		fprintf(file, "%s", program->names->iterators[0]);
+		for(j = 1; j < block->depth; j++)
+		    fprintf(file, ",%s", program->names->iterators[j]);
+	    }
+	    fprintf(file,") { hash(%d);", statement->number);
+	    for(j = 0; j < block->depth; j++)
+		fprintf(file, " hash(%s);", program->names->iterators[j]);
+	    fprintf(file, " }\n");
+	}
+    }
+    fprintf(file, "\nvoid test("); 
+    if (program->names->nb_parameters > 0) {
+	fprintf(file, "int %s", program->names->parameters[0]);
+	for(j = 1; j < program->names->nb_parameters; j++)
+	    fprintf(file, ", int %s", program->names->parameters[j]);
+    }
+    fprintf(file, ")\n{\n"); 
+    print_iterator_declarations(file, program, options);
+}
+
+static void print_callable_postamble(FILE *file, CloogProgram *program)
+{
+    fprintf(file, "}\n"); 
+}
+
 /**
  * cloog_program_pprint function:
  * This function prints the content of a CloogProgram structure (program) into a
@@ -339,11 +422,7 @@ CloogOptions * options ;
       fprintf(file, "#define PARVAL%d %d\n", i, options->compilable);
     
     /* The macros. */
-    fprintf(file,"/* Useful macros. */\n") ;
-    fprintf(file,"#define ceild(n,d)  ceil(((double)(n))/((double)(d)))\n") ;
-    fprintf(file,"#define floord(n,d) floor(((double)(n))/((double)(d)))\n") ;
-    fprintf(file,"#define max(x,y)    ((x) > (y)? (x) : (y))  \n") ; 
-    fprintf(file,"#define min(x,y)    ((x) < (y)? (x) : (y))  \n\n") ; 
+    print_macros(file);
 
     /* The statement macros. */
     fprintf(file,"/* Statement macros (please set). */\n") ;
@@ -378,30 +457,7 @@ CloogOptions * options ;
     
     /* The iterator and parameter declaration. */
     fprintf(file,"\nint main() {\n") ; 
-    if ((program->names->nb_scalars > 0) && (!options->csp))
-    { fprintf(file,"  /* Scalar dimension iterators. */\n") ;
-      fprintf(file,"  int %s",program->names->scalars[0]) ; 
-      for(i=2;i<=program->names->nb_scalars;i++)
-      fprintf(file,", %s",program->names->scalars[i-1]) ; 
-      
-      fprintf(file," ;\n") ;
-    }
-    if (program->names->nb_scattering > 0)
-    { fprintf(file,"  /* Scattering iterators. */\n") ;
-      fprintf(file,"  int %s",program->names->scattering[0]) ; 
-      for(i=2;i<=program->names->nb_scattering;i++)
-      fprintf(file,", %s",program->names->scattering[i-1]) ; 
-      
-      fprintf(file," ;\n") ;
-    }
-    if (program->names->nb_iterators > 0)
-    { fprintf(file,"  /* Original iterators. */\n") ;
-      fprintf(file,"  int %s",program->names->iterators[0]) ; 
-      for(i=2;i<=program->names->nb_iterators;i++)
-      fprintf(file,", %s",program->names->iterators[i-1]) ; 
-      
-      fprintf(file," ;\n") ;
-    }
+    print_iterator_declarations(file, program, options);
     if (program->names->nb_parameters > 0)
     { fprintf(file,"  /* Parameters. */\n") ;
       fprintf(file, "  int %s=PARVAL1",program->names->parameters[0]);
@@ -415,6 +471,9 @@ CloogOptions * options ;
     
     /* And we adapt the identation. */
     indentation += 2 ;
+  } else if (options->callable && program->language == 'c') {
+    print_callable_preamble(file, program, options);
+    indentation += 2;
   }
   
   root = cloog_clast_create(program, options);
@@ -425,7 +484,8 @@ CloogOptions * options ;
   if (options->compilable && (program->language == 'c'))
   { fprintf(file,"\n  printf(\"Number of integral points: %%d.\\n\",total) ;") ;
     fprintf(file,"\n  return 0 ;\n}\n") ;
-  }
+  } else if (options->callable && program->language == 'c')
+    print_callable_postamble(file, program);
 }
 
 

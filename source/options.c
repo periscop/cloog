@@ -73,6 +73,7 @@ void cloog_options_print(FILE * foo, CloogOptions * options)
   fprintf(foo,"block       = %3d.\n",options->block) ;
   fprintf(foo,"cpp         = %3d.\n",options->cpp) ;
   fprintf(foo,"compilable  = %3d.\n",options->compilable) ;
+  fprintf(foo,"callable    = %3d.\n",options->callable) ;
   fprintf(foo,"UNDOCUMENTED OPTIONS FOR THE AUTHOR ONLY\n") ;
   fprintf(foo,"leaks       = %3d.\n",options->leaks) ;
   fprintf(foo,"nobacktrack = %3d.\n",options->nobacktrack) ;
@@ -143,7 +144,9 @@ void cloog_options_help()
   "(0)\n                        (default setting:  0).\n"
   "  -compilable <number>  Compilable code by using preprocessor (not 0) or" 
   "\n                        not (0), number being the value of the parameters"
-  "\n                        (default setting:  0).\n");
+  "\n                        (default setting:  0).\n"
+  "  -callable <boolean>   Testable code by using preprocessor (not 0) or" 
+  "\n                        not (0) (default setting:  0).\n");
   printf(
   "\nGeneral options:\n"
   "  -o <output>           Name of the output file; 'stdout' is a special\n"
@@ -260,6 +263,7 @@ CloogOptions * cloog_options_malloc(void)
   options->block       =  0 ;  /* We don't want to force statement blocks. */
   options->cpp         =  0 ;  /* No preprocessing facilities. */
   options->compilable  =  0 ;  /* No compilable code. */
+  options->callable    =  0 ;  /* No callable code. */
   /* UNDOCUMENTED OPTIONS FOR THE AUTHOR ONLY */
   options->leaks       =  0 ;  /* I don't want to print allocation statistics.*/
   options->nobacktrack =  0 ;  /* No backtrack in Quillere's algorithm.*/
@@ -333,7 +337,10 @@ CloogOptions ** options ;
     { cloog_options_set(&(*options)->compilable,argv,argc,&i) ;
       (*options)->cpp = 1 ;
     }
-    else
+    else if (strcmp(argc[i], "-callable") == 0) {
+      cloog_options_set(&(*options)->callable, argv, argc, &i);
+      (*options)->cpp = 1;
+    } else
     if (strcmp(argc[i],"-rays") == 0)
     { if (i+1 >= argv)
       { fprintf(stderr, "[CLooG]ERROR: an option lacks of argument.\n") ;
