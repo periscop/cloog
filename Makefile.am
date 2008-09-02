@@ -46,7 +46,7 @@ AM_CFLAGS = -Wall
 libcloog_la_SOURCES = \
 	source/block.c \
 	source/clast.c \
-	source/domain.c \
+	source/polylib/domain.c \
 	source/loop.c \
 	source/matrix.c \
 	source/names.c \
@@ -71,6 +71,11 @@ pkginclude_HEADERS = \
 	include/cloog/program.h \
 	include/cloog/statement.h \
 	include/cloog/version.h
+
+pkgpolylibincludedir = $(pkgincludedir)/polylib
+pkgpolylibinclude_HEADERS = \
+	include/cloog/polylib/cloog.h \
+	include/cloog/polylib/domain.h
 
 version.h: @GIT_INDEX@
 	echo '#define CLOOG_HEAD "'`$(top_builddir)/genversion.sh`'"' > $@

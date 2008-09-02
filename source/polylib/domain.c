@@ -40,7 +40,7 @@
 # include <stdlib.h>
 # include <stdio.h>
 # include <ctype.h>
-# include "../include/cloog/cloog.h"
+#include <cloog/polylib/cloog.h>
 
 
 /**
@@ -110,6 +110,17 @@ static void cloog_domain_leak_down()
  *                    is 0).
  */
 
+/**
+ * Returns true if each scattering dimension is defined in terms
+ * of the original iterators.
+ */
+int cloog_scattering_fully_specified(CloogDomain *scattering,
+				      CloogDomain *domain)
+{
+	int scattering_dim = cloog_domain_dimension(scattering) -
+				cloog_domain_dimension(domain);
+	return scattering->polyhedron->NbEq >= scattering_dim;
+}
 
 /**
  * cloog_domain_matrix2domain function:
@@ -144,6 +155,29 @@ void cloog_domain_print(FILE * foo, CloogDomain * domain)
   fprintf(foo,"Number of active references: %d\n",domain->references) ;
 }
 
+void cloog_domain_print_constraints(FILE *foo, CloogDomain *domain,
+					int print_number)
+{
+  Polyhedron *polyhedron;
+  CloogMatrix *matrix;
+
+  if (print_number) {
+    int j = 0;
+    /* Number of polyhedron inside the union of disjoint polyhedra. */
+    for (polyhedron = cloog_domain_polyhedron(domain); polyhedron;
+						polyhedron = polyhedron->next)
+      ++j;
+    fprintf(foo, "%d\n", j);
+  }
+
+  /* The polyhedra themselves. */
+  for (polyhedron = cloog_domain_polyhedron(domain); polyhedron;
+					      polyhedron = polyhedron->next) {
+    matrix = cloog_matrix_matrix(Polyhedron2Constraints(polyhedron));
+    cloog_matrix_print(foo,matrix);
+    cloog_matrix_free(matrix);
+  }
+}
 
 /**
  * cloog_polyhedron_print function:
@@ -485,20 +519,24 @@ CloogDomain * domain_source, * domain_target ;
  * integers that contains a permutation specification after call in order to
  * apply the topological sorting. 
  */
-void cloog_domain_sort(pols, nb_pols, level, nb_par, permut)
-Polyhedron ** pols ;
-unsigned nb_pols, level, nb_par ;
-int * permut ;
-{ int * time ;
+void cloog_domain_sort(CloogDomain **doms, unsigned nb_doms, unsigned level,
+			unsigned nb_par, int *permut)
+{
+  int i, *time;
+  Polyhedron **pols = (Polyhedron **) malloc(nb_doms * sizeof(Polyhedron *));
+
+  for (i = 0; i < nb_doms; i++)
+    pols[i] = cloog_domain_polyhedron(doms[i]);
   
-  /* time is an array of (nb_pols) integers to store logical time values. We
+  /* time is an array of (nb_doms) integers to store logical time values. We
    * do not use it, but it is compulsory for PolyhedronTSort.
    */
-  time = (int *)malloc(nb_pols*sizeof(int)) ;
+  time = (int *)malloc(nb_doms * sizeof(int));
 
   /* PolyhedronTSort will fill up permut (and time). */
-  PolyhedronTSort(pols,nb_pols,level,nb_par,time,permut,MAX_RAYS) ;
+  PolyhedronTSort(pols, nb_doms, level, nb_par, time, permut, MAX_RAYS);
     
+  free(pols);
   free(time) ;
 }
 
@@ -1519,18 +1557,18 @@ Polyhedron * cloog_domain_polyhedron(CloogDomain * domain)
 { return domain->polyhedron ;
 }
 
-int cloog_domain_dimension(CloogDomain * domain)
-{ return domain->polyhedron->Dimension ;
-}
-
 int cloog_domain_nbconstraints(CloogDomain * domain)
 { return domain->polyhedron->NbConstraints ;
+}
+ */
+
+int cloog_domain_dimension(CloogDomain * domain)
+{ return domain->polyhedron->Dimension ;
 }
 
 int cloog_domain_isconvex(CloogDomain * domain)
 { return (domain->polyhedron->next == NULL)? 1 : 0 ;
 }
- */
 
 
 /**

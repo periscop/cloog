@@ -42,39 +42,12 @@ extern "C"
 #endif 
 
 
-/* The Polyhedron structure comes directly from PolyLib (defined in
- * polylib/types.h) here is how it looks like (at least in PolyLib 5.20.0
- * version).
- *
- * typedef struct polyhedron { 
- *   unsigned Dimension,      // Dimension number (NbColumns-2 in Matrix).
- *            NbConstraints,  // Number of constraints (NbRows in Matrix).
- *            NbRays,         // Number of rays in dual representation.
- *            NbEq,           // Number of vertices (?).
- *            NbBid;          // Number of extremal rays (?).
- *   Value **Constraint;      // The pointers to rows in matrix representation.
- *   Value **Ray;             // The pointers to rays in dual representation.
- *   Value *p_Init;           // The whole data, consecutive in memory.
- *   int p_Init_size;         // To clear values in GMP mode.
- *   struct polyhedron *next; // Pointer to next component of the union.
- * } Polyhedron;
- */ 
-
-
-/**
- * CloogDomain structure:
- * this structure contains a polyhedron in the PolyLib shape and the number of
- * active references to this structure. Because CLooG uses many copies of
- * domains there is no need to actually copy these domains but just to return
- * a pointer to them and to increment the number of active references. Each time
- * a CloogDomain will be freed, we will decrement the active reference counter
- * and actually free it if its value is zero.
- */
-struct cloogdomain
-{ Polyhedron * polyhedron ;      /**< The polyhedral domain. */
-  int references ;               /**< Number of references to this structure. */
-} ;
+#ifdef CLOOG_POLYLIB
+#include <cloog/polylib/domain.h>
+#else
+struct cloogdomain;
 typedef struct cloogdomain CloogDomain ;
+#endif
 
 
 /**
@@ -94,7 +67,8 @@ typedef struct cloogdomainlist CloogDomainList ;
 CloogDomain * cloog_domain_matrix2domain(Matrix *) ;
 Matrix      * cloog_domain_domain2matrix(CloogDomain *) ;
 void          cloog_domain_print(FILE *, CloogDomain *) ;
-void          cloog_polyhedron_print(FILE *, Polyhedron *) ;
+void          cloog_domain_print_constraints(FILE *, CloogDomain *,
+						int print_number);
 void          cloog_domain_free(CloogDomain *) ;
 CloogDomain * cloog_domain_copy(CloogDomain *) ;
 CloogDomain * cloog_domain_image(CloogDomain *, Matrix *) ;
@@ -106,7 +80,7 @@ CloogDomain * cloog_domain_union(CloogDomain *, CloogDomain *) ;
 CloogDomain * cloog_domain_intersection(CloogDomain *, CloogDomain *) ;
 CloogDomain * cloog_domain_difference(CloogDomain *, CloogDomain *) ;
 CloogDomain * cloog_domain_addconstraints(CloogDomain *, CloogDomain *) ;
-void          cloog_domain_sort(Polyhedron**,unsigned,unsigned,unsigned,int *);
+void          cloog_domain_sort(CloogDomain**,unsigned,unsigned,unsigned,int *);
 CloogDomain * cloog_domain_empty(int) ;
 
 
@@ -134,13 +108,9 @@ CloogDomainList * cloog_domain_list_read(FILE *) ;
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
-CloogDomain * cloog_domain_malloc(void);
-CloogDomain * cloog_domain_alloc(Polyhedron *) ;
-CloogDomain * cloog_domain_compact(CloogDomain *) ;
 int           cloog_domain_isempty(CloogDomain *) ;
 int           cloog_domain_universe(CloogDomain *) ;
 CloogDomain * cloog_domain_project(CloogDomain *, int, int) ;
-CloogDomain * cloog_domain_bounds(CloogDomain * domain, int dim, int nb_par);
 CloogDomain * cloog_domain_extend(CloogDomain *, int, int) ;
 int           cloog_domain_never_integral(CloogDomain *) ;
 void          cloog_domain_stride(CloogDomain *, int, int, Value *, Value *) ;
@@ -155,18 +125,11 @@ int           cloog_domain_list_lazy_same(CloogDomainList *) ;
 void          cloog_domain_scalar(CloogDomain *, int, Value *) ;
 CloogDomain * cloog_domain_cut_first(CloogDomain *) ;
 CloogDomain * cloog_domain_erase_dimension(CloogDomain *, int) ;
-void          cloog_domain_line_update(Polyhedron *, CloogMatrix *, int, int) ;
 
-#define cloog_domain_polyhedron(x)    (x)->polyhedron
-#define cloog_domain_dimension(x)     (x)->polyhedron->Dimension
-#define cloog_domain_nbconstraints(x) (x)->polyhedron->NbConstraints
-#define cloog_domain_isconvex(x)      ((x)->polyhedron->next == NULL)? 1 : 0
-/*
-Polyhedron  * cloog_domain_polyhedron(CloogDomain *) ;
 int           cloog_domain_dimension(CloogDomain *) ;
-int           cloog_domain_nbconstraints(CloogDomain *) ;
 int           cloog_domain_isconvex(CloogDomain *) ;
-*/  
+int           cloog_scattering_fully_specified(CloogDomain *scattering,
+						CloogDomain *domain);
 
 #if defined(__cplusplus)
   }

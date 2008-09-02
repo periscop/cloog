@@ -190,9 +190,8 @@ int level ;
  * - November 16th 2005: adaptation for CLooG 0.14.0 structures.
  */
 void cloog_program_dump_cloog(FILE * foo, CloogProgram * program)
-{ int i, j ;
-  CloogMatrix * matrix ;
-  Polyhedron * polyhedron ;
+{
+  int i;
   CloogLoop * loop ;
 
   fprintf(foo,
@@ -214,9 +213,7 @@ void cloog_program_dump_cloog(FILE * foo, CloogProgram * program)
   /* Context. */
   fprintf(foo,"# Context (%d parameter(s)):\n",
            cloog_domain_dimension(program->context)) ;
-  matrix = cloog_domain_domain2matrix(program->context) ;
-  cloog_matrix_print(foo,matrix) ;
-  cloog_matrix_free(matrix) ;
+  cloog_domain_print_constraints(foo, program->context, 0);
   fprintf(foo,"1 # Parameter name(s)\n") ;
   for (i=0;i<program->names->nb_parameters;i++)
   fprintf(foo,"%s ",program->names->parameters[i]) ;
@@ -237,23 +234,7 @@ void cloog_program_dump_cloog(FILE * foo, CloogProgram * program)
   { /* Name of the domain. */
     fprintf(foo,"# Iteration domain of statement %d.\n",i) ;
 
-    /* Number of polyhedron inside the union of disjoint polyhedra. */
-    j = 0 ;
-    polyhedron = cloog_domain_polyhedron(loop->domain) ;
-    while (polyhedron != NULL)
-    { j++ ;
-      polyhedron = polyhedron->next ;
-    }
-    fprintf(foo,"%d\n",j) ;
-
-    /* The polyhedra themselves. */
-    polyhedron = cloog_domain_polyhedron(loop->domain) ;
-    while (polyhedron != NULL) {
-      matrix = cloog_matrix_matrix(Polyhedron2Constraints(polyhedron));
-      cloog_matrix_print(foo,matrix) ;
-      cloog_matrix_free(matrix) ;
-      polyhedron = polyhedron->next ;
-    }
+    cloog_domain_print_constraints(foo, loop->domain, 1);
     fprintf(foo,"0 0 0 # For future options.\n\n") ;
     
     i++ ;
@@ -1046,7 +1027,7 @@ CloogDomainList * scattering ;
     { fprintf(stderr, "[CLooG]ERROR: scattering has not enough dimensions.\n") ;
       exit(1) ;
     }
-    if (scattering_dim >= cloog_domain_nbconstraints(scattering->domain))
+    if (!cloog_scattering_fully_specified(scattering->domain, loop->domain))
     not_enough_constraints ++ ;
          
     /* The scattering dimension may have been modified by scalar extraction. */
@@ -1066,7 +1047,7 @@ CloogDomainList * scattering ;
                         "scattering dimensions are not the same.\n") ;
         exit(1) ;
       }
-      if (scattering_dim2 >= cloog_domain_nbconstraints(scattering->domain))
+      if (!cloog_scattering_fully_specified(scattering->domain, loop->domain))
       not_enough_constraints ++ ;
       
       cloog_loop_scatter(loop,scattering->domain) ;

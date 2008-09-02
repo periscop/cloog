@@ -908,7 +908,7 @@ CloogLoop * cloog_loop_merge(CloogLoop * loop, int nb_par, CloogOptions * option
  */ 
 CloogLoop * cloog_loop_sort(CloogLoop * loop, int level, int nb_par)
 { CloogLoop * res, * now, * temp, ** loop_array ;
-  Polyhedron ** pols ;
+  CloogDomain **doms;
   int i, nb_loops=0, * permut ;
   
   /* We will need to know how many loops are in the list. */
@@ -924,21 +924,21 @@ CloogLoop * cloog_loop_sort(CloogLoop * loop, int level, int nb_par)
 
   /* We have to allocate memory for some useful components:
    * - loop_array: the loop array,
-   * - pols: the array of domains to sort,
+   * - doms: the array of domains to sort,
    * - permut: will give us a possible sort (maybe not the only one).
    */
   loop_array = (CloogLoop **)malloc(nb_loops*sizeof(CloogLoop *)) ;
-  pols = (Polyhedron **)malloc(nb_loops*sizeof(Polyhedron *)) ;
+  doms = (CloogDomain **)malloc(nb_loops*sizeof(CloogDomain *));
   permut = (int *)malloc(nb_loops*sizeof(int)) ;
 
   /* We fill up the loop and domain arrays. */
   for (i=0;i<nb_loops;i++,loop=loop->next)
   { loop_array[i] = loop ;
-    pols[i] = cloog_domain_polyhedron(loop_array[i]->domain) ;
+    doms[i] = loop_array[i]->domain;
   }
   
   /* cloog_domain_sort will fill up permut. */
-  cloog_domain_sort(pols,nb_loops,level,nb_par,permut) ;
+  cloog_domain_sort(doms, nb_loops, level, nb_par, permut);
   
   /* With permut and loop_array we build the sorted list. */
   res = NULL ;
@@ -949,7 +949,7 @@ CloogLoop * cloog_loop_sort(CloogLoop * loop, int level, int nb_par)
   }
   
   free(permut) ;
-  free(pols) ;
+  free(doms);
   free(loop_array) ;
 
   return res;
