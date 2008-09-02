@@ -36,9 +36,18 @@
 # *                                                                           *
 # *****************************************************************************/
 
+noinst_PROGRAMS = generate_test
+INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
+LDADD = ../libcloog.la
+generate_test_SOURCES = generate_test.c
+
+FORCE:
+../libcloog.la: FORCE
+	cd ..; $(MAKE) $(AM_MAKEFLAGS) libcloog.la
+
 ROOT = ..
 
-CLOOGTEST_C =                          \
+FINITE_CLOOGTEST_C =                   \
 	1point-1                       \
 	1point-2                       \
 	4-param                        \
@@ -71,10 +80,6 @@ CLOOGTEST_C =                          \
 	guide                          \
 	iftest                         \
 	iftest2                        \
-	infinite                       \
-	infinite2                      \
-	infinite3                      \
-	infinite4                      \
 	largeur                        \
 	levenshtein-1-2-3              \
 	lineality-1-2                  \
@@ -138,6 +143,13 @@ CLOOGTEST_C =                          \
 	./reservoir/tang-xue1          \
 	./reservoir/two   
 
+CLOOGTEST_C =                          \
+	infinite                       \
+	infinite2                      \
+	infinite3                      \
+	infinite4                      \
+	$(FINITE_CLOOGTEST_C)
+
 #	./reservoir/long               \
 #	faber
 
@@ -163,6 +175,19 @@ SPECIAL_OPTIONS = \
 	"equality" "-f -1 -l 2 -override" "\n" \
 	"equality2" "-f -1 -l 4 -esp 1 -override"
 
+EXTRA_DIST = \
+	$(CLOOGTEST_C:%=%.cloog) \
+	$(CLOOGTEST_C:%=%.c) \
+	$(FINITE_CLOOGTEST_C:%=%.good.c) \
+	$(CLOOGTEST_FORTRAN:%=%.cloog) \
+	$(CLOOGTEST_FORTRAN:%=%.f) \
+	$(CLOOGTEST_STRIDED:%=%.cloog) \
+	$(CLOOGTEST_STRIDED:%=%.c) \
+	vasilache.c vasilache.cloog \
+	merge.c merge.cloog \
+	equality.c equality.cloog \
+	equality2.c equality2.cloog
+
 generate:
 	@echo "             /*-----------------------------------------------*"
 	@echo "              *                 Generate files                *"
@@ -174,6 +199,16 @@ generate:
 	for x in $(CLOOGTEST_FORTRAN) ; do \
 		echo "Generate $$x.f" ; \
 		cloog $$x.cloog -o $$x.f ; \
+	done
+
+generate_good:
+	@for x in $(FINITE_CLOOGTEST_C) ; do \
+		echo "Generate $$x.good.c" ; \
+		$(top_builddir)/cloog$(EXEEXT) -callable 1 $(srcdir)/$$x.cloog -o $(srcdir)/$$x.good.c ; \
+	done; \
+	(echo -e $(SPECIAL_OPTIONS)) | while read x options; do \
+		echo "Generate $$x.good.c ($$options)" ; \
+		$(top_builddir)/cloog$(EXEEXT) -callable 1 $$options $(srcdir)/$$x.cloog -o $(srcdir)/$$x.good.c ; \
 	done
 
 valgrind:
@@ -189,12 +224,59 @@ valgrind:
 		valgrind $(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog ; \
 	done
 
+test_run: generate_test$(EXEEXT)
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *                 Testing CLooG                 *"
+	@echo "              *-----------------------------------------------*/"
+	@failedtest=0 ; \
+	echo "--- Testing C files... (correct output)" ; \
+	for x in $(FINITE_CLOOGTEST_C) ; do \
+		echo -n "Verify file $$x... " ; \
+		echo -n "generating... " ; \
+		$(top_builddir)/cloog$(EXEEXT) -callable 1 $(srcdir)/$$x.cloog > test_test.c 2> /dev/null; \
+		./generate_test$(EXEEXT) < $(srcdir)/$$x.cloog > test_main.c; \
+		echo -n "compiling... " ; \
+		$(COMPILE) -c test_test.c; \
+		$(COMPILE) -Dtest=good -c $(srcdir)/$$x.good.c -o test_good.o; \
+		$(LINK) test_main.c test_test.o test_good.o > /dev/null; \
+		echo -n "comparing... " ; \
+		./test_run$(EXEEXT); \
+		result=$$?; \
+		if test "$$result" -ne "0" ; then \
+			failedtest=`expr $$failedtest + 1` ; \
+		fi; \
+		$(RM) $@; \
+		echo; \
+	done; \
+	(echo -e $(SPECIAL_OPTIONS)) | while read x options; do \
+		echo -n "Verify file $$x ($$options)... " ; \
+		echo -n "generating... " ; \
+		$(top_builddir)/cloog$(EXEEXT) -callable 1 $$options $(srcdir)/$$x.cloog > test_test.c 2> /dev/null; \
+		./generate_test$(EXEEXT) < $(srcdir)/$$x.cloog > test_main.c; \
+		echo -n "compiling... " ; \
+		$(COMPILE) -c test_test.c; \
+		$(COMPILE) -Dtest=good -c $(srcdir)/$$x.good.c -o test_good.o; \
+		$(LINK) test_main.c test_test.o test_good.o > /dev/null; \
+		echo -n "comparing... " ; \
+		./test_run$(EXEEXT); \
+		result=$$?; \
+		if test "$$result" -ne "0" ; then \
+			failedtest=`expr $$failedtest + 1` ; \
+		fi; \
+		$(RM) $@; \
+		echo; \
+	done; \
+	if [ $$failedtest != 0 ] ; then \
+		echo "$$failedtest tests failed" ; \
+	else \
+	        echo "CLooG works correctly :-) !" ; \
+        fi
 test:
 	@echo "             /*-----------------------------------------------*"
 	@echo "              *                 Testing CLooG                 *"
 	@echo "              *-----------------------------------------------*/"
-	failedtest=0 ; \
-	echo "--- Testing C files..." ; \
+	@failedtest=0 ; \
+	echo "--- Testing C files... (expected output)" ; \
 	for x in $(CLOOGTEST_C) ; do \
 		echo "Verify file $$x" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog > ttemp ; \
