@@ -316,7 +316,7 @@ char * prefix, first_item ;
     { /* All names must be on the same line. */
       while (isspace(*c))
       c++ ;
-      if (c == NULL || *c == '#' || *c == '\n')
+      if (!*c || *c == '#' || *c == '\n')
       { fprintf(stderr, "[CLooG]ERROR: not enough names in input file.\n") ;
         exit(1) ;
       }
