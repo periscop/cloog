@@ -55,6 +55,13 @@ extern "C"
  */
 
 typedef Matrix CloogMatrix;
+typedef Matrix CloogConstraints;
+
+struct cloogequalities {
+	CloogConstraints	*constraints;
+	int			*types;
+};
+typedef struct cloogequalities CloogEqualities;
 
 /******************************************************************************
  *                              PolyLib interface                             *
@@ -76,14 +83,48 @@ void          cloog_matrix_print_structure(FILE *, CloogMatrix *, int) ;
 CloogMatrix * cloog_matrix_read(FILE *) ;
 
 /******************************************************************************
+ *                        Equalities spreading functions                      *
+ ******************************************************************************/
+CloogEqualities *cloog_equal_alloc(int n, int nb_levels,
+			int nb_parameters);
+void		 cloog_equal_free(CloogEqualities *equal);
+int              cloog_equal_count(CloogEqualities *equal);
+CloogConstraints *cloog_equal_constraints(CloogEqualities *equal);
+int              cloog_equal_type(CloogEqualities *equal, int level);
+void             cloog_equal_add(CloogEqualities *equal,
+				  CloogConstraints *constraints,
+				  int level, int line, int nb_par);
+void             cloog_equal_del(CloogEqualities *equal, int level);
+
+/******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
-void          cloog_matrix_normalize(CloogMatrix *, int) ;
-void          cloog_matrix_equality_update(CloogMatrix *, int, int) ;
-CloogMatrix * cloog_matrix_copy(CloogMatrix *) ;
+void          cloog_constraints_normalize(CloogConstraints *, int);
+void          cloog_constraints_free(CloogConstraints *);
+int           cloog_constraints_contain_level(CloogConstraints *constraints,
+			int level, int nb_parameters);
+int           cloog_constraints_defining_equality(CloogConstraints *matrix,
+			int level);
+int           cloog_constraints_defining_inequalities(CloogConstraints *matrix,
+			int level, int *lower, int nb_parameters);
+int           cloog_constraints_total_dimension(CloogConstraints *constraints);
+CloogConstraints *cloog_constraints_copy(CloogConstraints *);
 Value       * cloog_matrix_vector_copy(Value *, int) ;
-Value       * cloog_matrix_vector_simplify(Value*, CloogMatrix*, int, int, int);
-CloogMatrix * cloog_matrix_simplify(CloogMatrix *, CloogMatrix *, int, int) ;
+CloogConstraints *cloog_constraints_simplify(CloogConstraints *, CloogEqualities *, int, int);
+int           cloog_constraints_count(CloogConstraints *constraints);
+int           cloog_constraint_involves(CloogConstraints *constraints, int c, int v);
+int           cloog_constraint_is_lower_bound(CloogConstraints *constraints, int c, int v);
+int           cloog_constraint_is_upper_bound(CloogConstraints *constraints, int c, int v);
+int           cloog_constraint_is_equality(CloogConstraints *constraints, int c);
+void          cloog_constraint_constant_get(CloogConstraints *constraints,
+			int c, Value *val);
+void          cloog_constraint_coefficient_get(CloogConstraints *constraints,
+			int c, int var, Value *val);
+void          cloog_constraint_coefficient_set(CloogConstraints *constraints,
+			int c, int var, Value val);
+void          cloog_constraint_clear(CloogConstraints *constraints, int c);
+void          cloog_constraint_copy(CloogConstraints *constraints, int c,
+			Value *dst);
 void          cloog_matrix_vector_free(Value *, int) ;
 
 #if defined(__cplusplus)

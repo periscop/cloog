@@ -65,14 +65,11 @@ typedef struct cloogdomainlist CloogDomainList ;
  *                              PolyLib interface                             *
  ******************************************************************************/
 CloogDomain * cloog_domain_matrix2domain(Matrix *) ;
-Matrix      * cloog_domain_domain2matrix(CloogDomain *) ;
 void          cloog_domain_print(FILE *, CloogDomain *) ;
 void          cloog_domain_print_constraints(FILE *, CloogDomain *,
 						int print_number);
 void          cloog_domain_free(CloogDomain *) ;
 CloogDomain * cloog_domain_copy(CloogDomain *) ;
-CloogDomain * cloog_domain_image(CloogDomain *, Matrix *) ;
-CloogDomain * cloog_domain_preimage(CloogDomain *, Matrix *) ;
 CloogDomain * cloog_domain_convex(CloogDomain * Pol) ;
 CloogDomain * cloog_domain_simple_convex(CloogDomain * domain, int nb_par);
 CloogDomain * cloog_domain_simplify(CloogDomain *, CloogDomain *) ;
@@ -109,6 +106,7 @@ CloogDomainList * cloog_domain_list_read(FILE *) ;
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
+CloogConstraints *cloog_domain_constraints(CloogDomain *);
 int           cloog_domain_isempty(CloogDomain *) ;
 int           cloog_domain_universe(CloogDomain *) ;
 CloogDomain * cloog_domain_project(CloogDomain *, int, int) ;

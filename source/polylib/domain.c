@@ -144,6 +144,11 @@ CloogMatrix * cloog_domain_domain2matrix(CloogDomain * domain)
   return cloog_matrix_matrix(Polyhedron2Constraints(domain->polyhedron));
 }
 
+CloogConstraints *cloog_domain_constraints(CloogDomain *domain)
+{
+	return cloog_domain_domain2matrix(domain);
+}
+
 
 /**
  * cloog_domain_print function:
