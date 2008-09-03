@@ -93,7 +93,6 @@ FILE * file ;
 CloogProgram * program ;
 int level ;
 { int i, j ;
-  CloogMatrix * matrix ;
 
   /* Go to the right level. */
   for (i=0; i<level; i++)
@@ -152,17 +151,7 @@ int level ;
   fprintf(file,"\n") ;
   
   /* Print the context. */
-  for (i=0; i<=level; i++)
-  fprintf(file,"|\t") ;
-  fprintf(file,"+-- Context\n") ;
-  matrix = cloog_domain_domain2matrix(program->context) ;
-  cloog_matrix_print_structure(file,matrix,level+1) ;
-  cloog_matrix_free(matrix) ;
-
-  /* A special blank line. */
-  for (i=0; i<=level+1; i++)
-  fprintf(file,"|\t") ;
-  fprintf(file,"\n") ;
+  cloog_domain_print_structure(file, program->context, level+1, "Context");
     
   /* Print the loop. */
   cloog_loop_print_structure(file,program->loop,level+1) ;

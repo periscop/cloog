@@ -122,7 +122,7 @@ void cloog_loop_print_structure(FILE * file, CloogLoop * loop, int level)
     fprintf(file,"\n") ;
 
     /* Print the domain. */
-    cloog_domain_print_structure(file,loop->domain,level+1) ;
+    cloog_domain_print_structure(file, loop->domain, level+1, "CloogDomain");
     
     /* Print the stride. */
     for(j=0; j<=level; j++)

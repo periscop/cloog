@@ -87,7 +87,8 @@ CloogDomain * cloog_domain_empty(int) ;
 /******************************************************************************
  *                          Structure display function                        *
  ******************************************************************************/
-void cloog_domain_print_structure(FILE *, CloogDomain *, int) ;
+void cloog_domain_print_structure(FILE *file, CloogDomain *domain, int level,
+				  const char *name);
 void cloog_domain_list_print(FILE *, CloogDomainList *) ;
 
 

@@ -568,7 +568,8 @@ CloogDomain * cloog_domain_empty(int dimension)
  * - May   26th 2005: Memory leak hunt.
  * - June  16th 2005: (Ced) Integration in domain.c.
  */
-void cloog_domain_print_structure(FILE * file, CloogDomain * domain, int level)
+void cloog_domain_print_structure(FILE *file, CloogDomain *domain, int level,
+				  const char *name)
 { int i ;
   CloogMatrix * matrix ;
 
@@ -577,7 +578,7 @@ void cloog_domain_print_structure(FILE * file, CloogDomain * domain, int level)
   fprintf(file,"|\t") ;
   
   if (domain != NULL)
-  { fprintf(file,"+-- CloogDomain\n") ;
+  { fprintf(file,"+-- %s\n", name);
   
     /* Print the matrix. */
     matrix = cloog_domain_domain2matrix(domain) ;
