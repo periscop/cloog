@@ -43,6 +43,7 @@ typedef struct cloogdomain CloogDomain ;
  *                              PolyLib interface                             *
  ******************************************************************************/
 CloogDomain * cloog_domain_alloc(Polyhedron *) ;
+CloogDomain * cloog_domain_matrix2domain(Matrix *) ;
 Matrix      * cloog_domain_domain2matrix(CloogDomain *) ;
 CloogDomain * cloog_domain_image(CloogDomain *, Matrix *) ;
 CloogDomain * cloog_domain_preimage(CloogDomain *, Matrix *) ;

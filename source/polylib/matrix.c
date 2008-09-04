@@ -40,7 +40,7 @@
 # include <stdlib.h>
 # include <stdio.h>
 # include <ctype.h>
-# include "../include/cloog/cloog.h"
+#include <cloog/polylib/cloog.h>
 
 
 #define ALLOC(type) (type*)malloc(sizeof(type))
@@ -768,7 +768,7 @@ CloogConstraints *cloog_constraints_copy(CloogConstraints *matrix)
  * provided as input.
  * - November 3rd 2005: first version.
  */
-Value * cloog_matrix_vector_copy(Value * vector, int length)
+static Value *cloog_matrix_vector_copy(Value *vector, int length)
 { int i ;
   Value * copy ;
   
@@ -782,6 +782,22 @@ Value * cloog_matrix_vector_copy(Value * vector, int length)
   }
   
   return copy ;
+}
+
+
+/**
+ * cloog_matrix_vector_free function:
+ * this function clears the elements of a vector "vector" of length "length",
+ * then frees the vector itself this is useful for the GMP version of CLooG
+ * which has to clear all elements.
+ * - October 29th 2005: first version.
+ */
+static void cloog_matrix_vector_free(Value * vector, int length)
+{ int i ;
+  
+  for (i=0;i<length;i++)
+  value_clear_c(vector[i]) ;
+  free(vector) ;
 }
 
 
@@ -926,21 +942,6 @@ CloogConstraints *cloog_constraints_simplify(CloogConstraints *matrix,
   return simplified ;
 }
 
-
-/**
- * cloog_matrix_vector_free function:
- * this function clears the elements of a vector "vector" of length "length",
- * then frees the vector itself this is useful for the GMP version of CLooG
- * which has to clear all elements.
- * - October 29th 2005: first version.
- */
-void cloog_matrix_vector_free(Value * vector, int length)
-{ int i ;
-  
-  for (i=0;i<length;i++)
-  value_clear_c(vector[i]) ;
-  free(vector) ;
-}
 
 int cloog_constraints_count(CloogConstraints *constraints)
 {

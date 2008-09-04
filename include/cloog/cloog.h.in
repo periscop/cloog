@@ -43,7 +43,7 @@
 # include <polylib/@cl_cv_polylib@.h>
 #include <cloog/version.h>
 #include <cloog/options.h>
-#include <cloog/matrix.h>
+#include <cloog/constraints.h>
 #include <cloog/domain.h>
 #include <cloog/statement.h>
 #include <cloog/block.h>

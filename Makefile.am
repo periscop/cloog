@@ -41,6 +41,9 @@ SUBDIRS = . doc test
 bin_PROGRAMS = cloog
 lib_LTLIBRARIES = libcloog.la
 
+# avoid -I$(top_builddir)/include/cloog ending up in DEFAULT_INCLUDES
+# as that may result in polylib/matrix.h confusion
+DEFAULT_INCLUDES = -I.
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 AM_CFLAGS = -Wall
 libcloog_la_SOURCES = \
@@ -48,7 +51,7 @@ libcloog_la_SOURCES = \
 	source/clast.c \
 	source/polylib/domain.c \
 	source/loop.c \
-	source/matrix.c \
+	source/polylib/matrix.c \
 	source/names.c \
 	source/options.c \
 	source/pprint.c \
@@ -64,7 +67,7 @@ pkginclude_HEADERS = \
 	include/cloog/cloog.h \
 	include/cloog/domain.h \
 	include/cloog/loop.h \
-	include/cloog/matrix.h \
+	include/cloog/constraints.h \
 	include/cloog/names.h \
 	include/cloog/options.h \
 	include/cloog/pprint.h \
@@ -75,7 +78,8 @@ pkginclude_HEADERS = \
 pkgpolylibincludedir = $(pkgincludedir)/polylib
 pkgpolylibinclude_HEADERS = \
 	include/cloog/polylib/cloog.h \
-	include/cloog/polylib/domain.h
+	include/cloog/polylib/domain.h \
+	include/cloog/polylib/matrix.h
 
 version.h: @GIT_INDEX@
 	echo '#define CLOOG_HEAD "'`$(top_builddir)/genversion.sh`'"' > $@

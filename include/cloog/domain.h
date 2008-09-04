@@ -64,7 +64,6 @@ typedef struct cloogdomainlist CloogDomainList ;
 /******************************************************************************
  *                              PolyLib interface                             *
  ******************************************************************************/
-CloogDomain * cloog_domain_matrix2domain(Matrix *) ;
 void          cloog_domain_print(FILE *, CloogDomain *) ;
 void          cloog_domain_print_constraints(FILE *, CloogDomain *,
 						int print_number);
