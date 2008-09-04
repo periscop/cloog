@@ -115,12 +115,6 @@ void cloog_block_print_structure(FILE * file, CloogBlock * block, int level)
     for(i=0; i<level+1; i++)
     fprintf(file,"|\t") ;
   
-    if (block->scattering != NULL)
-    { fprintf(file,"+-- Scattering function\n") ;
-      /* Print the matrix. */
-      cloog_matrix_print_structure(file,block->scattering,level+1) ;
-    }
-    else
     fprintf(file,"+-- Null scattering function\n") ;
 
     /* A blank line. */
@@ -264,7 +258,6 @@ CloogBlock * cloog_block_malloc()
   
   /* We set the various fields with default values. */
   block->statement = NULL ;
-  block->scattering = NULL ;
   block->nb_scaldims = 0 ;
   block->scaldims = NULL ;
   block->depth = 0 ;
@@ -292,18 +285,14 @@ CloogBlock * cloog_block_malloc()
  * - June     30th 2005: addition of the nb_scaldims and scaldims parameters.
  * - November 21th 2005: use of cloog_block_malloc.
  */
-CloogBlock * cloog_block_alloc(statement,scattering,nb_scaldims,scaldims,depth)
-CloogStatement * statement ;
-CloogMatrix * scattering ;
-int nb_scaldims, depth ;
-Value * scaldims ;
+CloogBlock *cloog_block_alloc(CloogStatement *statement, int nb_scaldims,
+				Value *scaldims, int depth)
 { CloogBlock * block ;
     
   /* Block allocation. */
   block = cloog_block_malloc() ;
 
   block->statement = statement ;
-  block->scattering = scattering ;
   block->nb_scaldims = nb_scaldims ;
   block->scaldims = scaldims ;
   block->depth = depth ;

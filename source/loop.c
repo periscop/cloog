@@ -295,7 +295,7 @@ CloogLoop * cloog_loop_read(FILE * foo, int number, int nb_parameters)
   value_set_si(loop->stride,1) ;
   /* included statement block. */
   statement = cloog_statement_alloc(number+1);
-  loop->block = cloog_block_alloc(statement,NULL,0,NULL,nb_iterators) ;
+  loop->block = cloog_block_alloc(statement, 0, NULL, nb_iterators);
   loop->usr = NULL;
   /* inner is NULL at beginning. */
   loop->inner = NULL ;
