@@ -1348,8 +1348,12 @@ static void insert_for(CloogMatrix *matrix, int level,
 	*next = &b->body;
     }
     ass = new_clast_assignment(iterator, e1);
+    free_clast_expr(e2);
     **next = &ass->stmt;
     *next = &(**next)->next;
+  } else {
+    free_clast_expr(e1);
+    free_clast_expr(e2);
   }
 
   return;    
