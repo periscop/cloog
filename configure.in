@@ -60,6 +60,7 @@ AC_PROG_LIBTOOL
 AC_CHECK_PROG(TEXI2DVI, texi2dvi, texi2dvi, [])
 AM_CONDITIONAL(HAVE_TEXI2DVI, test -n "$TEXI2DVI")
 
+CFLAGS="-fomit-frame-pointer"
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

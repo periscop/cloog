@@ -42,7 +42,7 @@ bin_PROGRAMS = cloog
 lib_LTLIBRARIES = libcloog.la
 
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
-AM_CFLAGS = -Wall -fomit-frame-pointer
+AM_CFLAGS = -Wall
 libcloog_la_SOURCES = \
 	source/block.c \
 	source/clast.c \
