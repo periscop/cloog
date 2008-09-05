@@ -58,11 +58,6 @@
  * - July 3rd->11th 2003: first version (memory leaks hunt and correction).
  */
  
- 
-extern int cloog_value_allocated ;
-extern int cloog_value_freed ;
-extern int cloog_value_max ;
-
 
 int cloog_loop_allocated = 0 ;
 int cloog_loop_freed = 0 ;

@@ -89,24 +89,6 @@ static void cloog_domain_leak_down()
 }
 
 
-/* The same for Value variables since in GMP mode they have to be freed. */
-int cloog_value_allocated = 0 ;
-int cloog_value_freed = 0 ;
-int cloog_value_max = 0 ;
-
-
-void cloog_value_leak_up()
-{ cloog_value_allocated ++ ;
-  if ((cloog_value_allocated-cloog_value_freed) > cloog_value_max)
-  cloog_value_max = cloog_value_allocated - cloog_value_freed ;
-}
-
-
-void cloog_value_leak_down()
-{ cloog_value_freed ++ ;
-}
-
-
 /******************************************************************************
  *                              PolyLib interface                             *
  ******************************************************************************/

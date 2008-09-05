@@ -381,21 +381,6 @@ void pprint_stmt_list(struct cloogoptions *options, FILE *dst, int indent,
     }
 }
 
-/******************************************************************************
- *                             Memory leaks hunting                           *
- ******************************************************************************/
-
-/**
- * These global variables are devoted to memory leaks hunting: we
- * want to know at each moment how many Value variables have been allocated
- * since in GMP mode they have to be freed (see domain.c for the declaration).
- * - July 3rd->11th 2003: first version (memory leaks hunt and correction).
- */
-
-extern int cloog_value_allocated ;
-extern int cloog_value_freed ;
-extern int cloog_value_max ;
-
 
 /******************************************************************************
  *                       Pretty Printing (dirty) functions                    *
