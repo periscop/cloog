@@ -85,14 +85,14 @@ int           cloog_constraint_is_lower_bound(CloogConstraints *constraints, int
 int           cloog_constraint_is_upper_bound(CloogConstraints *constraints, int c, int v);
 int           cloog_constraint_is_equality(CloogConstraints *constraints, int c);
 void          cloog_constraint_constant_get(CloogConstraints *constraints,
-			int c, Value *val);
+			int c, cloog_int_t *val);
 void          cloog_constraint_coefficient_get(CloogConstraints *constraints,
-			int c, int var, Value *val);
+			int c, int var, cloog_int_t *val);
 void          cloog_constraint_coefficient_set(CloogConstraints *constraints,
-			int c, int var, Value val);
+			int c, int var, cloog_int_t val);
 void          cloog_constraint_clear(CloogConstraints *constraints, int c);
 void          cloog_constraint_copy(CloogConstraints *constraints, int c,
-			Value *dst);
+			cloog_int_t *dst);
 
 #if defined(__cplusplus)
   }

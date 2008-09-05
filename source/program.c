@@ -56,23 +56,26 @@
 
 /**
  * These global variables are devoted to memory leaks hunting: we
- * want to know at each moment how many Value variables have been allocated
+ * want to know at each moment how many cloog_int_t variables have been
+ * allocated
  * since in GMP mode they have to be freed (see domain.c for the declaration).
  * - July 3rd->11th 2003: first version (memory leaks hunt and correction).
  */
  
-int cloog_value_allocated = 0;
-int cloog_value_freed = 0;
-int cloog_value_max = 0;
+int cloog_int_allocated = 0;
+int cloog_int_freed = 0;
+int cloog_int_max = 0;
 
-void cloog_value_leak_up()
-{ cloog_value_allocated ++ ;
-  if ((cloog_value_allocated-cloog_value_freed) > cloog_value_max)
-  cloog_value_max = cloog_value_allocated - cloog_value_freed ;
+void cloog_int_leak_up()
+{
+  cloog_int_allocated++;
+  if ((cloog_int_allocated - cloog_int_freed) > cloog_int_max)
+    cloog_int_max = cloog_int_allocated - cloog_int_freed;
 }
 
-void cloog_value_leak_down()
-{ cloog_value_freed ++ ;
+void cloog_int_leak_down()
+{
+  cloog_int_freed++;
 }
 
 
@@ -939,9 +942,9 @@ CloogDomainList * scattering ;
   while (blocklist != NULL)
   { block = blocklist->block ;
     block->nb_scaldims = nb_scaldims ;
-    block->scaldims = (Value *)malloc(nb_scaldims*sizeof(Value)) ;
+    block->scaldims = (cloog_int_t *)malloc(nb_scaldims*sizeof(cloog_int_t));
     for (i=0;i<nb_scaldims;i++)
-    value_init_c(block->scaldims[i]) ;
+    cloog_int_init(block->scaldims[i]);
     
     blocklist = blocklist->next ;
   }

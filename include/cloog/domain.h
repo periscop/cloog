@@ -111,16 +111,16 @@ int           cloog_domain_universe(CloogDomain *) ;
 CloogDomain * cloog_domain_project(CloogDomain *, int, int) ;
 CloogDomain * cloog_domain_extend(CloogDomain *, int, int) ;
 int           cloog_domain_never_integral(CloogDomain *) ;
-void          cloog_domain_stride(CloogDomain *, int, int, Value *, Value *) ;
-int           cloog_domain_integral_lowerbound(CloogDomain *, int, Value *) ;
-void          cloog_domain_lowerbound_update(CloogDomain *, int, Value) ;
+void          cloog_domain_stride(CloogDomain *, int, int, cloog_int_t *, cloog_int_t *);
+int           cloog_domain_integral_lowerbound(CloogDomain *, int, cloog_int_t *);
+void          cloog_domain_lowerbound_update(CloogDomain *, int, cloog_int_t);
 int           cloog_domain_lazy_disjoint(CloogDomain *, CloogDomain *) ;
 int           cloog_domain_lazy_equal(CloogDomain *, CloogDomain *) ;
 int           cloog_domain_lazy_block(CloogDomain *, CloogDomain *,
                                       CloogDomainList *, int) ;
 int           cloog_domain_lazy_isscalar(CloogDomain *, int) ;
 int           cloog_domain_list_lazy_same(CloogDomainList *) ;
-void          cloog_domain_scalar(CloogDomain *, int, Value *) ;
+void          cloog_domain_scalar(CloogDomain *, int, cloog_int_t *);
 CloogDomain * cloog_domain_cut_first(CloogDomain *) ;
 CloogDomain * cloog_domain_erase_dimension(CloogDomain *, int) ;
 

@@ -59,7 +59,7 @@ extern "C"
 struct cloogblock
 { CloogStatement * statement ;  /**< The list of statements in the block. */
   int  nb_scaldims ;            /**< Number of scalar dimensions. */
-  Value * scaldims ;            /**< Scalar dimension values. */
+  cloog_int_t *scaldims;        /**< Scalar dimension values. */
   int depth ;                   /**< Original block depth (outer loop number).*/
   int references ;              /**< Number of references to this structure. */
   void * usr;		        /**< User field, for library user convenience.
@@ -101,7 +101,7 @@ void cloog_block_list_free(CloogBlockList *) ;
  ******************************************************************************/
 CloogBlock     * cloog_block_malloc(void);
 CloogBlock     * cloog_block_alloc(CloogStatement *statement, int nb_scaldims,
-				    Value *scaldims, int depth);
+				    cloog_int_t *scaldims, int depth);
 CloogBlockList * cloog_block_list_malloc(void);
 CloogBlockList * cloog_block_list_alloc(CloogBlock *) ;
 CloogBlock     * cloog_block_copy(CloogBlock * block) ;

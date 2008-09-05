@@ -130,8 +130,10 @@ void cloog_block_print_structure(FILE * file, CloogBlock * block, int level)
     fprintf(file,"No scalar dimensions\n") ;
     else
     { fprintf(file,"Scalar dimensions (%d):",block->nb_scaldims) ;
-      for (i=0; i<block->nb_scaldims; i++)
-      value_print(file," "VALUE_FMT,block->scaldims[i]) ;
+      for (i = 0; i < block->nb_scaldims; i++) {
+	fprintf(file, " ");
+	cloog_int_print(file, block->scaldims[i]);
+      }
       fprintf(file,"\n") ;
     }
     
@@ -206,7 +208,7 @@ void cloog_block_free(CloogBlock * block)
     { cloog_block_leak_down() ;
       if (block->scaldims != NULL)
       { for (i=0;i<block->nb_scaldims;i++)
-        value_clear_c(block->scaldims[i]) ;
+        cloog_int_clear(block->scaldims[i]);
       
         free(block->scaldims) ;
       }
@@ -286,7 +288,7 @@ CloogBlock * cloog_block_malloc()
  * - November 21th 2005: use of cloog_block_malloc.
  */
 CloogBlock *cloog_block_alloc(CloogStatement *statement, int nb_scaldims,
-				Value *scaldims, int depth)
+				cloog_int_t *scaldims, int depth)
 { CloogBlock * block ;
     
   /* Block allocation. */

@@ -65,16 +65,16 @@
 void pprint_term(FILE *dst, struct clast_term *t)
 {
     if (t->var) {
-	if (value_one_p(t->val))
+	if (cloog_int_is_one(t->val))
 	    fprintf(dst, "%s", t->var);
-	else if (value_mone_p(t->val))
+	else if (cloog_int_is_neg_one(t->val))
 	    fprintf(dst, "-%s", t->var);
         else {
-	    value_print(dst, VALUE_FMT, t->val);
+	    cloog_int_print(dst, t->val);
 	    fprintf(dst, "*%s", t->var);
 	}
     } else
-	value_print(dst, VALUE_FMT, t->val);
+	cloog_int_print(dst, t->val);
 }
 
 void pprint_sum(FILE *dst, struct clast_reduction *r)
@@ -90,7 +90,7 @@ void pprint_sum(FILE *dst, struct clast_reduction *r)
     for (i = 1; i < r->n; ++i) {
 	assert(r->elts[i]->type == expr_term);
 	t = (struct clast_term *) r->elts[i];
-	if (value_pos_p(t->val))
+	if (cloog_int_is_pos(t->val))
 	    fprintf(dst, "+");
 	pprint_term(dst, t);
     }
@@ -146,7 +146,7 @@ void pprint_binary(struct cloogoptions *i, FILE *dst, struct clast_binary *b)
     fprintf(dst, "%s", s1);
     pprint_expr(i, dst, b->LHS);
     fprintf(dst, "%s", s2);
-    value_print(dst, VALUE_FMT, b->RHS);
+    cloog_int_print(dst, b->RHS);
     fprintf(dst, "%s", s3);
 }
 
@@ -330,14 +330,15 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
     }
 
     if (options->language == LANGUAGE_FORTRAN) {
-	if (value_gt_si(f->stride, 1))
-	    value_print(dst, VALUE_FMT, f->stride);
+	if (cloog_int_gt_si(f->stride, 1))
+	    cloog_int_print(dst, f->stride);
 	fprintf(dst,"\n");
     }
     else {
-	if (value_gt_si(f->stride, 1)) {
+	if (cloog_int_gt_si(f->stride, 1)) {
 	    fprintf(dst,";%s+=", f->iterator);
-	    value_print(dst, VALUE_FMT") {\n", f->stride);
+	    cloog_int_print(dst, f->stride);
+	    fprintf(dst, ") {\n");
       } else
 	fprintf(dst, ";%s++) {\n", f->iterator);
     }

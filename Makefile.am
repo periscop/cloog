@@ -50,6 +50,7 @@ libcloog_la_SOURCES = \
 	source/block.c \
 	source/clast.c \
 	source/polylib/domain.c \
+	source/int.c \
 	source/loop.c \
 	source/polylib/matrix.c \
 	source/names.c \
@@ -74,6 +75,8 @@ pkginclude_HEADERS = \
 	include/cloog/program.h \
 	include/cloog/statement.h \
 	include/cloog/version.h
+nodist_pkginclude_HEADERS = \
+	include/cloog/int.h
 
 pkgpolylibincludedir = $(pkgincludedir)/polylib
 pkgpolylibinclude_HEADERS = \

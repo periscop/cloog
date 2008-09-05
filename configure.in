@@ -258,6 +258,23 @@ fi
 if test "$cl_cv_polylib" = "missing"; then
 	AC_MSG_ERROR(Can't find PolyLib.)
 fi
+case "$BITS" in
+	gmp)
+		cl_cv_int_type=gmp
+		;;
+	32|64)
+		AC_CHECK_SIZEOF(int,1)
+		AC_CHECK_SIZEOF(long,1)
+		AC_CHECK_SIZEOF(long long,1)
+		for cl_cv_int_type in int long long_long; do
+			eval "bits=\`expr \$ac_cv_sizeof_$cl_cv_int_type \* 8\`"
+			if test "$bits" = "$BITS"; then
+				break
+			fi
+		done
+		;;
+esac
+AC_DEFINE_UNQUOTED(AS_TR_CPP(CLOOG_INT_$cl_cv_int_type))
 
 AC_SUBST(GIT_INDEX)
 if test -f $srcdir/.git/HEAD; then
@@ -282,6 +299,8 @@ AC_SUBST(INSTALL)
 
 AC_SUBST(BITS)
 
+AC_CONFIG_HEADERS(config.h)
+AC_CONFIG_HEADERS(include/cloog/int.h)
 AC_CONFIG_FILES(Makefile test/Makefile include/cloog/cloog.h autoconf/Doxyfile)
 AC_CONFIG_FILES(doc/Makefile)
 AC_CONFIG_FILES(source/version.c)

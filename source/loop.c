@@ -128,7 +128,7 @@ void cloog_loop_print_structure(FILE * file, CloogLoop * loop, int level)
     for(j=0; j<=level; j++)
     fprintf(file,"|\t") ;
     fprintf(file, "Stride: ") ;
-    value_print(file,VALUE_FMT,loop->stride) ;
+    cloog_int_print(file, loop->stride);
     fprintf(file, "\n") ;
         
     /* A blank line. */
@@ -207,7 +207,7 @@ void cloog_loop_free(CloogLoop * loop)
     if (loop->inner != NULL)
     cloog_loop_free(loop->inner) ;
     
-    value_clear_c(loop->stride) ;
+    cloog_int_clear(loop->stride);
     free(loop) ;
     loop = next ;
   }
@@ -241,7 +241,7 @@ int domain, block, inner, next ;
     if ((inner) && (loop->inner != NULL))
     cloog_loop_free_parts(loop->inner,domain,block,inner,1) ;
     
-    value_clear_c(loop->stride) ;
+    cloog_int_clear(loop->stride);
     free(loop) ;
     if (next)
     loop = follow ;
@@ -291,8 +291,8 @@ CloogLoop * cloog_loop_read(FILE * foo, int number, int nb_parameters)
   else
   nb_iterators = 0 ;
   /* stride is initialized to 1. */
-  value_init_c(loop->stride) ;
-  value_set_si(loop->stride,1) ;
+  cloog_int_init(loop->stride);
+  cloog_int_set_si(loop->stride, 1);
   /* included statement block. */
   statement = cloog_statement_alloc(number+1);
   loop->block = cloog_block_alloc(statement, 0, NULL, nb_iterators);
@@ -341,8 +341,8 @@ CloogLoop * cloog_loop_malloc()
   loop->usr    = NULL;
   loop->inner  = NULL ;
   loop->next   = NULL ;
-  value_init_c(loop->stride) ;
-  value_set_si(loop->stride,1) ; 
+  cloog_int_init(loop->stride);
+  cloog_int_set_si(loop->stride, 1); 
   
   return loop ;
 }  
@@ -359,7 +359,7 @@ CloogLoop * cloog_loop_malloc()
  */ 
 CloogLoop * cloog_loop_alloc(domain, stride, block, inner, next)
 CloogDomain * domain ;
-Value stride ;
+cloog_int_t stride;
 CloogBlock * block ;
 CloogLoop * inner, * next ;
 { CloogLoop * loop ;
@@ -370,7 +370,7 @@ CloogLoop * inner, * next ;
   loop->block  = block ;
   loop->inner  = inner ;
   loop->next   = next ;
-  value_assign(loop->stride,stride) ;
+  cloog_int_set(loop->stride, stride);
   
   return(loop) ;
 }
@@ -466,13 +466,14 @@ CloogLoop * cloog_loop_copy(CloogLoop * source)
  */ 
 void cloog_loop_add_disjoint(start, now, loop)
 CloogLoop ** start, ** now, * loop ;
-{ Value one ;
+{
+  cloog_int_t one;
   CloogLoop * sep, * inner ;
   CloogDomain * domain, * convex, * seen, * seen_before, * temp, * rest ;
   CloogBlock * block ;
   
-  value_init_c(one) ;
-  value_set_si(one,1) ;
+  cloog_int_init(one);
+  cloog_int_set_si(one, 1);
   
   if (cloog_domain_isconvex(loop->domain))
   cloog_loop_add(start,now,loop) ;
@@ -526,7 +527,7 @@ CloogLoop ** start, ** now, * loop ;
     }
     cloog_loop_free_parts(loop,0,0,0,0) ;  
   }
-  value_clear_c(one) ;
+  cloog_int_clear(one);
 }
 
 
@@ -573,7 +574,7 @@ CloogLoop * loop ;
 CloogDomain * context ;
 int nb_par ;
 { int new_dimension ;
-  Value one ;
+  cloog_int_t one;
   CloogDomain * domain, * extended_context, * new_domain ;
   CloogLoop * new_loop ;
       
@@ -591,11 +592,11 @@ int nb_par ;
   { cloog_domain_free(new_domain) ;
     return(NULL) ;
   }
-  else
-  { value_init_c(one) ;
-    value_set_si(one,1) ;
+  else {
+    cloog_int_init(one);
+    cloog_int_set_si(one, 1);
     new_loop = cloog_loop_alloc(new_domain,one,loop->block,loop->inner,NULL) ;
-    value_clear_c(one) ;
+    cloog_int_clear(one);
     return(new_loop) ;
   }
 }
@@ -613,12 +614,13 @@ int nb_par ;
  * - June      22nd 2005: Adaptation for GMP.
  */ 
 CloogLoop * cloog_loop_project(CloogLoop * loop, int level, int nb_par)
-{ Value one ;
+{
+  cloog_int_t one;
   CloogDomain * new_domain ;
   CloogLoop * new_loop, * copy ;
 
-  value_init_c(one) ;
-  value_set_si(one,1) ;
+  cloog_int_init(one);
+  cloog_int_set_si(one, 1);
   
   copy = cloog_loop_alloc(loop->domain,loop->stride,loop->block,
                           loop->inner,NULL) ;
@@ -629,7 +631,7 @@ CloogLoop * cloog_loop_project(CloogLoop * loop, int level, int nb_par)
   new_domain = cloog_domain_project(loop->domain,level,nb_par) ;
 
   new_loop = cloog_loop_alloc(new_domain,one,NULL,copy,NULL) ;
-  value_clear_c(one) ;
+  cloog_int_clear(one);
   
   return(new_loop) ;
 }
@@ -676,7 +678,7 @@ CloogLoop * cloog_loop_concat(CloogLoop * a, CloogLoop * b)
  */ 
 CloogLoop * cloog_loop_separate(CloogLoop * loop)
 { int first, lazy_equal=0, lazy_disjoint=0 ;
-  Value one ;
+  cloog_int_t one;
   CloogLoop * new_loop, * new_inner, * res, * now, * temp, * Q, 
             * inner, * old /*, * previous, * next*/  ;
   CloogDomain * UQ, * old_UQ, * domain ;
@@ -687,8 +689,8 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
   if (loop->next == NULL)
   return cloog_loop_disjoint(loop) ;
      
-  value_init_c(one) ;
-  value_set_si(one,1) ;
+  cloog_int_init(one);
+  cloog_int_set_si(one, 1);
 
   UQ     = cloog_domain_copy(loop->domain) ;
   domain = cloog_domain_copy(loop->domain) ;
@@ -784,7 +786,7 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
     res = temp ;
   }  
   cloog_loop_free_parts(old,1,0,0,1) ;
-  value_clear_c(one) ;
+  cloog_int_clear(one);
 
   return(res) ;
 }
@@ -833,15 +835,16 @@ static CloogLoop *cloog_loop_merge_inner_list(CloogLoop *a, CloogLoop *b,
  * - June      22nd 2005: Adaptation for GMP.
  */ 
 CloogLoop * cloog_loop_merge(CloogLoop * loop, int nb_par, CloogOptions * options)
-{ Value one ;
+{
+  cloog_int_t one;
   CloogLoop * res, * merge, * now, * Q, * P, * new_inner, * next, * old ;
   CloogDomain * new_domain, * temp ;
 
   if ((loop == NULL) || (loop->next == NULL))
   return loop ;
 
-  value_init_c(one) ;
-  value_set_si(one,1) ;
+  cloog_int_init(one);
+  cloog_int_set_si(one, 1);
   
   /* First loop is added to the target list. */
   res = cloog_loop_alloc(loop->domain,one,loop->block,loop->inner,NULL) ;
@@ -893,7 +896,7 @@ CloogLoop * cloog_loop_merge(CloogLoop * loop, int nb_par, CloogOptions * option
     res = merge ;
   }  
   cloog_loop_free_parts(old,0,0,0,1) ;
-  value_clear_c(one) ;
+  cloog_int_clear(one);
 
   return (res);
 }
@@ -971,12 +974,12 @@ CloogLoop * loop ;
 CloogDomain * context ;
 int level, nb_par ;
 { int l ;
-  Value one ;
+  cloog_int_t one;
   CloogLoop * p, * temp, * res, * now, * next ;
   CloogDomain * new_domain ;
 
-  value_init_c(one) ;
-  value_set_si(one,1) ;
+  cloog_int_init(one);
+  cloog_int_set_si(one, 1);
       
   res = NULL ;
   /* Each domain is changed by its intersection with the context. */
@@ -1009,7 +1012,7 @@ int level, nb_par ;
     
     loop = next ;
   }
-  value_clear_c(one) ;
+  cloog_int_clear(one);
   
   return(res) ;
 }
@@ -1037,40 +1040,40 @@ int level, nb_par ;
  */
 void cloog_loop_stride(CloogLoop * loop, int level, int nb_par)
 { int first_search ;
-  Value stride, ref_offset, offset, potential, lower ;
+  cloog_int_t stride, ref_offset, offset, potential, lower;
   CloogLoop * inner ;
 
-  value_init_c(stride) ;
-  value_init_c(ref_offset) ;
-  value_init_c(offset) ;
-  value_init_c(potential) ;
-  value_init_c(lower) ;
+  cloog_int_init(stride);
+  cloog_int_init(ref_offset);
+  cloog_int_init(offset);
+  cloog_int_init(potential);
+  cloog_int_init(lower);
 
-  value_set_si(ref_offset,0) ;
-  value_set_si(offset,0) ;
-  value_set_si(lower,0) ;
+  cloog_int_set_si(ref_offset, 0);
+  cloog_int_set_si(offset, 0);
+  cloog_int_set_si(lower, 0);
 
   /* Default stride. */
-  value_set_si(stride,1) ;
+  cloog_int_set_si(stride, 1);
   first_search = 1 ;
   inner = loop->inner ;
     
   if (cloog_domain_integral_lowerbound(loop->domain,level,&lower))
   while (inner != NULL)
   { /* If the minimun stride has not been found yet, find the stride. */
-    if ((first_search) || (value_notone_p(stride)))
+    if ((first_search) || (!cloog_int_is_one(stride)))
     { cloog_domain_stride(inner->domain,level,nb_par,&potential,&offset) ;
-      if (value_notone_p(potential) && (!first_search))
+      if (!cloog_int_is_one(potential) && (!first_search))
       { /* Offsets must be the same for common stride. */
-	Gcd(potential,stride,&stride) ;
-	value_modulus(offset, offset, stride);
-	value_modulus(ref_offset, ref_offset, stride);
-        if (value_ne(offset,ref_offset))
-	    value_set_si(stride, 1);
+	cloog_int_gcd(stride, potential, stride);
+	cloog_int_fdiv_r(offset, offset, stride);
+	cloog_int_fdiv_r(ref_offset, ref_offset, stride);
+        if (cloog_int_ne(offset,ref_offset))
+	    cloog_int_set_si(stride, 1);
       }
-      else
-      { value_assign(stride,potential) ;
-        value_assign(ref_offset,offset) ;
+      else {
+        cloog_int_set(stride, potential);
+        cloog_int_set(ref_offset, offset);
       }
 	
       first_search = 0 ;
@@ -1080,9 +1083,9 @@ void cloog_loop_stride(CloogLoop * loop, int level, int nb_par)
   }
     
   /* Update the values if necessary. */
-  if (value_notone_p(stride))
+  if (!cloog_int_is_one(stride))
   { /* Update the stride value. */
-    value_assign(loop->stride,stride) ;
+    cloog_int_set(loop->stride, stride);
     /* The new lower bound l' is such that 
      *      (l' + offset) % s = 0 and l <= l' <= l+(s-1)
      * Let l' = k s - offset, then 
@@ -1090,20 +1093,20 @@ void cloog_loop_stride(CloogLoop * loop, int level, int nb_par)
      * Or   l' = floor((l+offset+(s-1))/s) * s - offset
      *         = (floor((l+offset-1)/s) + 1) * s - offset
      */
-    value_addto(lower, lower, offset);
-    value_decrement(lower, lower);
-    value_pdivision(lower, lower, stride);
-    value_increment(lower, lower);
-    value_multiply(lower, lower, stride);
-    value_subtract(lower, lower, offset);
+    cloog_int_add(lower, lower, offset);
+    cloog_int_sub_ui(lower, lower, 1);
+    cloog_int_fdiv_q(lower, lower, stride);
+    cloog_int_add_ui(lower, lower, 1);
+    cloog_int_mul(lower, lower, stride);
+    cloog_int_sub(lower, lower, offset);
     cloog_domain_lowerbound_update(loop->domain,level,lower) ;
   }
   
-  value_clear_c(stride) ;
-  value_clear_c(ref_offset) ;
-  value_clear_c(offset) ;
-  value_clear_c(potential) ;
-  value_clear_c(lower) ;
+  cloog_int_clear(stride);
+  cloog_int_clear(ref_offset);
+  cloog_int_clear(offset);
+  cloog_int_clear(potential);
+  cloog_int_clear(lower);
 }
 
 
@@ -1155,8 +1158,8 @@ int cloog_loop_scalar_gt(l1, l2, level, scaldims, nb_scattdims, scalar)
 CloogLoop * l1, * l2 ;
 int level, * scaldims, nb_scattdims, scalar ;
 { while ((scalar < l1->inner->block->nb_scaldims) && scaldims[level+scalar-1])
-  { if (value_gt(l1->inner->block->scaldims[scalar],
-                 l2->inner->block->scaldims[scalar]))
+  { if (cloog_int_gt(l1->inner->block->scaldims[scalar],
+		     l2->inner->block->scaldims[scalar]))
     scalar ++ ;
     else
     return 0 ;
@@ -1186,8 +1189,8 @@ int cloog_loop_scalar_eq(l1, l2, level, scaldims, nb_scattdims, scalar)
 CloogLoop * l1, * l2 ;
 int level, * scaldims, nb_scattdims, scalar ;
 { while ((scalar < l1->inner->block->nb_scaldims) && scaldims[level+scalar-1])
-  { if (value_eq(l1->inner->block->scaldims[scalar],
-                 l2->inner->block->scaldims[scalar]))
+  { if (cloog_int_eq(l1->inner->block->scaldims[scalar],
+		     l2->inner->block->scaldims[scalar]))
     scalar ++ ;
     else
     return 0 ;
@@ -1252,13 +1255,14 @@ CloogLoop * loop ;
 CloogDomain * context ;
 int level, nb_par ;
 CloogOptions * options ;
-{ Value one ;
+{
+  cloog_int_t one;
   CloogDomain * domain ;
   CloogLoop * now, * now2, * next, * next2, * end, * temp, * l, * inner,
             * new_loop ;
   
-  value_init_c(one) ;
-  value_set_si(one,1) ;
+  cloog_int_init(one);
+  cloog_int_set_si(one, 1);
 
   temp = loop ;
   loop = NULL ;
@@ -1288,8 +1292,8 @@ CloogOptions * options ;
     if (l != NULL)
     { l = cloog_loop_separate(l) ;
       l = cloog_loop_sort(l,level,nb_par) ;
-      while (l != NULL)
-      { value_assign(l->stride,temp->stride) ;
+      while (l != NULL) {
+        cloog_int_set(l->stride, temp->stride);
         cloog_loop_add(&loop,&now,l) ;
         l = l->next ;
       }
@@ -1299,7 +1303,7 @@ CloogOptions * options ;
     temp = next2 ;
   }
 
-  value_clear_c(one) ;
+  cloog_int_clear(one);
 
   return loop ;
 }
@@ -1337,7 +1341,8 @@ CloogLoop * loop ;
 CloogDomain * context ;
 int level, scalar, * scaldims, nb_scattdims, nb_par ;
 CloogOptions * options ;
-{ Value one ;
+{
+  cloog_int_t one;
   CloogLoop * res, * now, * temp, * l, * new_loop, * inner, * now2, * end,
             * next, * into ;
   CloogDomain * domain ;
@@ -1349,8 +1354,8 @@ CloogOptions * options ;
   /* 3b. -correction- sort the loops to determine their textual order. */
   res = cloog_loop_sort(res,level,nb_par) ;
      
-  value_init_c(one) ;
-  value_set_si(one,1) ;
+  cloog_int_init(one);
+  cloog_int_set_si(one, 1);
   
   /* 4. Recurse for each loop with the current domain as context. */
   temp = res ;
@@ -1423,7 +1428,7 @@ CloogOptions * options ;
    */
   /* res = cloog_loop_unisolate(res,context,level,nb_par) ;*/
 
-  value_clear_c(one) ;
+  cloog_int_clear(one);
   return(res) ;
 }
 

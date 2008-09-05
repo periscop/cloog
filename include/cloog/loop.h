@@ -60,7 +60,7 @@ extern "C"
  */
 struct cloogloop
 { CloogDomain * domain ;      /**< The iteration domain. */
-  Value stride ;              /**< The stride for the corresponding iterator
+  cloog_int_t stride;         /**< The stride for the corresponding iterator
                                *   (filled only after loop generation).
                                */
   CloogBlock * block ;        /**< The included statement block, NULL if none.*/

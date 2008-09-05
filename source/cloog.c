@@ -54,9 +54,9 @@ extern int cloog_matrix_max ;
 extern int cloog_block_allocated ;
 extern int cloog_block_freed ;
 extern int cloog_block_max ;
-extern int cloog_value_allocated ;
-extern int cloog_value_freed ;
-extern int cloog_value_max ;
+extern int cloog_int_allocated;
+extern int cloog_int_freed;
+extern int cloog_int_max;
 
 
 int main(int argv, char * argc[])
@@ -90,8 +90,8 @@ int main(int argv, char * argc[])
            cloog_statement_allocated,cloog_statement_freed,cloog_statement_max);
     fprintf(output,"/* Blocks     : allocated=%5d, freed=%5d, max=%5d. */\n",
            cloog_block_allocated,cloog_block_freed,cloog_block_max) ;
-    fprintf(output,"/* Value (GMP): allocated=%5d, freed=%5d, max=%5d. */\n",
-           cloog_value_allocated,cloog_value_freed,cloog_value_max) ;
+    fprintf(output,"/* Int (GMP)  : allocated=%5d, freed=%5d, max=%5d. */\n",
+           cloog_int_allocated, cloog_int_freed, cloog_int_max);
   }
 
   /* Inform the user in case of a problem with the allocation statistics. */
@@ -100,7 +100,7 @@ int main(int argv, char * argc[])
       (cloog_loop_allocated      != cloog_loop_freed)      ||
       (cloog_statement_allocated != cloog_statement_freed) ||
       (cloog_block_allocated     != cloog_block_freed)     ||
-      (cloog_value_allocated     != cloog_value_freed))
+      (cloog_int_allocated       != cloog_int_freed))
   { fprintf(stderr,
             "[CLooG]INFO: an internal problem has been detected (it should have"
 	    " no\n             consequence on the correctness of the output)."

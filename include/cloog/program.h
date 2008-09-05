@@ -76,8 +76,8 @@ typedef struct cloogprogram CloogProgram ;
 /******************************************************************************
  *                          Memory leak hunt functions                        *
  ******************************************************************************/
-void cloog_value_leak_up(void);
-void cloog_value_leak_down(void);
+void cloog_int_leak_up(void);
+void cloog_int_leak_down(void);
 
 
 /******************************************************************************
