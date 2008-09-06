@@ -1,6 +1,7 @@
 #ifndef CLOOG_POLYLIB_H
 #define CLOOG_POLYLIB_H
 
+#include <polylib/@cl_cv_polylib@.h>
 #define CLOOG_POLYLIB
 #include <cloog/cloog.h>
 

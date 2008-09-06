@@ -80,9 +80,10 @@ nodist_pkginclude_HEADERS = \
 
 pkgpolylibincludedir = $(pkgincludedir)/polylib
 pkgpolylibinclude_HEADERS = \
-	include/cloog/polylib/cloog.h \
 	include/cloog/polylib/domain.h \
 	include/cloog/polylib/matrix.h
+nodist_pkgpolylibinclude_HEADERS = \
+	include/cloog/polylib/cloog.h
 
 version.h: @GIT_INDEX@
 	echo '#define CLOOG_HEAD "'`$(top_builddir)/genversion.sh`'"' > $@

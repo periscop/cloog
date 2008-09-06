@@ -40,7 +40,6 @@
 #ifndef CLOOG_H
 #define CLOOG_H
 
-# include <polylib/@cl_cv_polylib@.h>
 #include <cloog/version.h>
 #include <cloog/int.h>
 #include <cloog/options.h>

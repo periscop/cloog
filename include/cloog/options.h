@@ -33,6 +33,7 @@
  *                                                                            *
  ******************************************************************************/
 
+#include <stdio.h>
 
 #ifndef CLOOG_OPTIONS_H
 #define CLOOG_OPTIONS_H
