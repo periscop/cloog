@@ -39,27 +39,33 @@
 SUBDIRS = . doc test
 
 bin_PROGRAMS = cloog
-lib_LTLIBRARIES = libcloog.la
+lib_LTLIBRARIES = @CLOOG_LIBRARIES@
+EXTRA_LTLIBRARIES = libcloog-polylib.la
 
-# avoid -I$(top_builddir)/include/cloog ending up in DEFAULT_INCLUDES
-# as that may result in polylib/matrix.h confusion
-DEFAULT_INCLUDES = -I.
-INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
-AM_CFLAGS = -Wall
-libcloog_la_SOURCES = \
+SOURCES_CORE = \
 	source/block.c \
 	source/clast.c \
-	source/polylib/domain.c \
 	source/int.c \
 	source/loop.c \
-	source/polylib/matrix.c \
 	source/names.c \
 	source/options.c \
 	source/pprint.c \
 	source/program.c \
 	source/statement.c \
 	source/version.c
-LDADD = libcloog.la
+
+# avoid -I$(top_builddir)/include/cloog ending up in DEFAULT_INCLUDES
+# as that may result in polylib/matrix.h confusion
+DEFAULT_INCLUDES = -I.
+INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
+AM_CFLAGS = -Wall
+libcloog_polylib_la_SOURCES = \
+	$(SOURCES_CORE) \
+	source/polylib/domain.c \
+	source/polylib/domain.h \
+	source/polylib/matrix.c
+LDADD = libcloog-@BACKEND@.la
+cloog_DEPENDENCIES = libcloog-@BACKEND@.la
 cloog_SOURCES = source/cloog.c
 
 pkginclude_HEADERS = \

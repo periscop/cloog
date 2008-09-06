@@ -186,6 +186,12 @@ else
   fi
 fi
 
+# all compiled libraries
+CLOOG_LIBRARIES=""
+AC_SUBST(CLOOG_LIBRARIES)
+# backend used by executables
+BACKEND=""
+AC_SUBST(BACKEND)
 
 dnl /**************************************************************************
 dnl  *                          Where is PolyLib?                             *
@@ -257,6 +263,9 @@ else
 fi
 if test "$cl_cv_polylib" = "missing"; then
 	AC_MSG_ERROR(Can't find PolyLib.)
+else
+	CLOOG_LIBRARIES="$CLOOG_LIBRARIES libcloog-polylib.la"
+	BACKEND="polylib"
 fi
 case "$BITS" in
 	gmp)

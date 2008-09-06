@@ -38,12 +38,12 @@
 
 noinst_PROGRAMS = generate_test
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
-LDADD = ../libcloog.la
+LDADD = ../libcloog-@BACKEND@.la
 generate_test_SOURCES = generate_test.c
 
 FORCE:
-../libcloog.la: FORCE
-	cd ..; $(MAKE) $(AM_MAKEFLAGS) libcloog.la
+../libcloog-@BACKEND@.la: FORCE
+	cd ..; $(MAKE) $(AM_MAKEFLAGS) libcloog-@BACKEND@.la
 
 ROOT = ..
 
