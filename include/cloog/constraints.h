@@ -41,8 +41,10 @@ extern "C"
   {
 #endif 
 
-#ifdef CLOOG_POLYLIB
+#if defined(CLOOG_POLYLIB)
 #include <cloog/polylib/matrix.h>
+#elif defined(CLOOG_ISL)
+#include <cloog/isl/matrix.h>
 #else
 struct cloogconstraintset;
 typedef struct cloogconstraintset CloogConstraintSet;

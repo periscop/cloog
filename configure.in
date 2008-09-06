@@ -88,6 +88,10 @@ AC_ARG_WITH(bits,
 			    [integer type to use])],
 	    [ BITS=$withval ])
 
+AX_SUBMODULE(isl,no|system|build|bundled,no)
+if test "$with_isl" != "no"; then
+	BITS="gmp"
+fi
 
 dnl /**************************************************************************
 dnl  *                            Where is GMP?                               *
@@ -147,10 +151,11 @@ AC_SUBST(POLYLIB_LIBS)
 
 AC_MSG_CHECKING(for location of PolyLib)
 if test "x$with_polylib_builddir" != "x"; then
+	with_polylib_builddir=`cd $with_polylib_builddir; pwd`
 	AC_MSG_RESULT(built in $with_polylib_builddir)
 	polylib_polylibs=`echo @polylibs@ | $with_polylib_builddir/config.status --file=-`
 	AC_MSG_NOTICE(Configured polylibs: $polylib_polylibs)
-	CPPFLAGS="-I$with_polylib_builddir/include -I$polylib_srcdir/include $CPPFLAGS"
+	POLYLIB_CPPFLAGS="-I$with_polylib_builddir/include -I$polylib_srcdir/include"
 	for BITS in $polylibs; do
 		cl_cv_polylib=missing
 		for PL in $polylib_polylibs; do
@@ -160,37 +165,80 @@ if test "x$with_polylib_builddir" != "x"; then
 			fi
 		done
 		if test "$cl_cv_polylib" != "missing"; then
-			LIBS="$with_polylib_builddir/lib$cl_cv_polylib.la $LIBS"
+			POLYLIB_LIBS="$with_polylib_builddir/lib$cl_cv_polylib.la"
 			break;
 		fi
 	done
 else
 	if test "x$with_polylib_prefix" != "x"; then
+		with_polylib_prefix=`cd $with_polylib_prefix; pwd`
 		AC_MSG_RESULT(installed in $with_polylib_exec_prefix)
-		CPPFLAGS="-I$with_polylib_prefix/include $CPPFLAGS"
-		LDFLAGS="-L$with_polylib_exec_prefix/lib $LDFLAGS"
+		POLYLIB_CPPFLAGS="-I$with_polylib_prefix/include"
+		POLYLIB_LDFLAGS="-L$with_polylib_exec_prefix/lib"
 		LD_LIBRARY_PATH="$with_polylib_exec_prefix/lib:$LD_LIBRARY_PATH"
 		export LD_LIBRARY_PATH
 	else
 		AC_MSG_RESULT(installed in standard location)
 	fi
+	SAVE_CPPFLAGS="$CPPFLAGS"
+	SAVE_LDFLAGS="$LDFLAGS"
+	CPPFLAGS="$POLYLIB_CPPFLAGS $CPPFLAGS"
+	LDFLAGS="$POLYLIB_LDFLAGS $LDFLAGS"
 	for BITS in $polylibs; do
 		cl_cv_polylib="polylib$BITS"
 		AC_CHECK_HEADER(polylib/$cl_cv_polylib.h,[
 			AC_CHECK_LIB($cl_cv_polylib,PolyhedronTSort,[
-				LIBS="-l$cl_cv_polylib $LIBS"
+				POLYLIB_LIBS="-l$cl_cv_polylib"
 				break
 			])
 		])
 		cl_cv_polylib=missing
 	done
+	CPPFLAGS="$SAVE_CPPFLAGS"
+	LDFLAGS="$SAVE_LDFLAGS"
 fi
 if test "$cl_cv_polylib" = "missing"; then
-	AC_MSG_ERROR(Can't find PolyLib.)
+	AC_MSG_WARN(Can't find PolyLib.)
 else
 	CLOOG_LIBRARIES="$CLOOG_LIBRARIES libcloog-polylib.la"
 	BACKEND="polylib"
 fi
+
+dnl /**************************************************************************
+dnl  *                          Where is isl?                                 *
+dnl  **************************************************************************/
+
+AC_SUBST(ISL_CPPFLAGS)
+AC_SUBST(ISL_LDFLAGS)
+AC_SUBST(ISL_LIBS)
+case "$with_isl" in
+bundled)
+	ISL_CPPFLAGS="-I$srcdir/isl/include -Iisl/include"
+	;;
+build)
+	ISL_CPPFLAGS="-I$isl_srcdir/include -I$with_isl_builddir/include"
+	ISL_LIBS="$with_isl_builddir/libisl.la"
+	;;
+system)
+	if test "x$with_isl_prefix" != "x"; then
+		ISL_CPPFLAGS="-I$with_isl_prefix/include"
+	fi
+	if test "x$with_isl_exec_prefix" != "x"; then
+		ISL_LDFLAGS="-L$with_isl_exec_prefix/lib"
+	fi
+	ISL_LIBS="-lisl"
+esac
+if test "$with_isl" != "no"; then
+	CLOOG_LIBRARIES="$CLOOG_LIBRARIES libcloog-isl.la"
+	BACKEND="isl"
+fi
+AM_CONDITIONAL(BUNDLED_ISL, test $with_isl = bundled)
+
+if test -z "$BACKEND"; then
+	AC_MSG_ERROR(No backend specified or found.)
+fi
+
+
 case "$BITS" in
 	gmp)
 		cl_cv_int_type=gmp
@@ -243,6 +291,22 @@ AC_CONFIG_COMMANDS([version.h],
 	[echo '#define CLOOG_HEAD "'`./genversion.sh`'"' > version.h])
 AC_CONFIG_COMMANDS([doc/gitversion.texi],
 	[echo '@set VERSION '`./genversion.sh`'' > doc/gitversion.texi])
+if test $with_isl = bundled; then
+	AC_CONFIG_SUBDIRS(isl)
+fi
+AC_CONFIG_COMMANDS_POST([
+	old_args=""
+	for arg in $ac_configure_args; do
+		case arg in
+		--with-polylib*)
+			;;
+		*)
+			old_args="$old_args $arg"
+			;;
+		esac
+	done
+	ac_configure_args="$old_args $cloog_configure_args"
+])
 AC_OUTPUT
 
 

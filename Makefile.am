@@ -35,14 +35,22 @@
 # * Written by Cedric Bastoul, Cedric.Bastoul@inria.fr                        *
 # *                                                                           *
 # *****************************************************************************/
+if BUNDLED_ISL
+    MAYBE_ISL = isl
+    ISL_LA = $(top_builddir)/isl/libisl.la
+endif
 
-SUBDIRS = . doc test
+SUBDIRS = $(MAYBE_ISL) . doc test
 
 ACLOCAL_AMFLAGS = -I m4
 
+FORCE:
+isl/libisl.la: FORCE
+	cd isl; $(MAKE) $(AM_MAKEFLAGS) libisl.la
+
 bin_PROGRAMS = cloog
 lib_LTLIBRARIES = @CLOOG_LIBRARIES@
-EXTRA_LTLIBRARIES = libcloog-polylib.la
+EXTRA_LTLIBRARIES = libcloog-polylib.la libcloog-isl.la
 
 SOURCES_CORE = \
 	source/block.c \
@@ -69,6 +77,14 @@ libcloog_polylib_la_SOURCES = \
 	source/polylib/domain.c \
 	source/polylib/matrix.c \
 	source/polylib/backend_options.c
+libcloog_isl_la_CPPFLAGS = @ISL_CPPFLAGS@ -DCLOOG_ISL
+libcloog_isl_la_LDFLAGS = @ISL_LDFLAGS@
+libcloog_isl_la_LIBADD = @ISL_LIBS@ $(ISL_LA)
+libcloog_isl_la_SOURCES = \
+	$(SOURCES_CORE) \
+	source/isl/domain.c \
+	source/isl/constraints.c \
+	source/isl/backend_options.c
 LDADD = libcloog-@BACKEND@.la
 cloog_DEPENDENCIES = libcloog-@BACKEND@.la
 cloog_SOURCES = source/cloog.c
@@ -97,6 +113,14 @@ pkgpolylibinclude_HEADERS = \
 	include/cloog/polylib/options.h
 nodist_pkgpolylibinclude_HEADERS = \
 	include/cloog/polylib/backend.h
+
+pkgislincludedir = $(pkgincludedir)/isl
+pkgislinclude_HEADERS = \
+	include/cloog/isl/backend.h \
+	include/cloog/isl/cloog.h \
+	include/cloog/isl/domain.h \
+	include/cloog/isl/matrix.h \
+	include/cloog/isl/options.h
 
 version.h: @GIT_INDEX@
 	echo '#define CLOOG_HEAD "'`$(top_builddir)/genversion.sh`'"' > $@

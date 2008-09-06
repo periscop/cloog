@@ -180,16 +180,19 @@ SPECIAL_OPTIONS = \
 
 EXTRA_DIST = \
 	$(CLOOGTEST_C:%=%.cloog) \
+	$(CLOOGTEST_C:%=isl/%.c) \
 	$(CLOOGTEST_C:%=polylib/%.c) \
 	$(FINITE_CLOOGTEST_C:%=%.good.c) \
 	$(CLOOGTEST_FORTRAN:%=%.cloog) \
+	$(CLOOGTEST_FORTRAN:%=isl/%.f) \
 	$(CLOOGTEST_FORTRAN:%=polylib/%.f) \
 	$(CLOOGTEST_STRIDED:%=%.cloog) \
+	$(CLOOGTEST_STRIDED:%=isl/%.c) \
 	$(CLOOGTEST_STRIDED:%=polylib/%.c) \
-	polylib/vasilache.c vasilache.cloog \
-	polylib/merge.c merge.cloog \
-	polylib/equality.c equality.cloog \
-	polylib/equality2.c equality2.cloog
+	isl/vasilache.c polylib/vasilache.c vasilache.cloog \
+	isl/merge.c polylib/merge.c merge.cloog \
+	isl/equality.c polylib/equality.c equality.cloog \
+	isl/equality2.c polylib/equality2.c equality2.cloog
 
 generate:
 	@echo "             /*-----------------------------------------------*"

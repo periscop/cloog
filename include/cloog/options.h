@@ -49,8 +49,13 @@ extern "C"
  */
 #define CLOOG_SCALARS
 
-#ifdef CLOOG_POLYLIB
+struct cloogoptions;
+typedef struct cloogoptions CloogOptions;
+
+#if defined(CLOOG_POLYLIB)
 #include <cloog/polylib/options.h>
+#elif defined(CLOOG_ISL)
+#include <cloog/isl/options.h>
 #else
 struct cloogbackendoptions;
 #endif
@@ -121,7 +126,6 @@ struct cloogoptions
   int noscalars ; /* 1 if I don't want to use scalar dimensions, 0 otherwise. */
   int nosimplify; /* 1 if I don't want to simplify polyhedra, 0 otherwise. */
 } ;
-typedef struct cloogoptions CloogOptions ;
 
 
 /******************************************************************************
