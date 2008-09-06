@@ -38,6 +38,8 @@
 
 SUBDIRS = . doc test
 
+ACLOCAL_AMFLAGS = -I m4
+
 bin_PROGRAMS = cloog
 lib_LTLIBRARIES = @CLOOG_LIBRARIES@
 EXTRA_LTLIBRARIES = libcloog-polylib.la

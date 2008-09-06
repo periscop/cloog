@@ -80,98 +80,33 @@ dnl /**************************************************************************
 dnl  *                             Option setting                             *
 dnl  **************************************************************************/
 
-dnl Some default values cause I'm not sure whether autoconf set them, while
-dnl documentation says it does...
-gmp_package="yes"
-gmp_include_package="yes"
-gmp_library_package="yes"
-
 MP_BITS="MP"
 MP_DFLAGS=-DLINEAR_VALUE_IS_MP
-NEED_MP="no"
 
-dnl --with-polylib=polylib-path
-AC_ARG_WITH(polylib_prefix,
-	    [AS_HELP_STRING([--with-polylib-prefix=DIR],
-			    [Prefix of PolyLib installation])])
-AC_ARG_WITH(polylib_exec_prefix,
-	    [AS_HELP_STRING([--with-polylib-exec-prefix=DIR],
-			    [Exec prefix of PolyLib installation])])
-AC_ARG_WITH(polylib_builddir,
-	    [AS_HELP_STRING([--with-polylib-builddir=DIR],
-			    [Location of PolyLib builddir])])
 AC_ARG_WITH(bits,
-	    [  --with-bits=32|64|gmp   PolyLib library type to use],
-	    [ echo "polylib$withval"; BITS=$withval ])
-
-dnl --with-gmp=gmp-path
-AC_ARG_WITH(gmp,
-        [  --with-gmp=DIR          DIR where the gmp package is installed],
-	[ echo "Package gmp : $withval" &&
-	  gmp_package=$withval &&
-          GMP_INC=$gmp_package/include &&
-          GMP_LIB=$gmp_package/lib &&
-          NEED_MP="yes"])
-
-AC_ARG_WITH(gmp-include,
-        [  --with-gmp-include=DIR  DIR where gmp.h is installed],
-	[ echo "Package gmp-include : $withval" &&
-	  gmp_include_package=$withval &&
-          GMP_INC=$gmp_include_package &&
-	  NEED_MP="yes"])
-
-AC_ARG_WITH(gmp-library,
-        [  --with-gmp-library=DIR  DIR where the gmp library is installed],
-	[ echo "Package gmp-library : $withval" &&
-	  gmp_library_package=$withval &&
-          GMP_LIB=$gmp_library_package &&
-	  NEED_MP="yes"])
+	    [AS_HELP_STRING([--with-bits=32|64|gmp],
+			    [integer type to use])],
+	    [ BITS=$withval ])
 
 
 dnl /**************************************************************************
 dnl  *                            Where is GMP?                               *
 dnl  **************************************************************************/
 
+gmp_module_default=no
+if test "$BITS" = "gmp"; then
+	gmp_module_default=system
+fi
+AX_SUBMODULE(gmp,no|system,$gmp_module_default)
 
-dnl Checking for gmp
-AC_MSG_CHECKING(whether gmp works)
-if test "$gmp_package" = "no"; then
-  echo "GMP package not defined"
-  AC_MSG_RESULT(no)
-  TO_BUILD_MP=""
-else
-  if test "$NEED_MP" = "no"; then
-    echo "Mode normal GMP"
-    TO_BUILD="$TO_BUILD MP"
-    AC_CHECK_HEADER(gmp.h,
-                    [AC_CHECK_LIB(gmp,
-		                  __gmpz_init,
-		                  [LIBS="$LIBS -lgmp"],
-				  [echo "Can't find gmp library." &&
-				   echo "MP version will not be builded." &&
-				   TO_BUILD_MP=""])],
-		    [echo "Can't find gmp headers." &&
-		     echo "MP version will not be builded." &&
-		     TO_BUILD_MP=""])
-  else
-    dnl Default given by --with-X is "yes", --without-X is "no". We also
-    dnl initialized manually all gmp_package* variables to "yes" (thus they are
-    dnl supposed to be "yes" except if the user set them himself).
-    
-    if test "$gmp_package" != "yes" ; then
-      echo "(GMP path has been set by user)"
-      GMP_DIR=$gmp_package
-      dnl Useful for AC_CHECK_X to find what we want.
-      CPPFLAGS="-I$GMP_DIR/include $CPPFLAGS"
-      LDFLAGS="-L$GMP_DIR/lib $LDFLAGS"
+case "$with_gmp" in
+system)
+    if test "x$with_gmp_prefix" != "x"; then
+	CPPFLAGS="-I$with_gmp_prefix/include $CPPFLAGS"
     fi
     
-    if test "$gmp_include_package" != "yes" ; then
-      CPPFLAGS="-I$GMP_INC $CPPFLAGS"
-    fi
-    
-    if test "$gmp_library_package" != "yes" ; then
-      LDFLAGS="-L$GMP_LIB $LDFLAGS"
+    if test "$with_gmp_exec_prefix" != "yes" ; then
+	LDFLAGS="-L$with_gmp_exec_prefix/lib $LDFLAGS"
     fi
      
     AC_CHECK_HEADER(gmp.h,
@@ -181,10 +116,8 @@ else
                  __gmpz_init,
                  [LIBS="$LIBS -lgmp"],
                  [AC_MSG_ERROR(Can't find gmp library.)])
-    
-    AC_MSG_RESULT(yes)
-  fi
-fi
+    ;;
+esac
 
 # all compiled libraries
 CLOOG_LIBRARIES=""
@@ -196,6 +129,8 @@ AC_SUBST(BACKEND)
 dnl /**************************************************************************
 dnl  *                          Where is PolyLib?                             *
 dnl  **************************************************************************/
+
+AX_SUBMODULE(polylib,no|system|build,system)
 
 polylibs="64 32"
 case "$BITS" in
@@ -210,20 +145,9 @@ AC_SUBST(POLYLIB_CPPFLAGS)
 AC_SUBST(POLYLIB_LDFLAGS)
 AC_SUBST(POLYLIB_LIBS)
 
-if test "x$with_polylib_prefix" != "x" -a "x$with_polylib_exec_prefix" = "x"
-then
-	with_polylib_exec_prefix=$with_polylib_prefix
-fi
-if test "x$with_polylib_prefix" != "x" -a "x$with_polylib_builddir" != "x"; then
-	AC_MSG_ERROR(
-	[--with-polylib-prefix and --with-polylib-builddir are mutually exclusive])
-fi
-
 AC_MSG_CHECKING(for location of PolyLib)
 if test "x$with_polylib_builddir" != "x"; then
 	AC_MSG_RESULT(built in $with_polylib_builddir)
-	polylib_srcdir=`echo @abs_srcdir@ | $with_polylib_builddir/config.status --file=-`
-	AC_MSG_NOTICE(PolyLib sources in $polylib_srcdir)
 	polylib_polylibs=`echo @polylibs@ | $with_polylib_builddir/config.status --file=-`
 	AC_MSG_NOTICE(Configured polylibs: $polylib_polylibs)
 	CPPFLAGS="-I$with_polylib_builddir/include -I$polylib_srcdir/include $CPPFLAGS"
