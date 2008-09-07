@@ -95,8 +95,9 @@ void cloog_options_print(FILE * foo, CloogOptions * options)
  * This function frees the allocated memory for a CloogOptions structure.
  * - April 19th 2003: first version.
  */
-void cloog_options_free(CloogOptions * options)
-{ free(options) ;
+void cloog_core_options_free(CloogOptions * options)
+{
+  free(options);
 }
 
 
@@ -237,7 +238,7 @@ void cloog_options_set(int * option, int argv, char ** argc, int * number)
  * - April    19th 2003: first version.
  * - November 21th 2005: name changed (before it was cloog_options_init).
  */
-CloogOptions * cloog_options_malloc(void)
+CloogOptions * cloog_core_options_malloc(void)
 { CloogOptions * options ;
 
   /* Memory allocation for the CloogOptions structure. */
@@ -248,6 +249,7 @@ CloogOptions * cloog_options_malloc(void)
   } 
   
   /* We set the various fields with default values. */
+  options->backend     = NULL;
   /* OPTIONS FOR LOOP GENERATION */
   options->l           = -1 ;  /* Last level to optimize: infinity. */
   options->f           =  1 ;  /* First level to optimize: the first. */

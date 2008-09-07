@@ -49,9 +49,17 @@ extern "C"
  */
 #define CLOOG_SCALARS
 
+#ifdef CLOOG_POLYLIB
+#include <cloog/polylib/options.h>
+#else
+struct cloogbackendoptions;
+#endif
+typedef struct cloogbackendoptions CloogBackendOptions;
 
 struct cloogoptions
-{ /* OPTIONS FOR LOOP GENERATION */
+{
+  CloogBackendOptions	*backend;
+  /* OPTIONS FOR LOOP GENERATION */
   int l ;         /* Last level to optimize. */
   int f ;         /* First level to optimize. */
   int stop ;      /* Level to stop code generation. */
@@ -125,6 +133,7 @@ void cloog_options_print(FILE *, CloogOptions *) ;
 /******************************************************************************
  *                         Memory deallocation function                       *
  ******************************************************************************/
+void cloog_core_options_free(CloogOptions *backend);
 void cloog_options_free(CloogOptions *) ;
 
 
@@ -137,6 +146,7 @@ void cloog_options_read(int, char **, FILE **, FILE **, CloogOptions **) ;
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
+CloogOptions *cloog_core_options_malloc(void);
 CloogOptions * cloog_options_malloc(void) ;
 
 

@@ -65,7 +65,8 @@ libcloog_polylib_la_SOURCES = \
 	$(SOURCES_CORE) \
 	source/polylib/domain.c \
 	source/polylib/domain.h \
-	source/polylib/matrix.c
+	source/polylib/matrix.c \
+	source/polylib/backend_options.c
 LDADD = libcloog-@BACKEND@.la
 cloog_DEPENDENCIES = libcloog-@BACKEND@.la
 cloog_SOURCES = source/cloog.c
@@ -89,7 +90,8 @@ nodist_pkginclude_HEADERS = \
 pkgpolylibincludedir = $(pkgincludedir)/polylib
 pkgpolylibinclude_HEADERS = \
 	include/cloog/polylib/domain.h \
-	include/cloog/polylib/matrix.h
+	include/cloog/polylib/matrix.h \
+	include/cloog/polylib/options.h
 nodist_pkgpolylibinclude_HEADERS = \
 	include/cloog/polylib/cloog.h
 
