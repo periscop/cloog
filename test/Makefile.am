@@ -192,13 +192,23 @@ generate:
 	@echo "             /*-----------------------------------------------*"
 	@echo "              *                 Generate files                *"
 	@echo "              *-----------------------------------------------*/"
-	for x in $(CLOOGTEST_C) ; do \
+	@for x in $(CLOOGTEST_C) ; do \
 		echo "Generate $$x.c" ; \
-		cloog $$x.cloog -o $$x.c ; \
+		$(top_builddir)/cloog $(srcdir)/$$x.cloog -o $(srcdir)/$$x.c ; \
 	done ; \
 	for x in $(CLOOGTEST_FORTRAN) ; do \
 		echo "Generate $$x.f" ; \
-		cloog $$x.cloog -o $$x.f ; \
+		$(top_builddir)/cloog $(srcdir)/$$x.cloog -o $(srcdir)/$$x.f ; \
+	done ; \
+	for x in $(CLOOGTEST_STRIDED) ; do \
+		echo "Generate $$x.c" ; \
+		$(top_builddir)/cloog $(srcdir)/$$x.cloog \
+			-strides 1 -o $(srcdir)/$$x.c ; \
+	done ; \
+	(echo -e $(SPECIAL_OPTIONS)) | while read x options; do \
+		echo "Generate file $$x ($$options)" ; \
+		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
+		    $$options > $(srcdir)/$$x.c ; \
 	done
 
 generate_good:
