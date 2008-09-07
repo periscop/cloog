@@ -530,7 +530,7 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
   p->language = language ;
 
   /* We then read the context data. */
-  p->context = cloog_domain_read(file) ;
+  p->context = cloog_domain_read(file, options);
   nb_parameters = cloog_domain_dimension(p->context) ;
   
   /* First part of the CloogNames structure: reading of the parameter names. */
@@ -544,7 +544,7 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
   /* Statements and domains reading for each statement. */
   if (nb_statements > 0)
   { /* Reading of the first domain. */
-    p->loop = cloog_loop_read(file,0,nb_parameters) ;
+    p->loop = cloog_loop_read(file, 0, nb_parameters, options);
     p->blocklist = cloog_block_list_alloc(p->loop->block) ;
     previous = p->blocklist ;
     
@@ -555,8 +555,8 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
     
     /* And the same for each next domain. */
     current = p->loop ;
-    for (i=2;i<=nb_statements;i++)
-    { next = cloog_loop_read(file,i-1,nb_parameters) ;
+    for (i=2;i<=nb_statements;i++) {
+      next = cloog_loop_read(file, i-1, nb_parameters, options);
       if (next->domain != NULL)
       if (cloog_domain_dimension(next->domain) - nb_parameters > nb_iterators)
       nb_iterators = cloog_domain_dimension(next->domain) - nb_parameters ;
@@ -572,7 +572,7 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
     iterators = cloog_names_read_strings(file,nb_iterators,NULL,FIRST_ITERATOR);
 
     /* Reading and putting the scattering data in program structure. */
-    scatteringl = cloog_domain_list_read(file) ;
+    scatteringl = cloog_domain_list_read(file, options);
     
     if (scatteringl != NULL)
     { if (cloog_domain_list_lazy_same(scatteringl))

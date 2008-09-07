@@ -90,7 +90,8 @@ void cloog_loop_free(CloogLoop *) ;
 /******************************************************************************
  *                              Reading functions                             *
  ******************************************************************************/
-CloogLoop * cloog_loop_read(FILE *, int, int) ;
+CloogLoop * cloog_loop_read(FILE * foo, int number, int nb_parameters,
+			    CloogOptions *options);
 
 
 /******************************************************************************

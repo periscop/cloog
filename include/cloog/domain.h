@@ -97,9 +97,9 @@ void cloog_domain_list_free(CloogDomainList *) ;
 /*+****************************************************************************
  *                               Reading function                             *
  ******************************************************************************/
-CloogDomain * cloog_domain_read(FILE *) ;
-CloogDomain * cloog_domain_union_read(FILE *) ;
-CloogDomainList * cloog_domain_list_read(FILE *) ;
+CloogDomain * cloog_domain_read(FILE *foo, CloogOptions *options);
+CloogDomain * cloog_domain_union_read(FILE *foo, CloogOptions *options);
+CloogDomainList * cloog_domain_list_read(FILE *foo, CloogOptions *options);
 
 
 /******************************************************************************

@@ -649,7 +649,7 @@ void cloog_domain_list_free(CloogDomainList * list)
  * information. 
  * - October 18th 2001: first version.
  */
-CloogDomain * cloog_domain_read(FILE * foo)
+CloogDomain * cloog_domain_read(FILE * foo, CloogOptions *options)
 { CloogMatrix * matrix ;
   CloogDomain * domain ;
   
@@ -669,7 +669,7 @@ CloogDomain * cloog_domain_read(FILE * foo)
  * - October  29th 2005: (debug) removal of a leak counting "correction" that
  *                       was just false since ages.
  */
-CloogDomain * cloog_domain_union_read(FILE * foo)
+CloogDomain * cloog_domain_union_read(FILE * foo, CloogOptions *options)
 { int i, nb_components ;
   char s[MAX_STRING] ;
   CloogDomain * domain, * temp, * old ;
@@ -681,11 +681,11 @@ CloogDomain * cloog_domain_union_read(FILE * foo)
   
   if (nb_components > 0)
   { /* 1. first part of the polyhedra union, */
-    domain = cloog_domain_read(foo) ;
+    domain = cloog_domain_read(foo, options);
     /* 2. and the nexts. */
     for (i=1;i<nb_components;i++)
     { /* Leak counting is OK since next allocated domain is freed here. */
-      temp = cloog_domain_read(foo) ;
+      temp = cloog_domain_read(foo, options);
       old = domain ;
       domain = cloog_domain_union(temp,old) ;
       cloog_domain_free(temp) ;
@@ -704,7 +704,7 @@ CloogDomain * cloog_domain_union_read(FILE * foo)
  * returns a pointer to a CloogDomainList containing the read information. 
  * - November 6th 2001: first version.
  */
-CloogDomainList * cloog_domain_list_read(FILE * foo)
+CloogDomainList * cloog_domain_list_read(FILE * foo, CloogOptions *options)
 { int i, nb_pols ;
   char s[MAX_STRING] ;
   CloogDomainList * list, * now, * next ;
@@ -719,12 +719,12 @@ CloogDomainList * cloog_domain_list_read(FILE * foo)
   list = NULL ;
   if (nb_pols > 0)
   { list = (CloogDomainList *)malloc(sizeof(CloogDomainList)) ;
-    list->domain = cloog_domain_read(foo) ;
+    list->domain = cloog_domain_read(foo, options);
     list->next = NULL ;
     now = list ;
     for (i=1;i<nb_pols;i++)
     { next = (CloogDomainList *)malloc(sizeof(CloogDomainList)) ;
-      next->domain = cloog_domain_read(foo) ;
+      next->domain = cloog_domain_read(foo, options);
       next->next = NULL ;
       now->next = next ;
       now = now->next ;
