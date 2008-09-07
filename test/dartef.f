@@ -1,5 +1,4 @@
-! Generated from dartef.cloog by CLooG v0.14.0 gmp bits in 0.24s.
-! CLooG asked for 460 KBytes.
+! Generated from ../../../git/cloog/test/dartef.cloog by CLooG 0.14.0-91-g5d3da4b gmp bits in 0.27s.
 IF (n >= 1) THEN
   t1 = -n+1
   t2 = n+1
@@ -48,7 +47,7 @@ IF (n >= 3) THEN
     S2(i = 1,j = n,k = t3)
   END DO
 END IF
-DO t1=CEILING(REAL(-2*n+5)/REAL(2)), MIN(-n+6,-1)
+DO t1=CEILING(REAL(-2*n+5)/REAL(2)), MIN(-1,-n+6)
   DO t2=-t1+2, -t1+4
     DO t3=t2+2, t2+2*n
       IF (MOD(t1+t2, 2) == 0) THEN
@@ -219,7 +218,7 @@ IF (n >= 3) THEN
     END DO
   END DO
 END IF
-DO t1=MAX(-n+7,0), 1
+DO t1=MAX(0,-n+7), 1
   DO t2=t1+2, -t1+4
     DO t3=t2+2, t2+2*n
       IF (MOD(t1+t2, 2) == 0) THEN

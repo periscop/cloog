@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include "../include/cloog/cloog.h"
 
@@ -26,9 +27,10 @@ struct clooginfos {
 
 typedef struct clooginfos CloogInfos ;
 
-static int clast_term_equal(struct clast_term *t1, struct clast_term *t2);
-static int clast_binary_equal(struct clast_binary *b1, struct clast_binary *b2);
-static int clast_reduction_equal(struct clast_reduction *r1, 
+static int clast_expr_cmp(struct clast_expr *e1, struct clast_expr *e2);
+static int clast_term_cmp(struct clast_term *t1, struct clast_term *t2);
+static int clast_binary_cmp(struct clast_binary *b1, struct clast_binary *b2);
+static int clast_reduction_cmp(struct clast_reduction *r1, 
 				 struct clast_reduction *r2);
 
 static int clast_equal_add(CloogEqualities *equal, CloogConstraints *constraints,
@@ -299,59 +301,85 @@ void cloog_clast_free(struct clast_stmt *s)
     }
 }
 
-static int clast_term_equal(struct clast_term *t1, struct clast_term *t2)
+static int clast_term_cmp(struct clast_term *t1, struct clast_term *t2)
 {
-    if (t1->var != t2->var)
-	return 0;
-    return cloog_int_eq(t1->val, t2->val);
+    int c;
+    if (!t1->var && t2->var)
+	return -1;
+    if (t1->var && !t2->var)
+	return 1;
+    if (t1->var != t2->var && (c = strcmp(t1->var, t2->var)))
+	return c;
+    return cloog_int_cmp(t1->val, t2->val);
 }
 
-static int clast_binary_equal(struct clast_binary *b1, struct clast_binary *b2)
+static int clast_binary_cmp(struct clast_binary *b1, struct clast_binary *b2)
 {
+    int c;
+
     if (b1->type != b2->type)
-	return 0;
-    if (cloog_int_ne(b1->RHS, b2->RHS))
-	return 0;
-    return clast_expr_equal(b1->LHS, b2->LHS);
+	return b1->type - b2->type;
+    if ((c = cloog_int_cmp(b1->RHS, b2->RHS)))
+	return c;
+    return clast_expr_cmp(b1->LHS, b2->LHS);
 }
 
-static int clast_reduction_equal(struct clast_reduction *r1, struct clast_reduction *r2)
+static int clast_reduction_cmp(struct clast_reduction *r1, struct clast_reduction *r2)
 {
     int i;
+    int c;
+
     if (r1->type == clast_red_max && r2->type == clast_red_min && 
 	    r1->n == 1 && r2->n == 1)
-	return clast_expr_equal(r1->elts[0], r2->elts[0]);
+	return clast_expr_cmp(r1->elts[0], r2->elts[0]);
     if (r1->type != r2->type)
-	return 0;
+	return r1->type - r2->type;
     if (r1->n != r2->n)
-	return 0;
+	return r1->n - r2->n;
     for (i = 0; i < r1->n; ++i)
-	if (!clast_expr_equal(r1->elts[i], r2->elts[i]))
-	    return 0;
-    return 1;
+	if ((c = clast_expr_cmp(r1->elts[i], r2->elts[i])))
+	    return c;
+    return 0;
+}
+
+static int clast_expr_cmp(struct clast_expr *e1, struct clast_expr *e2)
+{
+    if (!e1 && !e2)
+	return 0;
+    if (!e1)
+	return -1;
+    if (!e2)
+	return 1;
+    if (e1->type != e2->type)
+	return e1->type - e2->type;
+    switch (e1->type) {
+    case expr_term:
+	return clast_term_cmp((struct clast_term*) e1, 
+				(struct clast_term*) e2);
+    case expr_bin:
+	return clast_binary_cmp((struct clast_binary*) e1, 
+				(struct clast_binary*) e2);
+    case expr_red:
+	return clast_reduction_cmp((struct clast_reduction*) e1, 
+				   (struct clast_reduction*) e2);
+    default:
+	assert(0);
+    }
 }
 
 int clast_expr_equal(struct clast_expr *e1, struct clast_expr *e2)
 {
-    if (!e1 && !e2)
-	return 1;
-    if (!e1 || !e2)
-	return 0;
-    if (e1->type != e2->type)
-	return 0;
-    switch (e1->type) {
-    case expr_term:
-	return clast_term_equal((struct clast_term*) e1, 
-				(struct clast_term*) e2);
-    case expr_bin:
-	return clast_binary_equal((struct clast_binary*) e1, 
-				  (struct clast_binary*) e2);
-    case expr_red:
-	return clast_reduction_equal((struct clast_reduction*) e1, 
-				     (struct clast_reduction*) e2);
-    default:
-	assert(0);
-    }
+    return clast_expr_cmp(e1, e2) == 0;
+}
+
+static int qsort_expr_cmp(const void *p1, const void *p2)
+{
+    return clast_expr_cmp(*(struct clast_expr **)p1, *(struct clast_expr **)p2);
+}
+
+static void clast_reduction_sort(struct clast_reduction *r)
+{
+    qsort(&r->elts[0], r->n, sizeof(struct clast_expr *), qsort_expr_cmp);
 }
 
 
@@ -691,6 +719,7 @@ static struct clast_expr *clast_minmax(CloogConstraints *constraints,
 	r->elts[n++] = clast_bound_from_constraint(constraints, i, level,
 								infos->names);
 
+  clast_reduction_sort(r);
   return &r->expr;
 }
 

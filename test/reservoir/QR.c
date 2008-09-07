@@ -1,5 +1,4 @@
-/* Generated from QR.cloog by CLooG v0.14.0 64 bits in 0.06s. */
-/* CLooG asked for 288 KBytes. */
+/* Generated from ../../../git/cloog/test/./reservoir/QR.cloog by CLooG 0.14.0-91-g5d3da4b gmp bits in 0.29s. */
 if ((M <= -1) && (N >= 1)) {
   S1(i = 0) ;
 }
@@ -40,7 +39,7 @@ if ((M <= 0) && (N == 1)) {
   S10(i = 0) ;
   S5(i = 0) ;
 }
-for (c2=2;c2<=min(N-1,M);c2++) {
+for (c2=2;c2<=min(M,N-1);c2++) {
   for (c4=c2-1;c4<=N-1;c4++) {
     i = c2-2 ;
     S6(j = c4) ;
@@ -151,7 +150,7 @@ if ((M == N-1) && (N >= 2)) {
   i = N-1 ;
   S5 ;
 }
-for (c2=max(M+2,2);c2<=N-1;c2++) {
+for (c2=max(2,M+2);c2<=N-1;c2++) {
   for (c4=c2-1;c4<=N-1;c4++) {
     i = c2-2 ;
     S6(j = c4) ;

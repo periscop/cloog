@@ -1,5 +1,4 @@
-/* Generated from ./test/swim.cloog by CLooG v0.14.0 64 bits in 0.37s. */
-/* CLooG asked for 692 KBytes. */
+/* Generated from ../../../git/cloog/test/swim.cloog by CLooG 0.14.0-91-g5d3da4b gmp bits in 0.74s. */
 if (M == 1) {
   S1 ;
   S2 ;

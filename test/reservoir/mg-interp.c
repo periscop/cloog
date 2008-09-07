@@ -1,5 +1,4 @@
-/* Generated from ./reservoir/mg-interp.cloog by CLooG v0.14.0 gmp bits in 0.96s. */
-/* CLooG asked for 3476 KBytes. */
+/* Generated from ../../../git/cloog/test/./reservoir/mg-interp.cloog by CLooG 0.14.0-91-g5d3da4b gmp bits in 1.06s. */
 if ((M >= 2) && (N >= 4)) {
   for (c2=1;c2<=O-1;c2++) {
     for (c6=1;c6<=M;c6++) {

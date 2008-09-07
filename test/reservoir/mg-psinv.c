@@ -1,5 +1,4 @@
-/* Generated from ./reservoir/mg-psinv.cloog by CLooG v0.14.0 gmp bits in 0.06s. */
-/* CLooG asked for 300 KBytes. */
+/* Generated from ../../../git/cloog/test/./reservoir/mg-psinv.cloog by CLooG 0.14.0-91-g5d3da4b gmp bits in 0.05s. */
 if ((M >= 3) && (N >= 4)) {
   for (c2=2;c2<=O-1;c2++) {
     for (c6=1;c6<=M;c6++) {

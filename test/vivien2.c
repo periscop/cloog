@@ -1,4 +1,4 @@
-/* Generated from /home/skimo/git/cloog/test/vivien2.cloog by CLooG 0.14.0-68-gcb3744c gmp bits in 0.57s. */
+/* Generated from /home/skimo/git/cloog/test/vivien2.cloog by CLooG 0.14.0-90-gef99038 gmp bits in 0.59s. */
 for (p1=-54*n+4;p1<=4;p1++) {
   if (p1%2 == 0) {
     i = (p1-2)/2 ;
@@ -189,7 +189,7 @@ S5(i = 2,j = n,k = 1) ;
 S6(i = 2,j = n) ;
 i = n+1 ;
 S1 ;
-for (p1=2*n+5;p1<=min(4*n-10,2*n+58);p1++) {
+for (p1=2*n+5;p1<=min(2*n+58,4*n-10);p1++) {
   p2 = floord(-p1+5,4) ;
   if (p1%2 == 0) {
     j = (p1+2*p2)/2 ;
@@ -238,7 +238,7 @@ for (p1=2*n+5;p1<=min(4*n-10,2*n+58);p1++) {
       S5(k = p3) ;
     }
   }
-  for (p2=ceild(-p1+2*n+3,2);p2<=min(floord(-p1+2*n+4,2),-1);p2++) {
+  for (p2=ceild(-p1+2*n+3,2);p2<=min(-1,floord(-p1+2*n+4,2));p2++) {
     i = -p2+2 ;
     if (p1%2 == 0) {
       j = (p1+2*p2-4)/2 ;
@@ -260,7 +260,7 @@ for (p1=2*n+5;p1<=min(4*n-10,2*n+58);p1++) {
     }
   }
 }
-for (p1=4*n-9;p1<=min(4*n-8,2*n+58);p1++) {
+for (p1=4*n-9;p1<=min(2*n+58,4*n-8);p1++) {
   p2 = floord(-p1+5,4) ;
   if (p1%2 == 0) {
     j = (p1+2*p2)/2 ;
@@ -313,7 +313,7 @@ for (p1=4*n-9;p1<=min(4*n-8,2*n+58);p1++) {
     }
   }
 }
-for (p1=4*n-7;p1<=min(4*n-6,2*n+58);p1++) {
+for (p1=4*n-7;p1<=min(2*n+58,4*n-6);p1++) {
   p2 = floord(-p1+5,4) ;
   if (p1%2 == 0) {
     j = (p1+2*p2)/2 ;
@@ -480,7 +480,7 @@ for (p1=2*n+59;p1<=4*n-10;p1++) {
     }
   }
 }
-for (p1=max(4*n-9,2*n+59);p1<=4*n-8;p1++) {
+for (p1=max(2*n+59,4*n-9);p1<=4*n-8;p1++) {
   p2 = floord(-p1+5,4) ;
   if (p1%2 == 0) {
     j = (p1+2*p2)/2 ;
@@ -529,7 +529,7 @@ for (p1=max(4*n-9,2*n+59);p1<=4*n-8;p1++) {
     }
   }
 }
-for (p1=max(4*n-7,2*n+59);p1<=4*n-6;p1++) {
+for (p1=max(2*n+59,4*n-7);p1<=4*n-6;p1++) {
   p2 = floord(-p1+5,4) ;
   if (p1%2 == 0) {
     j = (p1+2*p2)/2 ;
@@ -588,7 +588,7 @@ for (p1=max(4*n-7,2*n+59);p1<=4*n-6;p1++) {
     }
   }
 }
-for (p1=max(4*n-5,2*n+59);p1<=4*n-2;p1++) {
+for (p1=max(2*n+59,4*n-5);p1<=4*n-2;p1++) {
   for (p2=ceild(-p1+2,4);p2<=floord(-p1+2*n,2);p2++) {
     if (p1%2 == 0) {
       j = (p1+2*p2)/2 ;
@@ -604,7 +604,7 @@ for (p1=max(4*n-5,2*n+59);p1<=4*n-2;p1++) {
       }
     }
   }
-  for (p2=max(ceild(-p1+10,4),ceild(-p1+2*n+3,2));p2<=floord(-p1+2*n+4,2);p2++) {
+  for (p2=max(ceild(-p1+2*n+3,2),ceild(-p1+10,4));p2<=floord(-p1+2*n+4,2);p2++) {
     i = -p2+2 ;
     if (p1%2 == 0) {
       j = (p1+2*p2-4)/2 ;

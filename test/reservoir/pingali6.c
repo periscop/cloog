@@ -1,5 +1,4 @@
-/* Generated from ./reservoir/pingali6.cloog by CLooG v0.14.0 gmp bits in 0.04s. */
-/* CLooG asked for 212 KBytes. */
+/* Generated from ../../../git/cloog/test/./reservoir/pingali6.cloog by CLooG 0.14.0-91-g5d3da4b gmp bits in 0.02s. */
 if (N >= 3) {
   for (c4=2;c4<=N-1;c4++) {
     for (c6=2;c6<=N-1;c6++) {

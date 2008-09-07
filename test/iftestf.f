@@ -1,5 +1,4 @@
-! Generated from ./test/iftestf.cloog by CLooG v0.14.0 64 bits in 0.00s.
-! CLooG asked for 168 KBytes.
+! Generated from ../../../git/cloog/test/iftestf.cloog by CLooG 0.14.0-91-g5d3da4b gmp bits in 0.00s.
 DO i=1, n
   IF (i <= 2*m) THEN
     S1

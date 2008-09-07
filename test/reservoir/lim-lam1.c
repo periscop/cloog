@@ -1,5 +1,4 @@
-/* Generated from ./reservoir/lim-lam1.cloog by CLooG v0.14.0 gmp bits in 0.02s. */
-/* CLooG asked for 188 KBytes. */
+/* Generated from ../../../git/cloog/test/./reservoir/lim-lam1.cloog by CLooG 0.14.0-91-g5d3da4b gmp bits in 0.03s. */
 S1(i = 1,j = 100) ;
 for (c2=-98;c2<=0;c2++) {
   c4 = -2*c2+2 ;

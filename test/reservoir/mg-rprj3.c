@@ -1,5 +1,4 @@
-/* Generated from ./reservoir/mg-rprj3.cloog by CLooG v0.14.0 gmp bits in 0.35s. */
-/* CLooG asked for 1128 KBytes. */
+/* Generated from ../../../git/cloog/test/./reservoir/mg-rprj3.cloog by CLooG 0.14.0-91-g5d3da4b gmp bits in 0.40s. */
 if ((M >= 4) && (N >= 4)) {
   for (c2=2;c2<=O-1;c2++) {
     for (c6=2;c6<=M;c6++) {

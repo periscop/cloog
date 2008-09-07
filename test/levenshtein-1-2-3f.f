@@ -1,4 +1,4 @@
-! Generated from levenshtein-1-2-3f.cloog by CLooG 0.14.0-63-gb31d016 gmp bits in 0.04s.
+! Generated from ../../../git/cloog/test/levenshtein-1-2-3f.cloog by CLooG 0.14.0-91-g5d3da4b gmp bits in 0.04s.
 S1(i = 0,j = 0)
 S2(i = 1,j = 0)
 S3(i = 1,j = 1)

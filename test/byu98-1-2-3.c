@@ -1,5 +1,4 @@
-/* Generated from ./test/byu98-1-2-3.cloog by CLooG v0.14.0 64 bits in 0.00s. */
-/* CLooG asked for 168 KBytes. */
+/* Generated from ../../../git/cloog/test/byu98-1-2-3.cloog by CLooG 0.14.0-91-g5d3da4b gmp bits in 0.01s. */
 for (i=2;i<=3;i++) {
   for (j=-i+6;j<=6;j++) {
     S1 ;
