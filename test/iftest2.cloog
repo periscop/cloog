@@ -1,6 +1,6 @@
 # language: C
 c
-1 # The context (no constraints on parameters)
+# The context (no constraints on parameters)
 1 4             # 1 lines and 4 columns
 #  m  n  1
 1  0  0  0
