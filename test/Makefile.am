@@ -192,7 +192,7 @@ test:
 	for x in $(CLOOGTEST_C) ; do \
 		echo "Verify file $$x" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog > ttemp ; \
-		diff -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
@@ -205,7 +205,7 @@ test:
 	for x in $(CLOOGTEST_FORTRAN) ; do \
 		echo "Verify file $$x" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog > ttemp ; \
-		diff -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.f ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.f ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
@@ -219,7 +219,7 @@ test:
 		echo "Verify file $$x" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
 		-strides 1 > ttemp ; \
-		diff -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
@@ -233,7 +233,7 @@ test:
 		x=vasilache ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
 		-f 8 -l 9 > ttemp ; \
-		diff -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
@@ -245,7 +245,7 @@ test:
 		x=merge ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
 		-f -1  > ttemp ; \
-		diff -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
@@ -257,7 +257,7 @@ test:
 		x=equality ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
 		-f -1 -l 2 -override  > ttemp ; \
-		diff -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
@@ -269,7 +269,7 @@ test:
 		x=equality2; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
 		-f -1 -l 4 -esp 1 -override > ttemp ; \
-		diff -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
