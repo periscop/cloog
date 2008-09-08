@@ -157,6 +157,12 @@ CLOOGTEST_STRIDED =                    \
 	reservoir/stride	       \
 	reservoir/stride2
 
+SPECIAL_OPTIONS = \
+	"vasilache" "-f 8 -l 9" "\n" \
+	"merge" "-f -1" "\n" \
+	"equality" "-f -1 -l 2 -override" "\n" \
+	"equality2" "-f -1 -l 4 -esp 1 -override"
+
 generate:
 	@echo "             /*-----------------------------------------------*"
 	@echo "              *                 Generate files                *"
@@ -229,10 +235,10 @@ test:
 	        fi ; \
 	done ; \
 	echo "--- Testing SPECIAL OPTIONS files..." ; \
-	        echo "Verify file vasilache (-f 8 -l 9)" ; \
-		x=vasilache ; \
+	(echo -e $(SPECIAL_OPTIONS)) | (while read x options; do \
+	        echo "Verify file $$x ($$options)" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
-		-f 8 -l 9 > ttemp ; \
+			$$options > ttemp ; \
 		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
@@ -241,42 +247,8 @@ test:
 		else \
 			echo "$$x passed" ; \
 	        fi ; \
-	        echo "Verify file merge (-f -1)" ; \
-		x=merge ; \
-		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
-		-f -1  > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
-		result=$$?; \
-		if [ "$$result" -ne "0" ] ; then \
-			echo "!!! Error: $$x is not the same" ; \
-			failedtest=`expr $$failedtest + 1` ; \
-		else \
-			echo "$$x passed" ; \
-	        fi ; \
-	        echo "Verify file equality (-f -1 -l 2 -override)" ; \
-		x=equality ; \
-		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
-		-f -1 -l 2 -override  > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
-		result=$$?; \
-		if [ "$$result" -ne "0" ] ; then \
-			echo "!!! Error: $$x is not the same" ; \
-			failedtest=`expr $$failedtest + 1` ; \
-		else \
-			echo "$$x passed" ; \
-	        fi ; \
-	        echo "Verify file equality (-f -1 -l 4 -esp 1 -override)" ; \
-		x=equality2; \
-		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
-		-f -1 -l 4 -esp 1 -override > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
-		result=$$?; \
-		if [ "$$result" -ne "0" ] ; then \
-			echo "!!! Error: $$x is not the same" ; \
-			failedtest=`expr $$failedtest + 1` ; \
-		else \
-			echo "$$x passed" ; \
-	        fi ; \
+	done; exit $$failedtest; ); \
+	failedtest=$$?; \
 	rm ttemp ; \
 	if [ $$failedtest != 0 ] ; then \
 		echo "$$failedtest tests failed" ; \
