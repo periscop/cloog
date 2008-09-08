@@ -60,7 +60,6 @@ CLOOGTEST_C =                          \
 	durbin_e_s                     \
 	emploi                         \
 	esced                          \
-	escedk                         \
 	ex1                            \
 	forwardsub-1-1-2               \
 	forwardsub-2-1-2-3             \
