@@ -177,16 +177,16 @@ SPECIAL_OPTIONS = \
 
 EXTRA_DIST = \
 	$(CLOOGTEST_C:%=%.cloog) \
-	$(CLOOGTEST_C:%=%.c) \
+	$(CLOOGTEST_C:%=polylib/%.c) \
 	$(FINITE_CLOOGTEST_C:%=%.good.c) \
 	$(CLOOGTEST_FORTRAN:%=%.cloog) \
-	$(CLOOGTEST_FORTRAN:%=%.f) \
+	$(CLOOGTEST_FORTRAN:%=polylib/%.f) \
 	$(CLOOGTEST_STRIDED:%=%.cloog) \
-	$(CLOOGTEST_STRIDED:%=%.c) \
-	vasilache.c vasilache.cloog \
-	merge.c merge.cloog \
-	equality.c equality.cloog \
-	equality2.c equality2.cloog
+	$(CLOOGTEST_STRIDED:%=polylib/%.c) \
+	polylib/vasilache.c vasilache.cloog \
+	polylib/merge.c merge.cloog \
+	polylib/equality.c equality.cloog \
+	polylib/equality2.c equality2.cloog
 
 generate:
 	@echo "             /*-----------------------------------------------*"
@@ -194,21 +194,21 @@ generate:
 	@echo "              *-----------------------------------------------*/"
 	@for x in $(CLOOGTEST_C) ; do \
 		echo "Generate $$x.c" ; \
-		$(top_builddir)/cloog $(srcdir)/$$x.cloog -o $(srcdir)/$$x.c ; \
+		$(top_builddir)/cloog $(srcdir)/$$x.cloog -o $(srcdir)/@BACKEND@/$$x.c ; \
 	done ; \
 	for x in $(CLOOGTEST_FORTRAN) ; do \
 		echo "Generate $$x.f" ; \
-		$(top_builddir)/cloog $(srcdir)/$$x.cloog -o $(srcdir)/$$x.f ; \
+		$(top_builddir)/cloog $(srcdir)/$$x.cloog -o $(srcdir)/@BACKEND@/$$x.f ; \
 	done ; \
 	for x in $(CLOOGTEST_STRIDED) ; do \
 		echo "Generate $$x.c" ; \
 		$(top_builddir)/cloog $(srcdir)/$$x.cloog \
-			-strides 1 -o $(srcdir)/$$x.c ; \
+			-strides 1 -o $(srcdir)/@BACKEND@/$$x.c ; \
 	done ; \
 	(echo -e $(SPECIAL_OPTIONS)) | while read x options; do \
 		echo "Generate file $$x ($$options)" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
-		    $$options > $(srcdir)/$$x.c ; \
+		    $$options > $(srcdir)/@BACKEND@/$$x.c ; \
 	done
 
 generate_good:
@@ -290,7 +290,7 @@ test:
 	for x in $(CLOOGTEST_C) ; do \
 		echo "Verify file $$x" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/@BACKEND@/$$x.c ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
@@ -303,7 +303,7 @@ test:
 	for x in $(CLOOGTEST_FORTRAN) ; do \
 		echo "Verify file $$x" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.f ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/@BACKEND@/$$x.f ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
@@ -317,7 +317,7 @@ test:
 		echo "Verify file $$x" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
 		-strides 1 > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/@BACKEND@/$$x.c ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
@@ -331,7 +331,7 @@ test:
 	        echo "Verify file $$x ($$options)" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
 			$$options > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/@BACKEND@/$$x.c ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
