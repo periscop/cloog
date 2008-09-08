@@ -286,7 +286,7 @@ CloogLoop * cloog_loop_read(FILE * foo, int number, int nb_parameters,
     exit(1) ;
   }
   /* domain. */
-  loop->domain = cloog_domain_union_read(foo, options);
+  loop->domain = cloog_domain_union_read(foo, nb_parameters, options);
   if (loop->domain != NULL)
   nb_iterators = cloog_domain_dimension(loop->domain) - nb_parameters ;
   else

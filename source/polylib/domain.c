@@ -654,7 +654,8 @@ void cloog_scattering_list_free(CloogScatteringList * list)
  * information. 
  * - October 18th 2001: first version.
  */
-CloogDomain * cloog_domain_read(FILE * foo, CloogOptions *options)
+CloogDomain * cloog_domain_read(FILE * foo, int nb_parameters,
+				CloogOptions *options)
 { CloogMatrix * matrix ;
   CloogDomain * domain ;
   
@@ -674,7 +675,8 @@ CloogDomain * cloog_domain_read(FILE * foo, CloogOptions *options)
  * - October  29th 2005: (debug) removal of a leak counting "correction" that
  *                       was just false since ages.
  */
-CloogDomain * cloog_domain_union_read(FILE * foo, CloogOptions *options)
+CloogDomain * cloog_domain_union_read(FILE * foo, int nb_parameters,
+					CloogOptions *options)
 { int i, nb_components ;
   char s[MAX_STRING] ;
   CloogDomain * domain, * temp, * old ;
@@ -686,11 +688,11 @@ CloogDomain * cloog_domain_union_read(FILE * foo, CloogOptions *options)
   
   if (nb_components > 0)
   { /* 1. first part of the polyhedra union, */
-    domain = cloog_domain_read(foo, options);
+    domain = cloog_domain_read(foo, nb_parameters, options);
     /* 2. and the nexts. */
     for (i=1;i<nb_components;i++)
     { /* Leak counting is OK since next allocated domain is freed here. */
-      temp = cloog_domain_read(foo, options);
+      temp = cloog_domain_read(foo, nb_parameters, options);
       old = domain ;
       domain = cloog_domain_union(temp,old) ;
       cloog_domain_free(temp) ;
@@ -709,7 +711,8 @@ CloogDomain * cloog_domain_union_read(FILE * foo, CloogOptions *options)
  * returns a pointer to a CloogScatteringList containing the read information. 
  * - November 6th 2001: first version.
  */
-CloogScatteringList * cloog_scattering_list_read(FILE * foo, CloogOptions *options)
+CloogScatteringList * cloog_scattering_list_read(FILE * foo,
+				    int nb_parameters, CloogOptions *options)
 { int i, nb_pols ;
   char s[MAX_STRING] ;
   CloogScatteringList * list, * now, * next ;
@@ -724,12 +727,12 @@ CloogScatteringList * cloog_scattering_list_read(FILE * foo, CloogOptions *optio
   list = NULL ;
   if (nb_pols > 0)
   { list = (CloogScatteringList *)malloc(sizeof(CloogScatteringList)) ;
-    list->domain = cloog_domain_read(foo, options);
+    list->domain = cloog_domain_read(foo, nb_parameters, options);
     list->next = NULL ;
     now = list ;
     for (i=1;i<nb_pols;i++)
     { next = (CloogScatteringList *)malloc(sizeof(CloogScatteringList)) ;
-      next->domain = cloog_domain_read(foo, options);
+      next->domain = cloog_domain_read(foo, nb_parameters, options);
       next->next = NULL ;
       now->next = next ;
       now = now->next ;

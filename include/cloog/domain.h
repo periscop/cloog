@@ -99,9 +99,11 @@ void cloog_scattering_list_free(CloogScatteringList *);
 /*+****************************************************************************
  *                               Reading function                             *
  ******************************************************************************/
-CloogDomain * cloog_domain_read(FILE *foo, CloogOptions *options);
-CloogDomain * cloog_domain_union_read(FILE *foo, CloogOptions *options);
-CloogScatteringList * cloog_scattering_list_read(FILE *foo, CloogOptions *options);
+CloogDomain * cloog_domain_read(FILE *foo, int nb_par, CloogOptions *options);
+CloogDomain * cloog_domain_union_read(FILE *foo, int nb_par,
+					CloogOptions *options);
+CloogScatteringList * cloog_scattering_list_read(FILE * foo,
+				    int nb_parameters, CloogOptions *options);
 
 
 /******************************************************************************
