@@ -554,12 +554,13 @@ void cloog_domain_sort(CloogDomain **doms, unsigned nb_doms, unsigned level,
 /**
  * cloog_domain_empty function:
  * This function allocates the memory space for a CloogDomain structure and
- * sets its polyhedron to an empty polyhedron with 'dimension' dimensions.
+ * sets its polyhedron to an empty polyhedron with the same dimensions
+ * as template
  * Then it returns a pointer to the allocated space.
  * - June 10th 2005: first version.
  */
-CloogDomain * cloog_domain_empty(int dimension)
-{ return (cloog_domain_alloc(Empty_Polyhedron(dimension))) ;
+CloogDomain * cloog_domain_empty(CloogDomain *template)
+{ return cloog_domain_alloc(Empty_Polyhedron(cloog_domain_dimension(template))) ;
 }
 
 

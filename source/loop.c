@@ -732,7 +732,7 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
 	domain = cloog_domain_copy(Q->domain) ;
 	else
 	{ if (lazy_equal)
-	  domain = cloog_domain_empty(cloog_domain_dimension(Q->domain)) ;
+	  domain = cloog_domain_empty(Q->domain);
 	  else
 	  domain = cloog_domain_difference(Q->domain,loop->domain) ;
 	}
@@ -759,7 +759,7 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
     domain = cloog_domain_copy(loop->domain) ;
     else
     { if (cloog_domain_lazy_equal(loop->domain,UQ))
-      domain = cloog_domain_empty(cloog_domain_dimension(UQ)) ;
+      domain = cloog_domain_empty(UQ);
       else
       domain = cloog_domain_difference(loop->domain,UQ) ;
     }
