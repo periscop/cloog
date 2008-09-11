@@ -496,11 +496,11 @@ CloogLoop ** start, ** now, * loop ;
     cloog_loop_add(start,now,sep) ;
   
     /* If there are other elements, add a loop for each of them. */
-    if (rest != NULL)
+    if (!cloog_domain_isempty(rest))
     { /* domain is used by the first element, and we will free 'seen', so... */
       seen = cloog_domain_copy(domain) ;
        
-      while ((domain = rest) != NULL)
+      while (!cloog_domain_isempty(domain = rest))
       { rest = cloog_domain_cut_first(domain) ;
         temp = cloog_domain_difference(domain,seen) ;
 	

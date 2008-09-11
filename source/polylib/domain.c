@@ -777,7 +777,7 @@ CloogDomain * cloog_domain_alloc(Polyhedron * polyhedron)
  * - October 28th 2001: first version.
  */ 
 int cloog_domain_isempty(CloogDomain * domain)
-{ if (domain->polyhedron == NULL)
+{ if (!domain || domain->polyhedron == NULL)
   return 1 ;
 
   if (domain->polyhedron->next)
