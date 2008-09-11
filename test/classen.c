@@ -1,5 +1,4 @@
-/* Generated from classen.cloog by CLooG v0.14.0 gmp bits in 1.54s. */
-/* CLooG asked for 3980 KBytes. */
+/* Generated from /home/skimo/git/cloog/test/classen.cloog by CLooG 0.14.0-68-g23f2ab5 gmp bits in 1.70s. */
 if (m >= 2) {
   S1(coordT1 = 0,coordP1 = 1,other1 = 1,other2 = 1) ;
   S2(coordT1 = 0,coordP1 = 1,other1 = 1,other2 = 1,other3 = 1,other4 = 1,other5 = 2,other6 = 1) ;
@@ -345,8 +344,13 @@ if (m == 2) {
   S5(coordT1 = 0,coordP1 = 1,other1 = 1,other2 = 1,other3 = 1,other4 = 1,other5 = 2,other6 = 1) ;
   S1(coordT1 = 1,coordP1 = 1,other1 = 2,other2 = 1) ;
   S3(coordT1 = 1,coordP1 = 1,other1 = 2,other2 = 2,other3 = 2,other4 = 1,other5 = 2,other6 = 2) ;
+  S6(coordT1 = 0,coordP1 = 1,other1 = 1,other2 = 2,other3 = 1,other4 = 1,other5 = 1,other6 = 2) ;
+  S7(coordT1 = 0,coordP1 = 1,other1 = 2,other2 = 2,other3 = 1,other4 = 1,other5 = 2,other6 = 2) ;
   S1(coordT1 = 1,coordP1 = 2,other1 = 1,other2 = 2) ;
   S2(coordT1 = 1,coordP1 = 2,other1 = 2,other2 = 2,other3 = 1,other4 = 2,other5 = 2,other6 = 2) ;
+  for (coordP1=1;coordP1<=2;coordP1++) {
+    S8(coordT1 = 1) ;
+  }
 }
 if (m >= 2) {
   glT1 = 2*m-2 ;

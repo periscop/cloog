@@ -1514,11 +1514,11 @@ int cloog_domain_lazy_disjoint(CloogDomain * d1, CloogDomain * d2)
         if ((j2 != scat_dim) || value_notone_p(p2->Constraint[i2][scat_dim]))
         continue ;
        
-        for (j2=scat_dim+1; j2<p2->Dimension; j2++)
+        for (j2=scat_dim+1; j2<=p2->Dimension; j2++)
         if (value_notzero_p(p2->Constraint[i2][j2]))
         break ;
        
-        if (j2 != p2->Dimension)
+        if (j2 != p2->Dimension+1)
         continue ;
        
         if (value_ne(p2->Constraint[i2][p2->Dimension+1],scat_val)) 
