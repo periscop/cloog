@@ -489,43 +489,49 @@ CloogLoop ** start, ** now, * loop ;
     cloog_domain_free(temp) ;
     
     /* We separate the first element of the rest of the union. */
-    rest = cloog_domain_cut_first(domain) ;
+    domain = cloog_domain_cut_first(domain, &rest);
             
     /* This first element is the first of the list of disjoint polyhedra. */
     sep = cloog_loop_alloc(domain,one,loop->block,loop->inner,NULL) ;
     cloog_loop_add(start,now,sep) ;
   
-    /* If there are other elements, add a loop for each of them. */
-    if (!cloog_domain_isempty(rest))
-    { /* domain is used by the first element, and we will free 'seen', so... */
-      seen = cloog_domain_copy(domain) ;
-       
-      while (!cloog_domain_isempty(domain = rest))
-      { rest = cloog_domain_cut_first(domain) ;
-        temp = cloog_domain_difference(domain,seen) ;
-	
-        /* Each new loop will have its own life, for instance we can free its
-         * inner loop and included block. Then each one must have its own copy
-	 * of both 'inner' and 'block'.
-         */
-        inner = cloog_loop_copy(loop->inner) ;
-        block = cloog_block_copy(loop->block) ;
-	
-	sep = cloog_loop_alloc(temp,one,block,inner,NULL) ;
-        /* temp can be an union too. If so: recursion. */
-        if (cloog_domain_isconvex(temp))
-        cloog_loop_add(start,now,sep) ;
-        else
-        cloog_loop_add_disjoint(start,now,sep) ;
-       
-        seen_before = seen ;
-        if (rest != NULL)
-        seen = cloog_domain_union(seen_before,domain) ;
+    seen = cloog_domain_copy(domain);
+    while (!cloog_domain_isempty(domain = rest)) {
+      temp = cloog_domain_cut_first(domain, &rest);
+      domain = cloog_domain_difference(temp, seen);
+      cloog_domain_free(temp);
 
-        cloog_domain_free(seen_before) ;     
-	cloog_domain_free(domain) ;
+      if (cloog_domain_isempty(domain)) {
+	cloog_domain_free(domain);
+	continue;
       }
+      
+      /* Each new loop will have its own life, for instance we can free its
+       * inner loop and included block. Then each one must have its own copy
+       * of both 'inner' and 'block'.
+       */
+      inner = cloog_loop_copy(loop->inner) ;
+      block = cloog_block_copy(loop->block) ;
+      
+      sep = cloog_loop_alloc(cloog_domain_copy(domain), one, block, inner, NULL);
+      /* domain can be an union too. If so: recursion. */
+      if (cloog_domain_isconvex(domain))
+	cloog_loop_add(start,now,sep) ;
+      else
+	cloog_loop_add_disjoint(start,now,sep) ;
+
+      if (cloog_domain_isempty(rest)) {
+	cloog_domain_free(domain);
+	break;
+      }
+       
+      seen_before = seen;
+      seen = cloog_domain_union(seen_before, domain);
+      cloog_domain_free(domain);
+      cloog_domain_free(seen_before);
     }
+    cloog_domain_free(rest);
+    cloog_domain_free(seen);
     cloog_loop_free_parts(loop,0,0,0,0) ;  
   }
   cloog_int_clear(one);

@@ -1562,23 +1562,27 @@ int cloog_domain_isconvex(CloogDomain * domain)
 
 /**
  * cloog_domain_cut_first function:
- * this function returns a CloogDomain structure with everything except the
- * first part of the polyhedra union of the input domain as domain. After a call
- * to this function, there remains in the CloogDomain structure provided as
- * input only the first part of the original polyhedra union.
- * - April 20th 2005: first version, extracted from different part of loop.c.
+ * This function splits off and returns the first convex set in the
+ * union "domain".  The remainder of the union is returned in rest.
+ * The original "domain" itself is destroyed and may not be used
+ * after a call to this function.
  */
-CloogDomain * cloog_domain_cut_first(CloogDomain * domain)
-{ CloogDomain * rest ;
-  
-  if ((domain != NULL) && (domain->polyhedron != NULL))
-  { rest = cloog_domain_alloc(domain->polyhedron->next) ;
-    domain->polyhedron->next = NULL ;
+CloogDomain *cloog_domain_cut_first(CloogDomain *domain, CloogDomain **rest)
+{
+  if (!domain || !domain->polyhedron || cloog_domain_isconvex(domain)) {
+    *rest = NULL;
+    return domain;
   }
-  else
-  rest = NULL ;
-  
-  return rest ;
+
+  if (domain->references == 1) {
+    *rest = cloog_domain_alloc(domain->polyhedron->next);
+    domain->polyhedron->next = NULL ;
+    return domain;
+  }
+
+  cloog_domain_free(domain);
+  *rest = cloog_domain_alloc(Domain_Copy(domain->polyhedron->next));
+  return cloog_domain_alloc(Polyhedron_Copy(domain->polyhedron));
 }
 
 
@@ -1748,8 +1752,7 @@ CloogDomain *cloog_domain_scatter(CloogDomain *domain, CloogScattering *scatt)
     newdom = newpart ;
     
     /* We don't want to free the rest of the list. */
-    temp = domain ;
-    domain = cloog_domain_cut_first(temp) ;
+    temp = cloog_domain_cut_first(domain, &domain);
     cloog_domain_free(temp) ;
   }
   
