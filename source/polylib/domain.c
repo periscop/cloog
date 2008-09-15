@@ -804,15 +804,11 @@ int cloog_domain_isempty(CloogDomain * domain)
 
 /**
  * cloog_domain_universe function:
- * This function returns 1 if the polyhedron given as input describe the
- * universe of its dimension, 0 otherwise. Nb: the NbBid field of a polyhedron
- * gives the number of bidirectionnal rays.
- * - November 19th 2001: first version.
+ * This function returns the complete dim-dimensional space.
  */
-int cloog_domain_universe(CloogDomain * domain)
-{ if (domain->polyhedron->next)
-  return(0) ;
-  return((domain->polyhedron->Dimension == domain->polyhedron->NbBid) ? 1 : 0) ;
+CloogDomain *cloog_domain_universe(unsigned dim, CloogOptions *options)
+{
+  return cloog_domain_alloc(Universe_Polyhedron(dim));
 }
 
 

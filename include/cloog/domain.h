@@ -107,7 +107,7 @@ CloogDomainList * cloog_domain_list_read(FILE *) ;
  ******************************************************************************/
 CloogConstraints *cloog_domain_constraints(CloogDomain *);
 int           cloog_domain_isempty(CloogDomain *) ;
-int           cloog_domain_universe(CloogDomain *) ;
+CloogDomain * cloog_domain_universe(unsigned dim, CloogOptions *options);
 CloogDomain * cloog_domain_project(CloogDomain *, int, int) ;
 CloogDomain * cloog_domain_extend(CloogDomain *, int, int) ;
 int           cloog_domain_never_integral(CloogDomain *) ;
