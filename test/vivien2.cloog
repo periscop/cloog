@@ -109,7 +109,7 @@ i j k
 3 8					# 3 lines and 8 columns
 #   p1  p2  p3   i   j   n   1
 0    1   0   0  -2  -2   0  -1 		# p1 = 2i+2j+1
-0    0   1   0   0   j   0   0 		# p2 = j
+0    0   1   0   0  -1   0   0 		# p2 = j
 0    0   0   1   0   0   0   0 		# p3 = 0
 
 # Third function
