@@ -499,6 +499,45 @@ void cloog_program_free(CloogProgram * program)
 
 
 /**
+ * cloog_scattering_list_read
+ * Read in a list of scattering functions for the nb_statements
+ * domains in loop.
+ */
+static CloogScatteringList *cloog_scattering_list_read(FILE * foo,
+	CloogLoop *loop, int nb_statements, int nb_parameters,
+	CloogOptions *options)
+{
+    int nb_scat = 0;
+    char s[MAX_STRING];
+    CloogScatteringList *list = NULL, **next = &list;
+
+    /* We read first the number of scattering functions in the list. */
+    do {
+	if (!fgets(s, MAX_STRING, foo))
+	    break;
+    } while ((*s=='#' || *s=='\n') || (sscanf(s, " %d", &nb_scat) < 1));
+
+    if (nb_scat == 0)
+	return NULL;
+
+    if (nb_scat > nb_statements) {
+	fprintf(stderr, "[CLooG]ERROR: too many scattering functions.\n");
+	exit(1);
+    }
+
+    while (nb_scat--) {
+	*next = (CloogScatteringList *)malloc(sizeof(CloogScatteringList));
+	(*next)->domain = cloog_scattering_read(foo, loop->domain, options);
+	(*next)->next = NULL;
+
+	next = &(*next)->next;
+	loop = loop->next;
+    }
+    return list;
+}
+
+
+/**
  * cloog_program_read function:
  * This function read the informations to put in a CloogProgram structure from
  * a file (file, possibly stdin). It returns a pointer to a CloogProgram
@@ -572,7 +611,8 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
     iterators = cloog_names_read_strings(file,nb_iterators,NULL,FIRST_ITERATOR);
 
     /* Reading and putting the scattering data in program structure. */
-    scatteringl = cloog_scattering_list_read(file, nb_parameters, options);
+    scatteringl = cloog_scattering_list_read(file, p->loop, nb_statements,
+						nb_parameters, options);
     
     if (scatteringl != NULL)
     { if (cloog_scattering_list_lazy_same(scatteringl))

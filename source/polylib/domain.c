@@ -706,39 +706,14 @@ CloogDomain * cloog_domain_union_read(FILE * foo, int nb_parameters,
 
 
 /**
- * cloog_scattering_list_read function:
- * This function reads a list of polyhedra into a file (foo, posibly stdin) and
- * returns a pointer to a CloogScatteringList containing the read information. 
- * - November 6th 2001: first version.
+ * cloog_scattering_read function:
+ * This function reads in a scattering function fro the file foo.
  */
-CloogScatteringList * cloog_scattering_list_read(FILE * foo,
-				    int nb_parameters, CloogOptions *options)
-{ int i, nb_pols ;
-  char s[MAX_STRING] ;
-  CloogScatteringList * list, * now, * next ;
-  
-  
-  /* We read first the number of polyhedra in the list. */
-  while (fgets(s,MAX_STRING,foo) == 0) ;
-  while ((*s=='#' || *s=='\n') || (sscanf(s," %d",&nb_pols)<1))
-  fgets(s,MAX_STRING,foo) ;
-  
-  /* Then we read the polyhedra. */
-  list = NULL ;
-  if (nb_pols > 0)
-  { list = (CloogScatteringList *)malloc(sizeof(CloogScatteringList)) ;
-    list->domain = cloog_domain_read(foo, nb_parameters, options);
-    list->next = NULL ;
-    now = list ;
-    for (i=1;i<nb_pols;i++)
-    { next = (CloogScatteringList *)malloc(sizeof(CloogScatteringList)) ;
-      next->domain = cloog_domain_read(foo, nb_parameters, options);
-      next->next = NULL ;
-      now->next = next ;
-      now = now->next ;
-    }
-  }
-  return(list) ;
+CloogScattering *cloog_scattering_read(FILE *foo,
+				    CloogDomain *domain, CloogOptions *options)
+{
+    /* The PolyLib backend doesn't need to know the number of parameters. */
+    return cloog_domain_read(foo, -1, options);
 }
 
 
