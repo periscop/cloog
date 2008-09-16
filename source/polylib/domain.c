@@ -1701,3 +1701,30 @@ CloogDomain * cloog_domain_erase_dimension(CloogDomain * domain, int dimension)
 
   return erased ;
 }
+
+
+/**
+ * cloog_domain_cube:
+ * Construct and return a dim-dimensional cube, with values ranging
+ * between min and max in each dimension.
+ */
+CloogDomain *cloog_domain_cube(int dim, cloog_int_t min, cloog_int_t max,
+				CloogOptions *options)
+{
+  int i;
+  Matrix *M;
+  Polyhedron *P;
+
+  M = Matrix_Alloc(2*dim, 2+dim);
+  for (i = 0; i < dim; ++i) {
+    value_set_si(M->p[2*i][0], 1);
+    value_set_si(M->p[2*i][1+i], 1);
+    value_oppose(M->p[2*i][1+dim], min);
+    value_set_si(M->p[2*i+1][0], 1);
+    value_set_si(M->p[2*i+1][1+i], -1);
+    value_assign(M->p[2*i+1][1+dim], max);
+  }
+  P = Constraints2Polyhedron(M, MAX_RAYS);
+  Matrix_Free(M);
+  return cloog_domain_alloc(P);
+}

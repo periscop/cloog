@@ -126,6 +126,8 @@ CloogDomain * cloog_domain_erase_dimension(CloogDomain *, int) ;
 
 int           cloog_domain_dimension(CloogDomain *) ;
 int           cloog_domain_isconvex(CloogDomain *) ;
+CloogDomain * cloog_domain_cube(int dim, cloog_int_t min, cloog_int_t max,
+				CloogOptions *options);
 int           cloog_scattering_fully_specified(CloogDomain *scattering,
 						CloogDomain *domain);
 
