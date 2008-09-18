@@ -99,7 +99,7 @@ void cloog_scattering_list_free(CloogScatteringList *);
 /*+****************************************************************************
  *                               Reading function                             *
  ******************************************************************************/
-CloogDomain * cloog_domain_read(FILE *foo, int nb_par, CloogOptions *options);
+CloogDomain * cloog_domain_read_context(FILE * foo, CloogOptions *options);
 CloogDomain * cloog_domain_union_read(FILE *foo, int nb_par,
 					CloogOptions *options);
 CloogScattering *cloog_scattering_read(FILE *foo,
@@ -133,6 +133,7 @@ int           cloog_scattering_dimension(CloogScattering *, CloogDomain *);
 int           cloog_domain_isconvex(CloogDomain *) ;
 CloogDomain * cloog_domain_cube(int dim, cloog_int_t min, cloog_int_t max,
 				CloogOptions *options);
+CloogDomain * cloog_domain_from_context(CloogDomain *context);
 CloogDomain * cloog_domain_scatter(CloogDomain *domain, CloogScattering *scatt);
 int           cloog_scattering_fully_specified(CloogScattering *scattering,
 						CloogDomain *domain);

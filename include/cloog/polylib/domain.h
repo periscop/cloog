@@ -51,6 +51,13 @@ CloogDomain * cloog_domain_preimage(CloogDomain *, Matrix *) ;
 void          cloog_polyhedron_print(FILE *, Polyhedron *) ;
 CloogDomain * cloog_domain_addconstraints(CloogDomain *, CloogDomain *) ;
 
+
+/******************************************************************************
+ *                               Reading function                             *
+ ******************************************************************************/
+CloogDomain * cloog_domain_read(FILE *foo, int nb_par, CloogOptions *options);
+
+
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/

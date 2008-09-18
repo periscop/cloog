@@ -22,7 +22,7 @@ CloogDomain *get_param_domain(CloogOptions *options)
 
 	cloog_program_free(program);
 
-	return domain;
+	return cloog_domain_from_context(domain);
 }
 
 static const char preamble[] =

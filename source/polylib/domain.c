@@ -669,6 +669,28 @@ CloogDomain * cloog_domain_read(FILE * foo, int nb_parameters,
 
 
 /**
+ * cloog_domain_read_context:
+ * Read parameter domain.  For the PolyLib backend, a parameter domain
+ * is indistinguishable from a parametric domain.
+ */
+CloogDomain *cloog_domain_read_context(FILE * foo, CloogOptions *options)
+{
+  return cloog_domain_read(foo, 0, options);
+}
+
+
+/**
+ * cloog_domain_from_context
+ * Reinterpret context by turning parameters into variables.
+ * For the PolyLib backend, this has no effect.
+ */
+CloogDomain *cloog_domain_from_context(CloogDomain *context)
+{
+  return context;
+}
+
+
+/**
  * cloog_domain_union_read function:
  * This function reads a union of polyhedra into a file (foo, posibly stdin) and
  * returns a pointer to a Polyhedron containing the read information. 

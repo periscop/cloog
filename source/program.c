@@ -569,7 +569,7 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
   p->language = language ;
 
   /* We then read the context data. */
-  p->context = cloog_domain_read(file, 0, options);
+  p->context = cloog_domain_read_context(file, options);
   nb_parameters = cloog_domain_dimension(p->context) ;
   
   /* First part of the CloogNames structure: reading of the parameter names. */
