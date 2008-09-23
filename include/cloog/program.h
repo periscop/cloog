@@ -106,9 +106,9 @@ CloogProgram * cloog_program_read(FILE *, CloogOptions *) ;
  ******************************************************************************/
 CloogProgram * cloog_program_malloc(void);
 CloogProgram * cloog_program_generate(CloogProgram *, CloogOptions *) ;
-void cloog_program_block(CloogProgram *, CloogDomainList *) ;
-void cloog_program_extract_scalars(CloogProgram *program, CloogDomainList *) ;
-void cloog_program_scatter(CloogProgram *, CloogDomainList *) ;
+void cloog_program_block(CloogProgram *, CloogScatteringList *);
+void cloog_program_extract_scalars(CloogProgram *program, CloogScatteringList *);
+void cloog_program_scatter(CloogProgram *, CloogScatteringList *);
 
 #if defined(__cplusplus)
   }

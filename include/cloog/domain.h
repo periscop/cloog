@@ -47,18 +47,20 @@ extern "C"
 #else
 struct cloogdomain;
 typedef struct cloogdomain CloogDomain ;
+struct cloogscattering;
+typedef struct cloogscattering CloogScattering;
 #endif
 
 
 /**
- * CloogDomainList structure:
- * this structure reprensents a node of a linked list of CloogDomain structures.
+ * CloogScatteringList structure:
+ * this structure reprensents a node of a linked list of CloogScattering structures.
  */
-struct cloogdomainlist
-{ CloogDomain * domain ;         /**< An element of the list. */
-  struct cloogdomainlist * next ;/**< Pointer to the next element of the list.*/
+struct cloogscatteringlist {
+  CloogScattering *domain;         /**< An element of the list. */
+  struct cloogscatteringlist *next;/**< Pointer to the next element of the list.*/
 } ;
-typedef struct cloogdomainlist CloogDomainList ;
+typedef struct cloogscatteringlist CloogScatteringList;
 
 
 /******************************************************************************
@@ -68,6 +70,7 @@ void          cloog_domain_print(FILE *, CloogDomain *) ;
 void          cloog_domain_print_constraints(FILE *, CloogDomain *,
 						int print_number);
 void          cloog_domain_free(CloogDomain *) ;
+void          cloog_scattering_free(CloogScattering *);
 CloogDomain * cloog_domain_copy(CloogDomain *) ;
 CloogDomain * cloog_domain_convex(CloogDomain * Pol) ;
 CloogDomain * cloog_domain_simple_convex(CloogDomain * domain, int nb_par);
@@ -75,7 +78,6 @@ CloogDomain * cloog_domain_simplify(CloogDomain *, CloogDomain *) ;
 CloogDomain * cloog_domain_union(CloogDomain *, CloogDomain *) ;
 CloogDomain * cloog_domain_intersection(CloogDomain *, CloogDomain *) ;
 CloogDomain * cloog_domain_difference(CloogDomain *, CloogDomain *) ;
-CloogDomain * cloog_domain_addconstraints(CloogDomain *, CloogDomain *) ;
 void          cloog_domain_sort(CloogDomain**,unsigned,unsigned,unsigned,int *);
 CloogDomain * cloog_domain_empty(int) ;
 
@@ -85,13 +87,13 @@ CloogDomain * cloog_domain_empty(int) ;
  ******************************************************************************/
 void cloog_domain_print_structure(FILE *file, CloogDomain *domain, int level,
 				  const char *name);
-void cloog_domain_list_print(FILE *, CloogDomainList *) ;
+void cloog_scattering_list_print(FILE *, CloogScatteringList *);
 
 
 /******************************************************************************
  *                         Memory deallocation function                       *
  ******************************************************************************/
-void cloog_domain_list_free(CloogDomainList *) ;
+void cloog_scattering_list_free(CloogScatteringList *);
 
 
 /*+****************************************************************************
@@ -99,7 +101,7 @@ void cloog_domain_list_free(CloogDomainList *) ;
  ******************************************************************************/
 CloogDomain * cloog_domain_read(FILE *foo, CloogOptions *options);
 CloogDomain * cloog_domain_union_read(FILE *foo, CloogOptions *options);
-CloogDomainList * cloog_domain_list_read(FILE *foo, CloogOptions *options);
+CloogScatteringList * cloog_scattering_list_read(FILE *foo, CloogOptions *options);
 
 
 /******************************************************************************
@@ -116,19 +118,21 @@ int           cloog_domain_integral_lowerbound(CloogDomain *, int, cloog_int_t *
 void          cloog_domain_lowerbound_update(CloogDomain *, int, cloog_int_t);
 int           cloog_domain_lazy_disjoint(CloogDomain *, CloogDomain *) ;
 int           cloog_domain_lazy_equal(CloogDomain *, CloogDomain *) ;
-int           cloog_domain_lazy_block(CloogDomain *, CloogDomain *,
-                                      CloogDomainList *, int) ;
-int           cloog_domain_lazy_isscalar(CloogDomain *, int) ;
-int           cloog_domain_list_lazy_same(CloogDomainList *) ;
-void          cloog_domain_scalar(CloogDomain *, int, cloog_int_t *);
+int           cloog_scattering_lazy_block(CloogScattering *, CloogScattering *,
+                                      CloogScatteringList *, int);
+int           cloog_scattering_lazy_isscalar(CloogScattering *, int);
+int           cloog_scattering_list_lazy_same(CloogScatteringList *);
+void          cloog_scattering_scalar(CloogScattering *, int, cloog_int_t *);
 CloogDomain * cloog_domain_cut_first(CloogDomain *) ;
-CloogDomain * cloog_domain_erase_dimension(CloogDomain *, int) ;
+CloogScattering * cloog_scattering_erase_dimension(CloogScattering *, int);
 
 int           cloog_domain_dimension(CloogDomain *) ;
+int           cloog_scattering_dimension(CloogScattering *, CloogDomain *);
 int           cloog_domain_isconvex(CloogDomain *) ;
 CloogDomain * cloog_domain_cube(int dim, cloog_int_t min, cloog_int_t max,
 				CloogOptions *options);
-int           cloog_scattering_fully_specified(CloogDomain *scattering,
+CloogDomain * cloog_domain_scatter(CloogDomain *domain, CloogScattering *scatt);
+int           cloog_scattering_fully_specified(CloogScattering *scattering,
 						CloogDomain *domain);
 
 #if defined(__cplusplus)

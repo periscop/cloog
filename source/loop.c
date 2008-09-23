@@ -1665,41 +1665,9 @@ int level, nb_par ;
 /**
  * cloog_loop_scatter function:
  * This function add the scattering (scheduling) informations in a loop.
- * - November 4th 2001: first version. 
  */
-void cloog_loop_scatter(CloogLoop * loop, CloogDomain * scatt)
-{ int scatt_dim ;
-  CloogDomain * domain, * ext, * newdom, * newpart, * temp ;
-  
-  domain = loop->domain ;
-  newdom = NULL ;
-  scatt_dim = cloog_domain_dimension(scatt) - cloog_domain_dimension(domain) ;
-  
-  /* For each polyhedron of domain (it can be an union of polyhedra). */
-  while (domain != NULL)
-  { /* Extend the domain by adding the scattering dimensions as the new
-     * first domain dimensions.
-     */
-    ext = cloog_domain_extend(domain,scatt_dim,cloog_domain_dimension(domain)) ;
-    /* Then add the scattering constraints. */
-    newpart = cloog_domain_addconstraints(scatt,ext) ;
-    cloog_domain_free(ext) ;
-
-    if (newdom != NULL)
-    { temp = newdom ;
-      newdom = cloog_domain_union(newdom,newpart) ;
-      cloog_domain_free(temp) ;
-      cloog_domain_free(newpart) ;
-    }
-    else
-    newdom = newpart ;
-    
-    /* We don't want to free the rest of the list. */
-    temp = domain ;
-    domain = cloog_domain_cut_first(temp) ;
-    cloog_domain_free(temp) ;
-  }
-  
-  loop->domain = newdom ;
+void cloog_loop_scatter(CloogLoop * loop, CloogScattering *scatt)
+{
+  loop->domain = cloog_domain_scatter(loop->domain, scatt);
 }
 

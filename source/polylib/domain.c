@@ -114,7 +114,7 @@ static void cloog_domain_leak_down()
  * Returns true if each scattering dimension is defined in terms
  * of the original iterators.
  */
-int cloog_scattering_fully_specified(CloogDomain *scattering,
+int cloog_scattering_fully_specified(CloogScattering *scattering,
 				      CloogDomain *domain)
 {
 	int scattering_dim = cloog_domain_dimension(scattering) -
@@ -213,6 +213,11 @@ void cloog_domain_free(CloogDomain * domain)
       free(domain) ;
     }
   }
+}
+
+void cloog_scattering_free(CloogDomain * domain)
+{
+    cloog_domain_free(domain);
 }
 
 
@@ -602,12 +607,12 @@ void cloog_domain_print_structure(FILE *file, CloogDomain *domain, int level,
 
 
 /**
- * cloog_domain_list_print function:
- * This function prints the content of a CloogDomainList structure into a
+ * cloog_scattering_list_print function:
+ * This function prints the content of a CloogScatteringList structure into a
  * file (foo, possibly stdout).
  * - November 6th 2001: first version.
  */
-void cloog_domain_list_print(FILE * foo, CloogDomainList * list)
+void cloog_scattering_list_print(FILE * foo, CloogScatteringList * list)
 { while (list != NULL)
   { cloog_domain_print(foo,list->domain) ;
     list = list->next ;
@@ -621,12 +626,12 @@ void cloog_domain_list_print(FILE * foo, CloogDomainList * list)
 
 
 /**
- * cloog_domain_list_free function:
- * This function frees the allocated memory for a CloogDomainList structure.
+ * cloog_scattering_list_free function:
+ * This function frees the allocated memory for a CloogScatteringList structure.
  * - November 6th 2001: first version.
  */
-void cloog_domain_list_free(CloogDomainList * list)
-{ CloogDomainList * temp ;
+void cloog_scattering_list_free(CloogScatteringList * list)
+{ CloogScatteringList * temp ;
   
   while (list != NULL)
   { temp = list->next ;
@@ -699,15 +704,15 @@ CloogDomain * cloog_domain_union_read(FILE * foo, CloogOptions *options)
 
 
 /**
- * cloog_domain_list_read function:
+ * cloog_scattering_list_read function:
  * This function reads a list of polyhedra into a file (foo, posibly stdin) and
- * returns a pointer to a CloogDomainList containing the read information. 
+ * returns a pointer to a CloogScatteringList containing the read information. 
  * - November 6th 2001: first version.
  */
-CloogDomainList * cloog_domain_list_read(FILE * foo, CloogOptions *options)
+CloogScatteringList * cloog_scattering_list_read(FILE * foo, CloogOptions *options)
 { int i, nb_pols ;
   char s[MAX_STRING] ;
-  CloogDomainList * list, * now, * next ;
+  CloogScatteringList * list, * now, * next ;
   
   
   /* We read first the number of polyhedra in the list. */
@@ -718,12 +723,12 @@ CloogDomainList * cloog_domain_list_read(FILE * foo, CloogOptions *options)
   /* Then we read the polyhedra. */
   list = NULL ;
   if (nb_pols > 0)
-  { list = (CloogDomainList *)malloc(sizeof(CloogDomainList)) ;
+  { list = (CloogScatteringList *)malloc(sizeof(CloogScatteringList)) ;
     list->domain = cloog_domain_read(foo, options);
     list->next = NULL ;
     now = list ;
     for (i=1;i<nb_pols;i++)
-    { next = (CloogDomainList *)malloc(sizeof(CloogDomainList)) ;
+    { next = (CloogScatteringList *)malloc(sizeof(CloogScatteringList)) ;
       next->domain = cloog_domain_read(foo, options);
       next->next = NULL ;
       now->next = next ;
@@ -1214,7 +1219,7 @@ int cloog_domain_lazy_equal(CloogDomain * d1, CloogDomain * d2)
 
 
 /**
- * cloog_domain_lazy_block function:
+ * cloog_scattering_lazy_block function:
  * This function returns 1 if the two domains d1 and d2 given as input are the
  * same (possibly except for a dimension equal to a constant where we accept
  * a difference of 1) AND if we are sure that there are no other domain in
@@ -1235,10 +1240,8 @@ int cloog_domain_lazy_equal(CloogDomain * d1, CloogDomain * d2)
  * - June    21rd 2005: Adaptation for GMP.
  * - October 16th 2005: (debug) some false blocks have been removed.
  */
-int cloog_domain_lazy_block(d1, d2, scattering, scattdims)
-CloogDomain * d1, * d2 ;
-CloogDomainList * scattering ;
-int scattdims ;
+int cloog_scattering_lazy_block(CloogScattering *d1, CloogScattering *d2,
+			    CloogScatteringList *scattering, int scattdims)
 { int i, j, difference=0, different_constraint=0 ;
   Value date1, date2, date3, temp ;
   Polyhedron * p1, * p2, * p3 ;
@@ -1519,14 +1522,14 @@ int cloog_domain_lazy_disjoint(CloogDomain * d1, CloogDomain * d2)
  
  
 /**
- * cloog_domain_list_lazy_same function:
+ * cloog_scattering_list_lazy_same function:
  * This function returns 1 if two domains in the list are the same, 0 if it
  * is unable to decide.
  * - February 9th 2004: first version.
  */
-int cloog_domain_list_lazy_same(CloogDomainList * list)
+int cloog_scattering_list_lazy_same(CloogScatteringList * list)
 { /*int i=1, j=1 ;*/
-  CloogDomainList * current, * next ;
+  CloogScatteringList * current, * next ;
 
   current = list ;
   while (current != NULL)
@@ -1568,6 +1571,11 @@ int cloog_domain_dimension(CloogDomain * domain)
 { return domain->polyhedron->Dimension ;
 }
 
+int cloog_scattering_dimension(CloogScattering *scatt, CloogDomain *domain)
+{
+    return cloog_domain_dimension(scatt) - cloog_domain_dimension(domain);
+}
+
 int cloog_domain_isconvex(CloogDomain * domain)
 { return (domain->polyhedron->next == NULL)? 1 : 0 ;
 }
@@ -1596,7 +1604,7 @@ CloogDomain * cloog_domain_cut_first(CloogDomain * domain)
 
 
 /**
- * cloog_domain_lazy_isscalar function:
+ * cloog_scattering_lazy_isscalar function:
  * this function returns 1 if the dimension 'dimension' in the domain 'domain'
  * is scalar, this means that the only constraint on this dimension must have
  * the shape "x.dimension + scalar = 0" with x an integral variable. This
@@ -1605,7 +1613,7 @@ CloogDomain * cloog_domain_cut_first(CloogDomain * domain)
  * - June 14th 2005: first version.
  * - June 21rd 2005: Adaptation for GMP.
  */
-int cloog_domain_lazy_isscalar(CloogDomain * domain, int dimension)
+int cloog_scattering_lazy_isscalar(CloogScattering *domain, int dimension)
 { int i, j ;
   Polyhedron * polyhedron ;
  
@@ -1633,12 +1641,12 @@ int cloog_domain_lazy_isscalar(CloogDomain * domain, int dimension)
 
 
 /**
- * cloog_domain_scalar function:
+ * cloog_scattering_scalar function:
  * when we call this function, we know that "dimension" is a scalar dimension,
  * this function finds the scalar value in "domain" and returns it in "value".
  * - June 30th 2005: first version.
  */
-void cloog_domain_scalar(CloogDomain * domain, int dimension, Value * value)
+void cloog_scattering_scalar(CloogScattering *domain, int dimension, Value * value)
 { int i ;
   Polyhedron * polyhedron ;
  
@@ -1663,7 +1671,7 @@ void cloog_domain_scalar(CloogDomain * domain, int dimension, Value * value)
 
 
 /**
- * cloog_domain_erase_dimension function:
+ * cloog_scattering_erase_dimension function:
  * this function returns a CloogDomain structure builds from 'domain' where
  * we removed the dimension 'dimension' and every constraint considering this
  * dimension. This is not a projection ! Every data concerning the
@@ -1671,7 +1679,8 @@ void cloog_domain_scalar(CloogDomain * domain, int dimension, Value * value)
  * - June 14th 2005: first version.
  * - June 21rd 2005: Adaptation for GMP.
  */
-CloogDomain * cloog_domain_erase_dimension(CloogDomain * domain, int dimension)
+CloogDomain *cloog_scattering_erase_dimension(CloogScattering *domain,
+						int dimension)
 { int i, j, mi, nb_dim ;
   CloogMatrix * matrix ;
   CloogDomain * erased ;
@@ -1727,4 +1736,43 @@ CloogDomain *cloog_domain_cube(int dim, cloog_int_t min, cloog_int_t max,
   P = Constraints2Polyhedron(M, MAX_RAYS);
   Matrix_Free(M);
   return cloog_domain_alloc(P);
+}
+
+/**
+ * cloog_domain_scatter function:
+ * This function add the scattering (scheduling) informations in a domain.
+ */
+CloogDomain *cloog_domain_scatter(CloogDomain *domain, CloogScattering *scatt)
+{ int scatt_dim ;
+  CloogDomain *ext, *newdom, *newpart, *temp;
+  
+  newdom = NULL ;
+  scatt_dim = cloog_scattering_dimension(scatt, domain);
+  
+  /* For each polyhedron of domain (it can be an union of polyhedra). */
+  while (domain != NULL)
+  { /* Extend the domain by adding the scattering dimensions as the new
+     * first domain dimensions.
+     */
+    ext = cloog_domain_extend(domain,scatt_dim,cloog_domain_dimension(domain)) ;
+    /* Then add the scattering constraints. */
+    newpart = cloog_domain_addconstraints(scatt,ext) ;
+    cloog_domain_free(ext) ;
+
+    if (newdom != NULL)
+    { temp = newdom ;
+      newdom = cloog_domain_union(newdom,newpart) ;
+      cloog_domain_free(temp) ;
+      cloog_domain_free(newpart) ;
+    }
+    else
+    newdom = newpart ;
+    
+    /* We don't want to free the rest of the list. */
+    temp = domain ;
+    domain = cloog_domain_cut_first(temp) ;
+    cloog_domain_free(temp) ;
+  }
+  
+  return newdom;
 }

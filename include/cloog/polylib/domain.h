@@ -38,6 +38,7 @@ struct cloogdomain
   int references ;               /**< Number of references to this structure. */
 } ;
 typedef struct cloogdomain CloogDomain ;
+typedef struct cloogdomain CloogScattering;
 
 /******************************************************************************
  *                              PolyLib interface                             *
@@ -48,6 +49,7 @@ Matrix      * cloog_domain_domain2matrix(CloogDomain *) ;
 CloogDomain * cloog_domain_image(CloogDomain *, Matrix *) ;
 CloogDomain * cloog_domain_preimage(CloogDomain *, Matrix *) ;
 void          cloog_polyhedron_print(FILE *, Polyhedron *) ;
+CloogDomain * cloog_domain_addconstraints(CloogDomain *, CloogDomain *) ;
 
 /******************************************************************************
  *                            Processing functions                            *

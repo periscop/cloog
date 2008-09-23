@@ -101,7 +101,7 @@ CloogLoop * cloog_loop_malloc(void);
 CloogLoop * cloog_loop_generate(CloogLoop *, CloogDomain *, int, int,
                                 int *, int, int, CloogOptions *) ;
 CloogLoop * cloog_loop_simplify(CloogLoop *, CloogDomain *, int, int) ;
-void cloog_loop_scatter(CloogLoop *, CloogDomain *) ;
+void cloog_loop_scatter(CloogLoop *, CloogScattering *);
 
 
 #if defined(__cplusplus)
