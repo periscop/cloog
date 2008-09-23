@@ -258,6 +258,24 @@ test_run: generate_test$(EXEEXT)
 		$(RM) $@; \
 		echo; \
 	done; \
+	for x in $(FINITE_CLOOGTEST_C) ; do \
+		echo -n "Verify file $$x (-sh 1)... " ; \
+		echo -n "generating... " ; \
+		$(top_builddir)/cloog$(EXEEXT) -callable 1 -sh 1 $(srcdir)/$$x.cloog > test_test.c 2> /dev/null; \
+		./generate_test$(EXEEXT) < $(srcdir)/$$x.cloog > test_main.c; \
+		echo -n "compiling... " ; \
+		$(COMPILE) -c test_test.c; \
+		$(COMPILE) -Dtest=good -c $(srcdir)/$$x.good.c -o test_good.o; \
+		$(LINK) test_main.c test_test.o test_good.o > /dev/null; \
+		echo -n "comparing... " ; \
+		./test_run$(EXEEXT); \
+		result=$$?; \
+		if test "$$result" -ne "0" ; then \
+			failedtest=`expr $$failedtest + 1` ; \
+		fi; \
+		$(RM) $@; \
+		echo; \
+	done; \
 	(echo -e $(SPECIAL_OPTIONS)) | while read x options; do \
 		echo -n "Verify file $$x ($$options)... " ; \
 		echo -n "generating... " ; \
