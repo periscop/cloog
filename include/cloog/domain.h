@@ -103,10 +103,8 @@ CloogDomain * cloog_domain_convex(CloogDomain * Pol) ;
 CloogDomain * cloog_domain_simple_convex(CloogDomain * domain, int nb_par);
 CloogDomain * cloog_domain_simplify(CloogDomain *, CloogDomain *) ;
 CloogDomain * cloog_domain_union(CloogDomain *, CloogDomain *) ;
-CloogDomain * cloog_domain_disjoint(CloogDomain *) ;
 CloogDomain * cloog_domain_intersection(CloogDomain *, CloogDomain *) ;
 CloogDomain * cloog_domain_difference(CloogDomain *, CloogDomain *) ;
-int           cloog_domain_includes(CloogDomain *, CloogDomain *) ;
 CloogDomain * cloog_domain_addconstraints(CloogDomain *, CloogDomain *) ;
 void          cloog_domain_sort(Polyhedron**,unsigned,unsigned,unsigned,int *);
 CloogDomain * cloog_domain_empty(int) ;
@@ -155,10 +153,8 @@ int           cloog_domain_lazy_block(CloogDomain *, CloogDomain *,
 int           cloog_domain_lazy_isscalar(CloogDomain *, int) ;
 int           cloog_domain_list_lazy_same(CloogDomainList *) ;
 void          cloog_domain_scalar(CloogDomain *, int, Value *) ;
-CloogDomain * cloog_domain_grow(CloogDomain *, int, int) ;
 CloogDomain * cloog_domain_cut_first(CloogDomain *) ;
 CloogDomain * cloog_domain_erase_dimension(CloogDomain *, int) ;
-void          cloog_domain_reverse(CloogDomain *) ;
 void          cloog_domain_line_update(Polyhedron *, CloogMatrix *, int, int) ;
 
 #define cloog_domain_polyhedron(x)    (x)->polyhedron

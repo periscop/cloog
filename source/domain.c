@@ -402,17 +402,6 @@ CloogDomain * cloog_domain_union(CloogDomain * dom1, CloogDomain * dom2)
 
 
 /**
- * cloog_domain_disjoint function:
- * This function returns a new CloogDomain structure including a polyhedral
- * domain represented using union of *disjoint* polyhedra (no intersection
- * between the different union components).
- */
-CloogDomain * cloog_domain_disjoint(CloogDomain * dom)
-{ return (cloog_domain_alloc(Disjoint_Domain(dom->polyhedron,0,MAX_RAYS))) ;
-}
-
-
-/**
  * cloog_domain_intersection function:
  * This function returns a new CloogDomain structure including a polyhedral
  * domain which is the intersection of two polyhedral domains (pol1)inter(pol2)
@@ -437,33 +426,6 @@ CloogDomain * cloog_domain_difference(CloogDomain * domain, CloogDomain * minus)
   else
   return (cloog_domain_alloc(DomainDifference(domain->polyhedron,
                                               minus->polyhedron,MAX_RAYS))) ;
-}
-
-
-/**
- * cloog_domain_includes function:
- * This function returns 1 if the polyhedral domain inside 'container' includes
- * the polyhedral domain inside 'contents', 0 otherwise.
- * - September 14th 2002: first version. 
- */
-int cloog_domain_includes(CloogDomain * container, CloogDomain * contents)
-{ int is_in ;
-  Polyhedron * p1, * p2 ;
-  
-  for (p1=container->polyhedron; p1; p1=p1->next)
-  { is_in = 0 ;
-    
-    for (p2=contents->polyhedron; p2; p2=p2->next)
-    if (PolyhedronIncludes(p1,p2))
-    { is_in = 1 ;
-      break ;
-    }
-    
-    if (!is_in)
-    return 0 ;
-  }
-  
-  return 1 ;
 }
 
 
@@ -1547,38 +1509,6 @@ int cloog_domain_list_lazy_same(CloogDomainList * list)
 
 
 /**
- * cloog_domain_grow function:
- * This function extend the polyhedron (domain) onto the dimension (level) by a
- * step of 1, if (lower) is 1 then the lower bound of the dimension is the same
- * minus one, if (lower) is 0 then the upper bound of the dimension is the
- * same plus one. This function frees the Polyhedron structure given as input
- * and returns the extended one.
- * - March 27th 2004: first version.
- * - June  21rd 2005: Adaptation for GMP.
- */
-CloogDomain * cloog_domain_grow(CloogDomain * domain, int level, int lower)
-{ int i, scalar_dim ;
-  CloogMatrix * matrix ;
-  CloogDomain * grow ;  
-  
-  matrix = cloog_domain_domain2matrix(domain) ;
-  cloog_domain_free(domain) ;
-  scalar_dim = matrix->NbColumns - 1 ;
-
-  for (i=0;i<matrix->NbRows;i++)
-  if (value_one_p(matrix->p[i][0]))
-  { if (((lower == 1) && value_pos_p(matrix->p[i][level])) ||
-        ((lower == 0) && value_neg_p(matrix->p[i][level])))
-    value_increment(matrix->p[i][scalar_dim],matrix->p[i][scalar_dim]) ;
-  }
-  
-  grow = cloog_domain_matrix2domain(matrix) ;
-  cloog_matrix_free(matrix) ;
-  return grow ;
-}
-
-
-/**
  * Those functions are provided for "object encapsulation", to separate as much
  * as possible the inside of the CloogDomain structure from the rest of the
  * program, in order to ease the change of polyhedral library. For efficiency
@@ -1730,30 +1660,4 @@ CloogDomain * cloog_domain_erase_dimension(CloogDomain * domain, int dimension)
   cloog_matrix_free(matrix) ;
 
   return erased ;
-}
-
-
-/**
- * To change the order of the part of a polyhedral union, for funny results !
- * - September 10th 2005.
- */
-void cloog_domain_reverse(CloogDomain * domain)
-{ Polyhedron * polyhedron, * p, * q ,* r ;
-  
-  polyhedron = domain->polyhedron ;
-  
-  if ((polyhedron == NULL)||(polyhedron->next == NULL)) 
-  return ;
-  
-  q = polyhedron->next ;
-  polyhedron->next = NULL ; 
-  r = q->next ;
-  q->next = polyhedron ;
-  while (r != NULL)
-  { p = q ;
-    q = r ;
-    r = r->next ;
-    q->next  = p ;
-  }
-  domain->polyhedron = q ;
 }
