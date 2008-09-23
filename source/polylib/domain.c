@@ -419,8 +419,9 @@ CloogDomain * cloog_domain_simplify(CloogDomain * dom1, CloogDomain * dom2)
       }
     }
     if (row < P->NbEq) {
-      Vector_Copy(P->Constraint[P->NbEq], M2->p[row], 
-		  (P->NbConstraints - P->NbEq) * cols);
+      if (P->NbConstraints > P->NbEq)
+	Vector_Copy(P->Constraint[P->NbEq], M2->p[row], 
+		    (P->NbConstraints - P->NbEq) * cols);
       P = Constraints2Polyhedron(M2, MAX_RAYS);
     }
     cloog_matrix_free(M2);
