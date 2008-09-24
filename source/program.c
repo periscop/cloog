@@ -958,7 +958,7 @@ CloogScatteringList * scattering ;
   { scalar = 1 ;
     scattering = start ;
     while (scattering != NULL)
-    { if (!cloog_scattering_lazy_isscalar(scattering->domain, i))
+    { if (!cloog_scattering_lazy_isscalar(scattering->domain, i, NULL))
       { scalar = 0 ;
         break ;
       }
@@ -1001,7 +1001,13 @@ CloogScatteringList * scattering ;
     scattering = start ;
     while (blocklist != NULL)
     { block = blocklist->block ;
-      cloog_scattering_scalar(scattering->domain, i, &block->scaldims[current]);
+      if (!cloog_scattering_lazy_isscalar(scattering->domain, i,
+						&block->scaldims[current])) {
+	/* We should have found a scalar value: if not, there is an error. */
+	fprintf(stderr,
+		"[CLooG]ERROR: dimension %d is not scalar as expected.\n", i);
+	exit(0);
+      }
       blocklist = blocklist->next ;
       scattering = scattering->next ;
     } 

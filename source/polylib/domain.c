@@ -1616,10 +1616,12 @@ CloogDomain *cloog_domain_cut_first(CloogDomain *domain, CloogDomain **rest)
  * the shape "x.dimension + scalar = 0" with x an integral variable. This
  * function is lazy since we only accept x=1 (further calculations are easier
  * in this way).
+ * If value is not NULL, then it is set to the constant value of dimension.
  * - June 14th 2005: first version.
  * - June 21rd 2005: Adaptation for GMP.
  */
-int cloog_scattering_lazy_isscalar(CloogScattering *domain, int dimension)
+int cloog_scattering_lazy_isscalar(CloogScattering *domain, int dimension,
+					cloog_int_t *value)
 { int i, j ;
   Polyhedron * polyhedron ;
  
@@ -1639,40 +1641,16 @@ int cloog_scattering_lazy_isscalar(CloogScattering *domain, int dimension)
       for (j=dimension+2;j<(polyhedron->Dimension + 1);j++)
       if (value_notzero_p(polyhedron->Constraint[i][j]))
       return 0 ;
+
+      if (value) {
+	value_assign(*value,polyhedron->Constraint[i][polyhedron->Dimension+1]);
+	value_oppose(*value,*value);
+      }
+      return 1;
     }
   }
   
-  return 1 ;
-}
-
-
-/**
- * cloog_scattering_scalar function:
- * when we call this function, we know that "dimension" is a scalar dimension,
- * this function finds the scalar value in "domain" and returns it in "value".
- * - June 30th 2005: first version.
- */
-void cloog_scattering_scalar(CloogScattering *domain, int dimension, Value * value)
-{ int i ;
-  Polyhedron * polyhedron ;
- 
-  polyhedron = domain->polyhedron ;
-  /* For each constraint... */
-  for (i=0;i<polyhedron->NbConstraints;i++)
-  { /* ...if it is the equality defining the scalar dimension... */
-    if (value_notzero_p(polyhedron->Constraint[i][dimension+1]) &&
-        value_zero_p(polyhedron->Constraint[i][0]))
-    { /* ...Then send the scalar value. */
-      value_assign(*value,polyhedron->Constraint[i][polyhedron->Dimension+1]) ;
-      value_oppose(*value,*value) ;
-      return ;
-    }
-  }
-  
-  /* We should have found a scalar value: if not, there is an error. */
-  fprintf(stderr, "[CLooG]ERROR: dimension %d is not scalar as expected.\n",
-          dimension) ;
-  exit(0) ;
+  return 0;
 }
 
 

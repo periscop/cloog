@@ -120,9 +120,9 @@ int           cloog_domain_lazy_disjoint(CloogDomain *, CloogDomain *) ;
 int           cloog_domain_lazy_equal(CloogDomain *, CloogDomain *) ;
 int           cloog_scattering_lazy_block(CloogScattering *, CloogScattering *,
                                       CloogScatteringList *, int);
-int           cloog_scattering_lazy_isscalar(CloogScattering *, int);
+int           cloog_scattering_lazy_isscalar(CloogScattering *, int,
+								cloog_int_t *);
 int           cloog_scattering_list_lazy_same(CloogScatteringList *);
-void          cloog_scattering_scalar(CloogScattering *, int, cloog_int_t *);
 CloogDomain * cloog_domain_cut_first(CloogDomain *domain, CloogDomain **rest);
 CloogScattering * cloog_scattering_erase_dimension(CloogScattering *, int);
 
