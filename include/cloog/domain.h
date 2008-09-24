@@ -66,7 +66,6 @@ typedef struct cloogscatteringlist CloogScatteringList;
 /******************************************************************************
  *                              PolyLib interface                             *
  ******************************************************************************/
-void          cloog_domain_print(FILE *, CloogDomain *) ;
 void          cloog_domain_print_constraints(FILE *, CloogDomain *,
 						int print_number);
 void          cloog_domain_free(CloogDomain *) ;
@@ -87,7 +86,6 @@ CloogDomain * cloog_domain_empty(CloogDomain *template);
  ******************************************************************************/
 void cloog_domain_print_structure(FILE *file, CloogDomain *domain, int level,
 				  const char *name);
-void cloog_scattering_list_print(FILE *, CloogScatteringList *);
 
 
 /******************************************************************************
