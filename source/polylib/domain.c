@@ -570,6 +570,15 @@ CloogDomain * cloog_domain_empty(CloogDomain *template)
  ******************************************************************************/
 
 
+static void print_structure_prefix(FILE *file, int level)
+{
+  int i;
+
+  for(i = 0; i < level; i++)
+    fprintf(file, "|\t");
+}
+
+
 /**
  * cloog_domain_print_structure :
  * this function is a more human-friendly way to display the CloogDomain data
@@ -582,25 +591,25 @@ CloogDomain * cloog_domain_empty(CloogDomain *template)
  */
 void cloog_domain_print_structure(FILE *file, CloogDomain *domain, int level,
 				  const char *name)
-{ int i ;
+{
+  Polyhedron *P;
   CloogMatrix * matrix ;
 
-  /* Go to the right level. */
-  for(i=0; i<level; i++)
-  fprintf(file,"|\t") ;
+  print_structure_prefix(file, level);
   
   if (domain != NULL)
   { fprintf(file,"+-- %s\n", name);
   
     /* Print the matrix. */
-    matrix = cloog_domain_domain2matrix(domain) ;
-    cloog_matrix_print_structure(file,matrix,level) ;
-    cloog_matrix_free(matrix) ;
+    for (P = domain->polyhedron; P; P = P->next) {
+      matrix = Polyhedron2Constraints(P);
+      cloog_matrix_print_structure(file, matrix, level);
+      cloog_matrix_free(matrix);
 
-    /* A blank line. */
-    for (i=0; i<level+1; i++)
-    fprintf(file,"|\t") ;   
-    fprintf(file,"\n") ;    
+      /* A blank line. */
+      print_structure_prefix(file, level+1);
+      fprintf(file,"\n");
+    }
   }
   else
   fprintf(file,"+-- Null CloogDomain\n") ;
