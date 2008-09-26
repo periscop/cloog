@@ -115,7 +115,7 @@ CloogDomain * cloog_domain_extend(CloogDomain *, int, int) ;
 int           cloog_domain_never_integral(CloogDomain *) ;
 void          cloog_domain_stride(CloogDomain *, int, int, cloog_int_t *, cloog_int_t *);
 int           cloog_domain_integral_lowerbound(CloogDomain *, int, cloog_int_t *);
-void          cloog_domain_lowerbound_update(CloogDomain *, int, cloog_int_t);
+CloogDomain * cloog_domain_lowerbound_update(CloogDomain *, int, cloog_int_t);
 int           cloog_domain_lazy_disjoint(CloogDomain *, CloogDomain *) ;
 int           cloog_domain_lazy_equal(CloogDomain *, CloogDomain *) ;
 int           cloog_scattering_lazy_block(CloogScattering *, CloogScattering *,

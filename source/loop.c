@@ -1106,7 +1106,7 @@ void cloog_loop_stride(CloogLoop * loop, int level, int nb_par)
     cloog_int_add_ui(lower, lower, 1);
     cloog_int_mul(lower, lower, stride);
     cloog_int_sub(lower, lower, offset);
-    cloog_domain_lowerbound_update(loop->domain,level,lower) ;
+    loop->domain = cloog_domain_lowerbound_update(loop->domain, level, lower);
   }
   
   cloog_int_clear(stride);

@@ -1152,15 +1152,14 @@ Value * lower ;
 /**
  * cloog_domain_lowerbound_update function:
  * This function updates the integral lower bound of an iterator (such as its
- * column rank in the constraint set 'domain' is 'level') into  'lower'.
+ * column rank in the constraint set 'domain' is 'level') into  'lower'
+ * and returns the updated domain.
  * - Jun  29th 2003: first version.
  * - June 21rd 2005: Adaptation for GMP (based on S. Verdoolaege's version of
  *                   CLooG 0.12.1).
  */
-void cloog_domain_lowerbound_update(domain, level, lower)
-CloogDomain * domain ;
-int level ;
-Value lower ;
+CloogDomain *cloog_domain_lowerbound_update(CloogDomain *domain, int level,
+						cloog_int_t lower)
 { int i ;
   Polyhedron * polyhedron ;
  
@@ -1173,6 +1172,7 @@ Value lower ;
     value_oppose(polyhedron->Constraint[i][polyhedron->Dimension+1], lower) ;
     break ;
   }
+  return domain;
 }
 
 
