@@ -1301,13 +1301,13 @@ static void insert_block(CloogBlock *block, int level,
 
 /**
  * insert_loop function:
- * This function concerts the content of a CloogLoop structure (loop) into a
+ * This function converts the content of a CloogLoop structure (loop) into a
  * clast_stmt (inserted at **next).
  * The iterator (level) of
  * the current loop is given by 'level': this is the column number of the
  * domain corresponding to the current loop iterator. The data of a loop are
  * written in this order:
- * 1. The guard of the loop, i.e. each constraint in the domain that do not
+ * 1. The guard of the loop, i.e. each constraint in the domain that does not
  *    depend on the iterator (when the entry in the column 'level' is 0).
  * 2. The iteration domain of the iterator, given by the constraints in the
  *    domain depending on the iterator, i.e.:
