@@ -19,10 +19,10 @@ extern "C"
  */
 
 typedef Matrix CloogMatrix;
-typedef Matrix CloogConstraints;
+typedef Matrix CloogConstraintSet;
 
 struct cloogequalities {
-	CloogConstraints	*constraints;
+	CloogConstraintSet	*constraints;
 	int			*types;
 };
 typedef struct cloogequalities CloogEqualities;

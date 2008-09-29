@@ -33,22 +33,22 @@ static int clast_binary_cmp(struct clast_binary *b1, struct clast_binary *b2);
 static int clast_reduction_cmp(struct clast_reduction *r1, 
 				 struct clast_reduction *r2);
 
-static int clast_equal_add(CloogEqualities *equal, CloogConstraints *constraints,
+static int clast_equal_add(CloogEqualities *equal, CloogConstraintSet *constraints,
 				int level, int line, CloogInfos *infos);
 
 static struct clast_stmt * clast_equal(CloogInfos *infos);
 static struct clast_stmt * clast_equal_cpp(int level, CloogInfos *infos);
-static struct clast_expr *clast_minmax(CloogConstraints *constraints,
+static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
 					int level, int max, int guard, 
 					CloogInfos *infos);
-static void insert_guard(CloogConstraints *constraints, int level,
+static void insert_guard(CloogConstraintSet *constraints, int level,
 			  struct clast_stmt ***next, CloogInfos *infos);
-static void insert_modulo_guard(CloogConstraints *constraints, int upper,
+static void insert_modulo_guard(CloogConstraintSet *constraints, int upper,
 				int lower, int level,
 			        struct clast_stmt ***next, CloogInfos *infos);
-static void insert_equation(CloogConstraints *constraints, int upper, int lower,
+static void insert_equation(CloogConstraintSet *constraints, int upper, int lower,
 			 int level, struct clast_stmt ***next, CloogInfos *infos);
-static void insert_for(CloogConstraints *constraints, int level,
+static void insert_for(CloogConstraintSet *constraints, int level,
 			struct clast_stmt ***next, CloogInfos *infos);
 static void insert_scalar(CloogLoop *loop, int level, int *scalar, 
 			   struct clast_stmt ***next, CloogInfos *infos);
@@ -426,7 +426,7 @@ static int clast_equal_allow(CloogEqualities *equal, int level, int line,
  * - line is the line number in matrix of the constraint we want to study,
  * - the infos structure gives the user all options on code printing and more.
  */
-static int clast_equal_add(CloogEqualities *equal, CloogConstraints *constraints,
+static int clast_equal_add(CloogEqualities *equal, CloogConstraintSet *constraints,
 				int level, int line, CloogInfos *infos)
 {
     cloog_equal_add(equal, constraints, level, line, infos->names->nb_parameters);
@@ -453,7 +453,7 @@ static struct clast_stmt * clast_equal(CloogInfos *infos)
   struct clast_stmt *a = NULL;
   struct clast_stmt **next = &a;
   CloogEqualities *equal = infos->equal;
-  CloogConstraints *constraints = cloog_equal_constraints(equal);
+  CloogConstraintSet *constraints = cloog_equal_constraints(equal);
 
   /* It is not necessary to print here the scattering iterators since they
    * never appear in the statement bodies.
@@ -493,7 +493,7 @@ static struct clast_stmt * clast_equal_cpp(int level, CloogInfos *infos)
   struct clast_stmt *a = NULL;
   struct clast_stmt **next = &a;
   CloogEqualities *equal = infos->equal;
-  CloogConstraints *constraints = cloog_equal_constraints(equal);
+  CloogConstraintSet *constraints = cloog_equal_constraints(equal);
 
   cloog_int_init(one);
   
@@ -531,7 +531,7 @@ static struct clast_stmt * clast_equal_cpp(int level, CloogInfos *infos)
  * - November 2nd 2001: first version. 
  * - June    27th 2003: 64 bits version ready.
  */
-struct clast_expr *clast_bound_from_constraint(CloogConstraints *constraints,
+struct clast_expr *clast_bound_from_constraint(CloogConstraintSet *constraints,
 					       int line_num, int level,
 					       CloogNames *names)
 { 
@@ -541,7 +541,7 @@ struct clast_expr *clast_bound_from_constraint(CloogConstraints *constraints,
   struct clast_expr *e = NULL;
   struct cloog_vec *line_vector;
 
-  len = cloog_constraints_total_dimension(constraints) + 2;
+  len = cloog_constraint_set_total_dimension(constraints) + 2;
   line_vector = cloog_vec_alloc(len);
   line = line_vector->p;
   cloog_constraint_copy(constraints, line_num, line+1);
@@ -695,13 +695,13 @@ struct clast_expr *clast_bound_from_constraint(CloogConstraints *constraints,
  **
  * - November 2nd 2001: first version. 
  */
-static struct clast_expr *clast_minmax(CloogConstraints *constraints,
+static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
 				       int level, int max, int guard,
 				       CloogInfos *infos)
 { int i, n;
   struct clast_reduction *r;
   
-  for (i = 0, n = 0; i < cloog_constraints_count(constraints); i++)
+  for (i = 0, n = 0; i < cloog_constraint_set_count(constraints); i++)
       if (((max && cloog_constraint_is_lower_bound(constraints, i, level-1)) ||
 	   (!max && cloog_constraint_is_upper_bound(constraints, i, level-1))) &&
 	  (!guard || !cloog_constraint_involves(constraints, i, guard-1)) &&
@@ -711,7 +711,7 @@ static struct clast_expr *clast_minmax(CloogConstraints *constraints,
     return NULL;
   r = new_clast_reduction(max ? clast_red_max : clast_red_min, n);
 
-  for (i = 0, n = 0; i < cloog_constraints_count(constraints); i++)
+  for (i = 0, n = 0; i < cloog_constraint_set_count(constraints); i++)
       if (((max && cloog_constraint_is_lower_bound(constraints, i, level-1)) ||
 	   (!max && cloog_constraint_is_upper_bound(constraints, i, level-1))) &&
 	  (!guard || !cloog_constraint_involves(constraints, i, guard-1)) &&
@@ -751,13 +751,13 @@ static struct clast_expr *clast_minmax(CloogConstraints *constraints,
  *                       domain unions, now it should be fixed directly in
  *                       cloog_loop_simplify).
  */
-static void insert_guard(CloogConstraints *constraints, int level,
+static void insert_guard(CloogConstraintSet *constraints, int level,
 			 struct clast_stmt ***next, CloogInfos *infos)
 { 
   int i, j, l, guarded, minmax=-1, nb_and = 0, nb_iter ;
   int total_dim;
   char * name;
-  CloogConstraints *copy;
+  CloogConstraintSet *copy;
   struct clast_guard *g;
   cloog_int_t one;
 
@@ -767,20 +767,20 @@ static void insert_guard(CloogConstraints *constraints, int level,
     cloog_int_init(one);
     cloog_int_set_si(one, 1);
   
-    total_dim = cloog_constraints_total_dimension(constraints);
+    total_dim = cloog_constraint_set_total_dimension(constraints);
     g = new_clast_guard(2 * total_dim);
 
     /* Well, it looks complicated because I wanted to have a particular, more
      * readable, ordering, obviously this function may be far much simpler !
      */
-    copy = cloog_constraints_copy(constraints);
+    copy = cloog_constraint_set_copy(constraints);
     
     nb_iter = total_dim - infos->names->nb_parameters;
  
     nb_and = 0 ;
     /* We search for guard parts. */
     for (i = 1; i <= total_dim; i++)
-    for (j = 0; j< cloog_constraints_count(copy); j++)
+    for (j = 0; j< cloog_constraint_set_count(copy); j++)
     if (cloog_constraint_involves(copy, j, i-1) &&
         (!cloog_constraint_involves(copy, j, level-1) || (nb_iter < level))) {
       struct clast_term *t;
@@ -822,12 +822,12 @@ static void insert_guard(CloogConstraints *constraints, int level,
     
       if (minmax == -1)
 	continue;
-      for (l = j + 1; l < cloog_constraints_count(copy); l++)
+      for (l = j + 1; l < cloog_constraint_set_count(copy); l++)
 	if (((minmax == 1) && cloog_constraint_is_lower_bound(copy, l, i-1)) ||
 	    ((minmax == 0) && cloog_constraint_is_upper_bound(copy, l, i-1)))
 	  cloog_constraint_clear(copy, l);
     }
-    cloog_constraints_free(copy);
+    cloog_constraint_set_free(copy);
   
   g->n = nb_and;
   if (nb_and) {
@@ -903,14 +903,14 @@ static void Euclid(cloog_int_t a, cloog_int_t b,
  *   the number of parameters in matrix (nb_par), and the arrays of iterator
  *   names and parameters (iters and params). 
  */
-static void insert_modulo_guard(CloogConstraints *constraints, int upper,
+static void insert_modulo_guard(CloogConstraintSet *constraints, int upper,
 				int lower, int level,
 				struct clast_stmt ***next, CloogInfos *infos)
 {
   int i, j, k, nb_elts = 0, len, len2, nb_iter, in_stride = 0, nb_par;
   struct cloog_vec *line_vector, *line_vector2;
   cloog_int_t *line, *line2, val, val2, x, y, g;
-  CloogConstraints *equal_constraints = cloog_equal_constraints(infos->equal);
+  CloogConstraintSet *equal_constraints = cloog_equal_constraints(infos->equal);
 
   cloog_int_init(val);
   cloog_constraint_coefficient_get(constraints, upper, level-1, &val);
@@ -919,8 +919,8 @@ static void insert_modulo_guard(CloogConstraints *constraints, int upper,
     return;
   }
 
-  len = cloog_constraints_total_dimension(constraints) + 2;
-  len2 = cloog_constraints_total_dimension(equal_constraints) + 2;
+  len = cloog_constraint_set_total_dimension(constraints) + 2;
+  len2 = cloog_constraint_set_total_dimension(equal_constraints) + 2;
   nb_par = infos->names->nb_parameters;
   nb_iter = len - 2 - nb_par;
 
@@ -1120,7 +1120,7 @@ static void insert_modulo_guard(CloogConstraints *constraints, int upper,
  * - July 14th 2003: (debug) no more print the constant in the modulo guard when
  *                   it was previously included in a stride calculation.
  */
-static void insert_equation(CloogConstraints *constraints, int upper, int lower,
+static void insert_equation(CloogConstraintSet *constraints, int upper, int lower,
 			    int level, struct clast_stmt ***next, CloogInfos *infos)
 {
   struct clast_expr *e;
@@ -1176,7 +1176,7 @@ static void insert_equation(CloogConstraints *constraints, int upper, int lower,
  * - March 6th 2003: infinite domain support. 
  * - June 29th 2003: non-unit strides support.
  */
-static void insert_for(CloogConstraints *constraints, int level,
+static void insert_for(CloogConstraintSet *constraints, int level,
 		       struct clast_stmt ***next, CloogInfos *infos)
 {
   char * iterator ;
@@ -1340,7 +1340,7 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
 			struct clast_stmt ***next, CloogInfos *infos)
 {
     int i, j, equality=0, scalar_level;
-    CloogConstraints *constraints, *temp;
+    CloogConstraintSet *constraints, *temp;
     struct clast_stmt **top = *next;
 
     /* It can happen that loop be NULL when an input polyhedron is empty. */
@@ -1351,10 +1351,10 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
     * thus we normalize it, we also simplify it with the equalities.
     */ 
     temp = cloog_domain_constraints(loop->domain);
-    cloog_constraints_normalize(temp,level);
-    constraints = cloog_constraints_simplify(temp,infos->equal,level,
+    cloog_constraint_set_normalize(temp,level);
+    constraints = cloog_constraint_set_simplify(temp,infos->equal,level,
 				   infos->names->nb_parameters);
-    cloog_constraints_free(temp);
+    cloog_constraint_set_free(temp);
     cloog_int_set(infos->stride[level-1], loop->stride);
 
     /* First of all we have to print the guard. */
@@ -1364,15 +1364,15 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
     scalar_level = scalar ;
     insert_scalar(loop,level,&scalar, next, infos);
 
-    if (cloog_constraints_contain_level(constraints, level,
+    if (cloog_constraint_set_contains_level(constraints, level,
 					infos->names->nb_parameters)) {
 	/* We scan all the constraints to know in which case we are :
 	 * [[if] equation] or [for].
 	 */
-	if ((i = cloog_constraints_defining_equality(constraints, level)) != -1) {
+	if ((i = cloog_constraint_set_defining_equality(constraints, level)) != -1) {
 	  insert_equation(constraints, i, -1, level, next, infos);
 	  equality = 1 ;   
-	} else if ((i = cloog_constraints_defining_inequalities(constraints,
+	} else if ((i = cloog_constraint_set_defining_inequalities(constraints,
 			      level, &j, infos->names->nb_parameters)) != -1) {
 	    insert_equation(constraints, i, j, level, next, infos);
 	} else
@@ -1387,7 +1387,7 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
 	insert_loop(loop->inner, level+1,scalar, next, infos);
 
     cloog_equal_del(infos->equal,level);
-    cloog_constraints_free(constraints);
+    cloog_constraint_set_free(constraints);
 
     /* Go to the next loop on the same level. */
     while (*top)

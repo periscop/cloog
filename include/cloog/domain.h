@@ -107,7 +107,7 @@ CloogScattering *cloog_scattering_read(FILE *foo,
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
-CloogConstraints *cloog_domain_constraints(CloogDomain *);
+CloogConstraintSet *cloog_domain_constraints(CloogDomain *);
 int           cloog_domain_isempty(CloogDomain *) ;
 CloogDomain * cloog_domain_universe(unsigned dim, CloogOptions *options);
 CloogDomain * cloog_domain_project(CloogDomain *, int, int) ;
