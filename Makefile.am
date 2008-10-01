@@ -61,10 +61,12 @@ SOURCES_CORE = \
 DEFAULT_INCLUDES = -I.
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 AM_CFLAGS = -Wall
+libcloog_polylib_la_CPPFLAGS = @POLYLIB_CPPFLAGS@ -DCLOOG_POLYLIB
+libcloog_polylib_la_LDFLAGS = @POLYLIB_LDFLAGS@
+libcloog_polylib_la_LIBADD = @POLYLIB_LIBS@
 libcloog_polylib_la_SOURCES = \
 	$(SOURCES_CORE) \
 	source/polylib/domain.c \
-	source/polylib/domain.h \
 	source/polylib/matrix.c \
 	source/polylib/backend_options.c
 LDADD = libcloog-@BACKEND@.la
@@ -89,11 +91,12 @@ nodist_pkginclude_HEADERS = \
 
 pkgpolylibincludedir = $(pkgincludedir)/polylib
 pkgpolylibinclude_HEADERS = \
+	include/cloog/polylib/cloog.h \
 	include/cloog/polylib/domain.h \
 	include/cloog/polylib/matrix.h \
 	include/cloog/polylib/options.h
 nodist_pkgpolylibinclude_HEADERS = \
-	include/cloog/polylib/cloog.h
+	include/cloog/polylib/backend.h
 
 version.h: @GIT_INDEX@
 	echo '#define CLOOG_HEAD "'`$(top_builddir)/genversion.sh`'"' > $@

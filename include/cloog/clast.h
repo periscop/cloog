@@ -122,9 +122,12 @@ void free_clast_stmt(struct clast_stmt *s);
 
 int clast_expr_equal(struct clast_expr *e1, struct clast_expr *e2);
 
-struct clast_expr *clast_bound_from_constraint(CloogConstraintSet *constraints,
-					       int line_num, int level,
-					       CloogNames *names);
+#if defined(CLOOG_POLYLIB) || defined(CLOOG_ISL)
+
+struct clast_expr *clast_bound_from_constraint(CloogConstraint constraint,
+					       int level, CloogNames *names);
+
+#endif
 
 #if defined(__cplusplus)
   }

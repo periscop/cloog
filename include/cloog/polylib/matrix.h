@@ -1,6 +1,8 @@
 #ifndef CLOOG_POLYLIB_MATRIX_H
 #define CLOOG_POLYLIB_MATRIX_H
 
+#include <cloog/polylib/backend.h>
+
 #if defined(__cplusplus)
 extern "C" 
   {
@@ -26,6 +28,12 @@ struct cloogequalities {
 	int			*types;
 };
 typedef struct cloogequalities CloogEqualities;
+
+struct cloogconstraint {
+	CloogConstraintSet	*set;
+	Value			**line;
+};
+typedef struct cloogconstraint CloogConstraint;
 
 
 /******************************************************************************

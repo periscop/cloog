@@ -44,7 +44,6 @@ extern "C"
 
 # define MAX_STRING_VAL 32
 # define INDENT_STEP 2
-# define ONE_TIME_LOOP -1
 
 # define EQTYPE_NONE	 0
 # define EQTYPE_CONSTANT 1
