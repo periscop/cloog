@@ -813,6 +813,12 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 	    /* put the "denominator" in the LHS */
 	    cloog_constraint_coefficient_get(j, i-1, &t->val);
 	    cloog_constraint_coefficient_set(j, i-1, one);
+	    if (cloog_int_is_neg(t->val)) {
+	      cloog_int_neg(t->val, t->val);
+	      cloog_int_neg(one, one);
+	      cloog_constraint_coefficient_set(j, i-1, one);
+	      cloog_int_neg(one, one);
+	    }
 	    g->eq[nb_and].sign = 0;
 	    g->eq[nb_and].RHS = clast_bound_from_constraint(j, i, infos->names);
 	  } else {
