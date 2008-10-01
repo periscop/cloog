@@ -119,7 +119,6 @@ void cloog_options_print(FILE * foo, CloogOptions * options)
   fprintf(foo,"sh          = %3d,\n",options->sh);
   fprintf(foo,"OPTIONS FOR PRETTY PRINTING\n") ;
   fprintf(foo,"esp         = %3d,\n",options->esp) ;
-  fprintf(foo,"csp         = %3d,\n",options->csp) ;
   fprintf(foo,"fsp         = %3d,\n",options->fsp) ;
   fprintf(foo,"otl         = %3d.\n",options->otl) ;
   fprintf(foo,"block       = %3d.\n",options->block) ;
@@ -184,9 +183,7 @@ void cloog_options_help()
   "                        (default setting:  1).\n") ;
   printf(
   "  -esp <boolean>        Allow complex equalities spreading (1) or not (0)\n"
-  "                        (default setting:  0).\n"
-  "  -csp <boolean>        Allow constant spreading (1) or not (0)\n"
-  "                        (default setting:  1).\n") ;
+  "                        (default setting:  0).\n");
   printf(
   "  -fsp <level>          First level to begin the spreading\n"
   "                        (default setting:  1).\n"
@@ -306,7 +303,6 @@ CloogOptions * cloog_core_options_malloc(void)
   options->name	       = "";
   /* OPTIONS FOR PRETTY PRINTING */
   options->esp         =  0 ;  /* We don't want Equality SPreading.*/
-  options->csp         =  1 ;  /* We want only Constant SPreading. */
   options->fsp         =  1 ;  /* The First level to SPread is the first. */
   options->otl         =  1 ;  /* We want to fire One Time Loops. */
   options->block       =  0 ;  /* We don't want to force statement blocks. */
@@ -371,9 +367,6 @@ CloogOptions ** options ;
     if (strcmp(argc[i],"-esp") == 0)
     cloog_options_set(&(*options)->esp,argv,argc,&i) ;
     else
-    if (strcmp(argc[i],"-csp") == 0)
-    cloog_options_set(&(*options)->csp,argv,argc,&i) ;
-    else
     if (strcmp(argc[i],"-fsp") == 0)
     cloog_options_set(&(*options)->fsp,argv,argc,&i) ;
     else
@@ -393,7 +386,6 @@ CloogOptions ** options ;
     } else
     if (strcmp(argc[i],"-loopo") == 0) /* Special option for the LooPo team ! */
     { (*options)->esp   = 0 ;
-      (*options)->csp   = 0 ;
       (*options)->block = 1 ;
       (*options)->cpp   = 1 ;
     }

@@ -819,7 +819,6 @@ input file @code{basic.cloog} with default options by typing:
 * Simplify Convex Hull::
 * Once Time Loop Elimination::
 * Equality Spreading::
-* Constant Spreading::
 * First Level for Spreading::
 * C PreProcessor Friendly::
 * Statement Block::
@@ -1004,34 +1003,6 @@ for (k=i;k<=j+M;k++) @{
 /* Generated using the same input file but @strong{option -esp 1} */
 for (k=M+2;k<=N+M;k++) @{
   S1(i = M+2, j = N) ;
-@}
-@end group
-@end example
-
-
-@node Constant Spreading 
-@subsection Constant Spreading @code{-csp <boolean>}
-
-     @code{-csp <boolean>}: this option allows (@code{boolean=1}) or
-     forbids (@code{boolean=0}) values spreading when
-     there are @emph{constant} equalities. That is, when the right member
-     of the equality is a constant term. Default value is 1.
-@example
-@group
-/* Generated using a given input file and @strong{option -csp 0} */
-i = M+2 ;
-j = N ;
-for (k=i;j<=j+M;j++) @{
-  S1 ;
-@}
-@end group
-@end example
-@example
-@group
-/* Generated using the same input file but @strong{option -csp 1} */
-i = M+2 ;
-for (k=i;k<=N+M;k++) @{
-  S1(j = N) ;
 @}
 @end group
 @end example
@@ -1973,7 +1944,6 @@ struct cloogoptions
   int strides ;               /* -strides option.    */
   int sh ;                    /* -sh option.         */
   int esp ;                   /* -esp option.        */
-  int csp ;                   /* -csp option.        */
   int fsp ;                   /* -fsp option.        */
   int otl ;                   /* -otl option.        */
   int block ;                 /* -block option.      */
@@ -1993,7 +1963,6 @@ As a reminder, the default values are:
 @item @math{strides = 0} (use only unit strides),
 @item @math{sh = 0} (do not simplify convex hulls),
 @item @math{esp = 0} (do not spread complex equalities),
-@item @math{csp = 1} (spread constant values),
 @item @math{fsp = 1} (start to spread from the first iterators),
 @item @math{otl = 1} (simplify loops running only once).
 @item @math{block = 0} (do not make statement blocks when not necessary).

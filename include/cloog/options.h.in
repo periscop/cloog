@@ -79,10 +79,6 @@ struct cloogoptions
                    * is something like "i = 3*j + 1 ; A[i] = 0 ;" the generator
                    * will write "A[3*j + 1] = 0 ;", 0 otherwise.
                    */
-  int csp ;       /* 1 if user wants to spread the constant equalities,
-                   * i.e. the simple equalities like "i = M ;", "i = j ;"...
-                   * It is for performance saving with a spreading, 0 otherwise.
-                   */
   int fsp ;       /* The iteration level where equalities spreading can begin
                    * (it might happen that the user wants not to spread values
                    * of scattering iterators).

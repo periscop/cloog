@@ -303,10 +303,6 @@ static void print_iterator_declarations(FILE *file, CloogProgram *program,
 {
     CloogNames *names = program->names;
 
-    if (names->nb_scalars && !options->csp) {
-	fprintf(file, "  /* Scalar dimension iterators. */\n");
-	print_declarations(file, names->nb_scalars, names->scalars);
-    }
     if (names->nb_scattering) {
 	fprintf(file, "  /* Scattering iterators. */\n");
 	print_declarations(file, names->nb_scattering, names->scattering);

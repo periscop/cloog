@@ -52,8 +52,6 @@ static void insert_equation(CloogConstraint upper, CloogConstraint lower,
 			 int level, struct clast_stmt ***next, CloogInfos *infos);
 static void insert_for(CloogConstraintSet *constraints, int level,
 			struct clast_stmt ***next, CloogInfos *infos);
-static void insert_scalar(CloogLoop *loop, int level, int *scalar, 
-			   struct clast_stmt ***next, CloogInfos *infos);
 static void insert_block(CloogBlock *block, int level,
 			  struct clast_stmt ***next, CloogInfos *infos);
 static void insert_loop(CloogLoop * loop, int level, int scalar,
@@ -455,12 +453,10 @@ static void clast_guard_sort(struct clast_guard *g)
 static int clast_equal_allow(CloogEqualities *equal, int level, int line,
 				CloogInfos *infos)
 { 
-  if ((!infos->options->csp && !infos->options->esp) ||
-      (level < infos->options->fsp))
+  if (level < infos->options->fsp)
   return 0 ;
   
-  if (infos->options->csp &&
-      (cloog_equal_type(equal, level) == EQTYPE_EXAFFINE) &&
+  if ((cloog_equal_type(equal, level) == EQTYPE_EXAFFINE) &&
       !infos->options->esp)
   return 0 ;
 
@@ -1333,53 +1329,6 @@ static void insert_for(CloogConstraintSet *constraints, int level,
 
 
 /**
- * insert_scalar function:
- * This function inserts assignments to the scalar values
- * that follows the level (level). It finds by scanning (loop) by inner level,
- * the first CloogBlock data structure (at this step, all blocks has the same
- * scalar vector information after (level)), and prints all the adjacent
- * scalar values following (level), if it is required by options in (info).
- * - loop is the loop structure to begin the search for a block,
- * - level is the current loop level,
- * - scalar points to the number of scalar values already visited,
- * - the infos structure gives the user options about code printing and more.
- **
- * - September 12th 2005: first version.
- */
-static void insert_scalar(CloogLoop *loop, int level, int *scalar,
-			  struct clast_stmt ***next, CloogInfos *infos)
-{ 
-  struct clast_block *b;
-  struct clast_term *t;
-  
-  if ((!infos->options->csp) &&
-      (level+(*scalar) <= infos->nb_scattdims) &&
-      (infos->scaldims[level+(*scalar)-1]))
-  { while (loop->block == NULL)
-    loop = loop->inner ;
-
-    while ((level+(*scalar) <= infos->nb_scattdims) &&
-           (infos->scaldims[level+(*scalar)-1])) { 
-      if (infos->options->block) {
-	  b = new_clast_block();
-	  **next = &b->stmt;
-	  *next = &b->body;
-      }
-      
-      t = new_clast_term(loop->block->scaldims[(*scalar)], NULL);
-      **next = &new_clast_assignment(infos->names->scalars[(*scalar)],
-		    &t->expr)->stmt;
-      *next = &(**next)->next;
-      (*scalar) ++ ;
-      
-    }
-  }
-  
-  return;
-}
-
-
-/**
  * insert_block function:
  * This function inserts a statement block.
  * - block is the statement block,
@@ -1473,11 +1422,6 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
 
     /* First of all we have to print the guard. */
     insert_guard(constraints,level, next, infos);
-
-    /* Then we print scalar dimensions. */ 
-    scalar_level = scalar ;
-    if (level)
-	insert_scalar(loop, level, &scalar, next, infos);
 
     if (level && cloog_constraint_set_contains_level(constraints, level,
 					infos->names->nb_parameters)) {
