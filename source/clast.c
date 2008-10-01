@@ -797,7 +797,7 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
       for (j = cloog_constraint_first(copy); cloog_constraint_is_valid(j);
 	   j = cloog_constraint_next(j))
 	if (cloog_constraint_involves(j, i-1) &&
-	    (!cloog_constraint_involves(j, level-1) || (nb_iter < level))) {
+	    ((nb_iter < level) || !cloog_constraint_involves(j, level-1))) {
 	  struct clast_term *t;
 	  if (i <= nb_iter)
 	  { if (i <= infos->names->nb_scattering)
