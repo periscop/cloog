@@ -847,8 +847,11 @@ CloogLoop * cloog_loop_merge(CloogLoop * loop, int nb_par, CloogOptions * option
   CloogLoop * res, * merge, * now, * Q, * P, * new_inner, * next, * old ;
   CloogDomain * new_domain, * temp ;
 
-  if ((loop == NULL) || (loop->next == NULL))
+  if (loop == NULL)
   return loop ;
+
+  if (loop->next == NULL)
+    return cloog_loop_disjoint(loop);
 
   cloog_int_init(one);
   cloog_int_set_si(one, 1);
