@@ -797,7 +797,8 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
       for (j = cloog_constraint_first(copy); cloog_constraint_is_valid(j);
 	   j = cloog_constraint_next(j))
 	if (cloog_constraint_involves(j, i-1) &&
-	    ((nb_iter < level) || !cloog_constraint_involves(j, level-1))) {
+	    (!level || (nb_iter < level) ||
+	     !cloog_constraint_involves(j, level-1))) {
 	  struct clast_term *t;
 	  if (i <= nb_iter)
 	  { if (i <= infos->names->nb_scattering)
@@ -809,7 +810,7 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 	  name = infos->names->parameters[i-(nb_iter+1)] ;
 	  
 	  g->eq[nb_and].LHS = &(t = new_clast_term(one, name))->expr;
-	  if (cloog_constraint_is_equality(j)) {
+	  if (!level || cloog_constraint_is_equality(j)) {
 	    /* put the "denominator" in the LHS */
 	    cloog_constraint_coefficient_get(j, i-1, &t->val);
 	    cloog_constraint_coefficient_set(j, i-1, one);
@@ -819,7 +820,12 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 	      cloog_constraint_coefficient_set(j, i-1, one);
 	      cloog_int_neg(one, one);
 	    }
-	    g->eq[nb_and].sign = 0;
+	    if (level || cloog_constraint_is_equality(j))
+	      g->eq[nb_and].sign = 0;
+	    else if (cloog_constraint_is_lower_bound(j, i-1))
+	      g->eq[nb_and].sign = 1;
+	    else
+	      g->eq[nb_and].sign = -1;
 	    g->eq[nb_and].RHS = clast_bound_from_constraint(j, i, infos->names);
 	  } else {
 	    if (cloog_constraint_is_lower_bound(j, i-1)) {
@@ -1382,7 +1388,8 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
     constraints = cloog_constraint_set_simplify(temp,infos->equal,level,
 				   infos->names->nb_parameters);
     cloog_constraint_set_free(temp);
-    cloog_int_set(infos->stride[level-1], loop->stride);
+    if (level)
+      cloog_int_set(infos->stride[level-1], loop->stride);
 
     /* First of all we have to print the guard. */
     insert_guard(constraints,level, next, infos);
@@ -1391,7 +1398,7 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
     scalar_level = scalar ;
     insert_scalar(loop,level,&scalar, next, infos);
 
-    if (cloog_constraint_set_contains_level(constraints, level,
+    if (level && cloog_constraint_set_contains_level(constraints, level,
 					infos->names->nb_parameters)) {
 	/* We scan all the constraints to know in which case we are :
 	 * [[if] equation] or [for].
@@ -1415,7 +1422,8 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
     if (loop->inner != NULL)
 	insert_loop(loop->inner, level+1,scalar, next, infos);
 
-    cloog_equal_del(infos->equal,level);
+    if (level)
+      cloog_equal_del(infos->equal,level);
     cloog_constraint_set_free(constraints);
 
     /* Go to the next loop on the same level. */
@@ -1450,7 +1458,7 @@ struct clast_stmt *cloog_clast_create(CloogProgram *program,
     infos->equal = cloog_equal_alloc(nb_levels,
 			       nb_levels, program->names->nb_parameters);
 	
-    insert_loop(program->loop, 1, 0, &next, infos);
+    insert_loop(program->loop, 0, 0, &next, infos);
 
     cloog_equal_free(infos->equal);
 

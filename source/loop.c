@@ -923,6 +923,10 @@ CloogLoop * cloog_loop_sort(CloogLoop * loop, int level, int nb_par)
 { CloogLoop * res, * now, * temp, ** loop_array ;
   CloogDomain **doms;
   int i, nb_loops=0, * permut ;
+
+  /* There is no need to sort the parameter domains. */
+  if (!level)
+    return loop;
   
   /* We will need to know how many loops are in the list. */
   temp = loop ;
@@ -1370,9 +1374,9 @@ CloogOptions * options ;
   /* 4. Recurse for each loop with the current domain as context. */
   temp = res ;
   res = NULL ;
-  if ((level+scalar < options->l) || (options->l < 0))
+  if (!level || (level+scalar < options->l) || (options->l < 0))
   while(temp != NULL)
-  { if (options->strides)
+  { if (level && options->strides)
     cloog_loop_stride(temp,level,nb_par) ;
     inner = temp->inner ;
     domain = temp->domain ;
@@ -1423,7 +1427,7 @@ CloogOptions * options ;
    *    the example called linearity-1-1 example with and without this part
    *    for an idea.
    */
-  if ((!options->nobacktrack) &&
+  if ((!options->nobacktrack) && level &&
       ((level+scalar < options->l) || (options->l < 0)) &&
       ((options->f <= level+scalar) && !(options->f < 0)))
   res = cloog_loop_generate_backtrack(res,context,level,nb_par,options) ;
@@ -1579,7 +1583,7 @@ CloogOptions * options ;
    * current dimension is scalar (simplified processing) or not (general
    * processing).
    */
-  if ((level+scalar <= nb_scattdims) && (scaldims[level+scalar-1]))
+  if (level && (level+scalar <= nb_scattdims) && (scaldims[level+scalar-1]))
   res = cloog_loop_generate_scalar(res,context,level,scalar,
                                    scaldims,nb_scattdims,nb_par,options) ;
   else

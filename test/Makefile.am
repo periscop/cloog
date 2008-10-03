@@ -48,6 +48,9 @@ FORCE:
 ROOT = ..
 
 FINITE_CLOOGTEST_C =                   \
+	0D-1                           \
+	0D-2                           \
+	0D-3                           \
 	1point-1                       \
 	1point-2                       \
 	4-param                        \

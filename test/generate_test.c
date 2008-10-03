@@ -87,6 +87,7 @@ int main()
 	cloog_domain_free(tmp);
 	cloog_domain_free(cube);
 
+	options->cpp = 1;
 	p = cloog_program_malloc();
 	assert(p);
 	p->names = cloog_names_malloc();
@@ -100,6 +101,7 @@ int main()
 	p->loop->domain = domain;
 	p->loop->block = cloog_block_alloc(statement, 0, NULL, dim);
 	p->blocklist = cloog_block_list_alloc(p->loop->block);
+	p = cloog_program_generate(p, options);
 
 	printf("%s", preamble);
 	for (i = 0; i < dim; ++i)
@@ -124,14 +126,7 @@ int main()
 	}
 	printf(" assert(h_good == h_test);");
 	printf(" } while (0)\n");
-	/* ClooG currently doesn't handle 0D problems very well. */
-	if (dim == 0)
-		printf("S1();\n");
-	else {
-		p = cloog_program_generate(p, options);
-		options->cpp = 1;
-		cloog_program_pprint(stdout, p, options);
-	}
+	cloog_program_pprint(stdout, p, options);
 	printf("%s", postamble);
 
 	cloog_int_clear(m);

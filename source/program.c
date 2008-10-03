@@ -769,7 +769,7 @@ CloogOptions * options ;
   { loop = program->loop ;
     
     /* Here we go ! */
-    loop = cloog_loop_generate(loop, program->context, 1, 0,
+    loop = cloog_loop_generate(loop, program->context, 0, 0,
                                program->scaldims,
 			       program->nb_scattdims,
                                cloog_domain_dimension(program->context),
