@@ -80,7 +80,7 @@ CloogDomain * cloog_domain_union(CloogDomain *, CloogDomain *) ;
 CloogDomain * cloog_domain_intersection(CloogDomain *, CloogDomain *) ;
 CloogDomain * cloog_domain_difference(CloogDomain *, CloogDomain *) ;
 void          cloog_domain_sort(CloogDomain**,unsigned,unsigned,unsigned,int *);
-CloogDomain * cloog_domain_empty(CloogDomain *template);
+CloogDomain * cloog_domain_empty(CloogDomain *model);
 
 
 /******************************************************************************
