@@ -39,12 +39,6 @@
 # include <string.h>
 # include "../include/cloog/cloog.h"
 
-/**
- * Maximum number of rays in the dual representation of PolyLib, see
- * domain.c for the original declaration.
- */
-extern int MAX_RAYS ;
-
 
 /******************************************************************************
  *                          Structure display function                        *
@@ -343,21 +337,6 @@ CloogOptions ** options ;
       cloog_options_set(&(*options)->callable, argv, argc, &i);
       (*options)->cpp = 1;
     } else
-    if (strcmp(argc[i],"-rays") == 0)
-    { if (i+1 >= argv)
-      { fprintf(stderr, "[CLooG]ERROR: an option lacks of argument.\n") ;
-        exit(1) ;
-      }
-
-      MAX_RAYS = atoi(argc[i+1]) ;
-      if (MAX_RAYS < 1)
-      { fprintf(stderr, "[CLooG]ERROR: %s value for %s option is not valid.\n",
-                argc[i+1],argc[i]) ;
-        exit(1) ;
-      }
-      i++ ;
-    } 
-    else
     if (strcmp(argc[i],"-loopo") == 0) /* Special option for the LooPo team ! */
     { (*options)->esp   = 0 ;
       (*options)->csp   = 0 ;
@@ -366,9 +345,7 @@ CloogOptions ** options ;
     }
     else
     if (strcmp(argc[i],"-bipbip") == 0)/* Special option for the author only !*/
-    { (*options)->nobacktrack = 1 ;
-      MAX_RAYS = 50 ;
-    }
+      (*options)->nobacktrack = 1 ;
     else
     if (strcmp(argc[i],"-leaks") == 0)
     (*options)->leaks = 1 ;
