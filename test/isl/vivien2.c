@@ -1,4 +1,4 @@
-/* Generated from ../../git/cloog/test/vivien2.cloog by CLooG 0.14.0-118-g5555df6 gmp bits in 1.37s. */
+/* Generated from ../../git/cloog/test/vivien2.cloog by CLooG 0.14.0-121-gb84d25f gmp bits in 1.07s. */
 for (p1=-54*n+4;p1<=4;p1++) {
   if (p1%2 == 0) {
     i = (p1-2)/2 ;
@@ -37,7 +37,7 @@ S5(i = 2,j = 3,k = 1) ;
 S6(i = 2,j = 3) ;
 S1(i = 4) ;
 S6(i = 1,j = 4) ;
-for (p1=11;p1<=12;p1++) {
+for (p1=11;p1<=13;p1++) {
   p2 = floord(-p1+5,4) ;
   if (p1%2 == 0) {
     j = (p1+2*p2)/2 ;
@@ -59,6 +59,10 @@ for (p1=11;p1<=12;p1++) {
     j = (p1-4)/2 ;
     S6(i = 2) ;
   }
+  if ((p1+3)%4 == 0) {
+    i = (p1-1)/4 ;
+    S3 ;
+  }
   if (p1%2 == 0) {
     i = (p1-2)/2 ;
     S1 ;
@@ -74,13 +78,10 @@ for (p1=11;p1<=12;p1++) {
   for (p2=2;p2<=floord(p1-3,4);p2++) {
     if ((p1+1)%2 == 0) {
       i = (p1-2*p2-1)/2 ;
-      S2(j = 2) ;
+      S2(j = p2) ;
     }
   }
 }
-S3(i = 3) ;
-S2(i = 5,j = 1) ;
-S2(i = 4,j = 2) ;
 for (p1=14;p1<=2*n+2;p1++) {
   p2 = floord(-p1+5,4) ;
   if (p1%2 == 0) {

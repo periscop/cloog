@@ -680,7 +680,7 @@ CloogLoop * cloog_loop_concat(CloogLoop * a, CloogLoop * b)
  *                        The problem was visible with test/iftest2.cloog.
  */ 
 CloogLoop * cloog_loop_separate(CloogLoop * loop)
-{ int first, lazy_equal=0, lazy_disjoint=0 ;
+{ int first, lazy_equal=0, disjoint = 0;
   cloog_int_t one;
   CloogLoop * new_loop, * new_inner, * res, * now, * temp, * Q, 
             * inner, * old /*, * previous, * next*/  ;
@@ -711,7 +711,7 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
     while (Q != NULL)
     { if (Q->block == NULL)
       { /* Add (Q inter loop). */
-        if((lazy_disjoint=cloog_domain_lazy_disjoint(Q->domain,loop->domain)))
+        if ((disjoint = cloog_domain_lazy_disjoint(Q->domain,loop->domain)))
 	domain = NULL ;
 	else
 	{ if ((lazy_equal = cloog_domain_lazy_equal(Q->domain,loop->domain)))
@@ -725,12 +725,14 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
 	    new_loop = cloog_loop_alloc(domain,one,NULL,new_inner,NULL) ;
             cloog_loop_add_disjoint(&temp,&now,new_loop) ;
           }
-          else
-          cloog_domain_free(domain) ;
+          else {
+	    disjoint = 1;
+	    cloog_domain_free(domain);
+	  }
         }
         
 	/* Add (Q - loop). */
-        if (lazy_disjoint)
+        if (disjoint)
 	domain = cloog_domain_copy(Q->domain) ;
 	else
 	{ if (lazy_equal)
