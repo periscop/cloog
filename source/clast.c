@@ -1396,7 +1396,8 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
 
     /* Then we print scalar dimensions. */ 
     scalar_level = scalar ;
-    insert_scalar(loop,level,&scalar, next, infos);
+    if (level)
+	insert_scalar(loop, level, &scalar, next, infos);
 
     if (level && cloog_constraint_set_contains_level(constraints, level,
 					infos->names->nb_parameters)) {
