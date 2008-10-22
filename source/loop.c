@@ -680,7 +680,7 @@ CloogLoop * cloog_loop_concat(CloogLoop * a, CloogLoop * b)
  *                        The problem was visible with test/iftest2.cloog.
  */ 
 CloogLoop * cloog_loop_separate(CloogLoop * loop)
-{ int first, lazy_equal=0, disjoint = 0;
+{ int lazy_equal=0, disjoint = 0;
   cloog_int_t one;
   CloogLoop * new_loop, * new_inner, * res, * now, * temp, * Q, 
             * inner, * old /*, * previous, * next*/  ;
@@ -702,15 +702,12 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
   old = loop ;
   while((loop = loop->next) != NULL)
   { temp = NULL ;
-    first = 1 ;
     
     /* For all Q, add Q-loop associated with the blocks of Q alone,
      * and Q inter loop associated with the blocks of Q and loop.
      */
-    Q = res ;
-    while (Q != NULL)
-    { if (Q->block == NULL)
-      { /* Add (Q inter loop). */
+    for (Q = res; Q; Q = Q->next) {
+        /* Add (Q inter loop). */
         if ((disjoint = cloog_domain_lazy_disjoint(Q->domain,loop->domain)))
 	domain = NULL ;
 	else
@@ -750,12 +747,8 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
 	  /* If Q->inner is no more useful, we can free it. */
           inner = Q->inner ;
           Q->inner = NULL ;
-          if (first) /* For the first Q, inner is also old->inner. */
-          old->inner = NULL ;
           cloog_loop_free(inner) ;
         }
-      }
-      Q = Q->next ;
     }
 
     /* Add loop-UQ associated with the blocks of loop alone.*/
@@ -787,7 +780,6 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
     cloog_domain_free(old_UQ) ;
     cloog_loop_free_parts(res,1,0,0,1) ;
 
-    first = 0 ;
     res = temp ;
   }  
   cloog_loop_free_parts(old,1,0,0,1) ;
