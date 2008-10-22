@@ -8,7 +8,7 @@ IF (n >= 1) THEN
       S1(i = 1,j = n)
     END IF
   END DO
-  IF ((n >= 2) .AND. (n <= 2)) THEN
+  IF ((n <= 2) .AND. (n >= 2)) THEN
     t1 = -n+2
     DO t2=-n+4, 3*n-2
       DO t3=t2+2, t2+2*n

@@ -384,6 +384,31 @@ static void clast_reduction_sort(struct clast_reduction *r)
     qsort(&r->elts[0], r->n, sizeof(struct clast_expr *), qsort_expr_cmp);
 }
 
+static int qsort_eq_cmp(const void *p1, const void *p2)
+{
+    struct clast_equation *eq1 = (struct clast_equation *)p1;
+    struct clast_equation *eq2 = (struct clast_equation *)p2;
+    int cmp;
+
+    cmp = clast_expr_cmp(eq1->LHS, eq2->LHS);
+    if (cmp)
+	return cmp;
+
+    cmp = clast_expr_cmp(eq1->RHS, eq2->RHS);
+    if (cmp)
+	return cmp;
+
+    return eq1->sign - eq2->sign;
+}
+
+/**
+ * Sort equations in a clast_guard.
+ */
+static void clast_guard_sort(struct clast_guard *g)
+{
+    qsort(&g->eq[0], g->n, sizeof(struct clast_equation), qsort_eq_cmp);
+}
+
 
 /******************************************************************************
  *                        Equalities spreading functions                      *
@@ -859,6 +884,7 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
   
   g->n = nb_and;
   if (nb_and) {
+    clast_guard_sort(g);
     **next = &g->stmt;
     *next = &g->then;
   } else
