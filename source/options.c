@@ -34,11 +34,69 @@
  ******************************************************************************/
 
 
+#include <stdarg.h>
 # include <stdlib.h>
 # include <stdio.h>
 # include <string.h>
 # include "../include/cloog/cloog.h"
 
+
+/******************************************************************************
+ *                          Error reporting functions                         *
+ ******************************************************************************/
+
+void cloog_vmsg(CloogOptions *options, enum cloog_msg_type type,
+		const char *msg, va_list ap)
+{
+  const char *type_msg;
+
+  if (options && options->quiet &&
+      (type == CLOOG_WARNING || type == CLOOG_INFO))
+    return;
+
+  switch(type) {
+  case CLOOG_WARNING:
+	type_msg = "WARNING";
+	break;
+  case CLOOG_INFO:
+	type_msg = "INFO";
+	break;
+  case CLOOG_ERROR:
+  default:
+	type_msg = "ERROR";
+	break;
+  }
+  fprintf(stderr, "[CLooG] %s: ", type_msg);
+  vfprintf(stderr, msg, ap);
+}
+
+/**
+ * Print message to stderr.
+ * @param msg printf format string
+ */
+void cloog_msg(CloogOptions *options, enum cloog_msg_type type,
+		const char *msg, ...)
+{
+  va_list args;
+
+  va_start(args, msg);
+  cloog_vmsg(options, type, msg, args);
+  va_end(args);
+}
+
+/**
+ * Print error message to stderr and exit.
+ * @param msg printf format string
+ */
+void cloog_die(const char *msg, ...)
+{
+  va_list args;
+
+  va_start(args, msg);
+  cloog_vmsg(NULL, CLOOG_ERROR, msg, args);
+  va_end(args);
+  exit(1);
+}
 
 /******************************************************************************
  *                          Structure display function                        *
@@ -148,6 +206,7 @@ void cloog_options_help()
   "                        value: when used, output is standard output\n"
   "                        (default setting: stdout).\n"
   "  -v, --version         Display the version information (and more).\n"
+  "  -q, --quiet           Don't print any informational messages.\n"
   "  -h, --help            Display this information.\n\n") ;
   printf(
   "The special value 'stdin' for 'file' makes CLooG to read data on\n"
@@ -209,17 +268,13 @@ void cloog_options_set(int * option, int argv, char ** argc, int * number)
 { char ** endptr ;
   
   if (*number+1 >= argv)
-  { fprintf(stderr, "[CLooG]ERROR: an option lacks of argument.\n") ;
-    exit(1) ;
-  }
+    cloog_die("an option lacks of argument.\n");
 
   endptr = NULL ;
   *option = strtol(argc[*number+1],endptr,10) ;
   if (endptr != NULL)
-  { fprintf(stderr, "[CLooG]ERROR: %s value for %s option is not valid.\n",
-            argc[*number+1],argc[*number]) ;
-    exit(1) ;
-  }
+    cloog_die("value '%s' for option '%s' is not valid.\n",
+	      argc[*number+1], argc[*number]);
   *number = *number + 1 ;
 }
 
@@ -238,9 +293,7 @@ CloogOptions * cloog_core_options_malloc(void)
   /* Memory allocation for the CloogOptions structure. */
   options = (CloogOptions *)malloc(sizeof(CloogOptions)) ;
   if (options == NULL) 
-  { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-    exit(1) ;
-  } 
+    cloog_die("memory overflow.\n");
   
   /* We set the various fields with default values. */
   options->backend     = NULL;
@@ -260,6 +313,7 @@ CloogOptions * cloog_core_options_malloc(void)
   options->cpp         =  0 ;  /* No preprocessing facilities. */
   options->compilable  =  0 ;  /* No compilable code. */
   options->callable    =  0 ;  /* No callable code. */
+  options->quiet       =  0;   /* Do print informational messages. */
   /* UNDOCUMENTED OPTIONS FOR THE AUTHOR ONLY */
   options->leaks       =  0 ;  /* I don't want to print allocation statistics.*/
   options->nobacktrack =  0 ;  /* No backtrack in Quillere's algorithm.*/
@@ -376,13 +430,12 @@ CloogOptions ** options ;
     if ((strcmp(argc[i],"--version") == 0) || (strcmp(argc[i],"-v") == 0))
     { cloog_options_version() ;
       infos = 1 ;
-    }
+    } else if ((strcmp(argc[i],"--quiet") == 0) || (strcmp(argc[i],"-q") == 0))
+      (*options)->quiet = 1;
     else
     if (strcmp(argc[i],"-o") == 0)
     { if (i+1 >= argv)
-      { fprintf(stderr, "[CLooG]ERROR: no output name for -o option.\n") ;
-        exit(1) ;
-      }
+        cloog_die("no output name for -o option.\n");
 
       /* stdout is a special value, when used, we set output to standard
        * output.
@@ -392,15 +445,12 @@ CloogOptions ** options ;
       else
       { *output = fopen(argc[i+1],"w") ;
         if (*output == NULL)
-        { fprintf(stderr, "[CLooG]ERROR: can't create output file %s.\n",
-	          argc[i+1]) ;
-          exit(1) ;
-        }
+          cloog_die("can't create output file %s.\n", argc[i+1]);
       }
       i ++ ;    
     }
     else
-    fprintf(stderr, "[CLooG]WARNING: unknown %s option.\n",argc[i]) ;
+      cloog_msg(*options, CLOOG_WARNING, "unknown %s option.\n", argc[i]);
   }
   else
   { if (!input_is_set)
@@ -412,19 +462,15 @@ CloogOptions ** options ;
       else
       { *input = fopen(argc[i],"r") ;
         if (*input == NULL)
-        { fprintf(stderr, "[CLooG]ERROR: %s file does not exist.\n",argc[i]) ;
-          exit(1) ;
-        }
+          cloog_die("%s file does not exist.\n", argc[i]);
       }
     } 
     else
-    { fprintf(stderr, "[CLooG]ERROR: multiple input files.\n") ;
-      exit(1) ;
-    }
+      cloog_die("multiple input files.\n");
   }
   if (!input_is_set)
   { if (!infos)
-    fprintf(stderr, "[CLooG]ERROR: no input file (-h for help).\n") ;
+      cloog_die("no input file (-h for help).\n");
     exit(1) ;
   }
 }

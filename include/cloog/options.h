@@ -109,6 +109,7 @@ struct cloogoptions
 #ifdef CLOOG_MEMORY
   int memory ;    /* Memory spent for code generation in kilobytes. */
 #endif
+  int quiet;      /* Don't print any informational messages. */
   /* UNDOCUMENTED OPTIONS FOR THE AUTHOR ONLY */
   int leaks ;     /* 1 if I want to print the allocation statistics,
                    * 0 otherwise.
@@ -126,6 +127,17 @@ struct cloogoptions
   int noscalars ; /* 1 if I don't want to use scalar dimensions, 0 otherwise. */
   int nosimplify; /* 1 if I don't want to simplify polyhedra, 0 otherwise. */
 } ;
+
+
+/******************************************************************************
+ *                          Error reporting functions                         *
+ ******************************************************************************/
+
+enum cloog_msg_type { CLOOG_ERROR, CLOOG_WARNING, CLOOG_INFO };
+
+void cloog_msg(CloogOptions *options, enum cloog_msg_type type,
+		const char *msg, ...);
+void cloog_die(const char *msg, ...);
 
 
 /******************************************************************************

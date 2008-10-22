@@ -310,10 +310,8 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
     if (f->LB) {
 	fprintf(dst, "%s=", f->iterator);
 	pprint_expr(options, dst, f->LB);
-    } else if (options->language == LANGUAGE_FORTRAN) {
-	fprintf(stderr,"[CLooG]ERROR: unbounded loops not allowed in FORTRAN.\n");
-	exit(1);
-    }
+    } else if (options->language == LANGUAGE_FORTRAN)
+	cloog_die("unbounded loops not allowed in FORTRAN.\n");
 
     if (options->language == LANGUAGE_FORTRAN)
 	fprintf(dst,", ");
@@ -324,10 +322,8 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
 	if (options->language != LANGUAGE_FORTRAN)
 	    fprintf(dst,"%s<=", f->iterator);
 	pprint_expr(options, dst, f->UB);
-    } else if (options->language == LANGUAGE_FORTRAN) {
-	fprintf(stderr,"[CLooG]ERROR: unbounded loops not allowed in FORTRAN.\n");
-	exit(1);
-    }
+    } else if (options->language == LANGUAGE_FORTRAN)
+	cloog_die("unbounded loops not allowed in FORTRAN.\n");
 
     if (options->language == LANGUAGE_FORTRAN) {
 	if (cloog_int_gt_si(f->stride, 1))

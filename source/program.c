@@ -382,7 +382,7 @@ CloogOptions * options ;
 		options->name, cloog_version(), options->time);
 #ifdef CLOOG_MEMORY
   print_comment(file, options, "CLooG asked for %d KBytes.", options->memory);
-  fprintf(stderr, "[CLooG]INFO: %.2fs and %dKB used for code generation.\n",
+  cloog_msg(CLOOG_INFO, "%.2fs and %dKB used for code generation.\n",
 	  options->time,options->memory);
 #endif
   
@@ -520,10 +520,8 @@ static CloogScatteringList *cloog_scattering_list_read(FILE * foo,
     if (nb_scat == 0)
 	return NULL;
 
-    if (nb_scat > nb_statements) {
-	fprintf(stderr, "[CLooG]ERROR: too many scattering functions.\n");
-	exit(1);
-    }
+    if (nb_scat > nb_statements)
+	cloog_die("too many scattering functions.\n");
 
     while (nb_scat--) {
 	*next = (CloogScatteringList *)malloc(sizeof(CloogScatteringList));
@@ -616,9 +614,8 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
     
     if (scatteringl != NULL)
     { if (cloog_scattering_list_lazy_same(scatteringl))
-      { fprintf(stderr, "[CLooG]WARNING: some scattering functions are "
-                        "similar.\n") ;
-      }
+        cloog_msg(options, CLOOG_WARNING,
+			"some scattering functions are similar.\n");
       
       p->nb_scattdims = cloog_scattering_dimension(scatteringl->domain,
 							    p->loop->domain);
@@ -628,19 +625,17 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
       /* The boolean array for scalar dimensions is created and set to 0. */
       p->scaldims = (int *)malloc(p->nb_scattdims*(sizeof(int))) ;
       if (p->scaldims == NULL) 
-      { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-        exit(1) ;
-      }
+	cloog_die("memory overflow.\n");
       for (i=0;i<p->nb_scattdims;i++)
       p->scaldims[i] = 0 ;
       
       /* We try to find blocks in the input problem to reduce complexity. */
       if (!options->noblocks)
-      cloog_program_block(p,scatteringl) ;
+	cloog_program_block(p, scatteringl, options);
       if (!options->noscalars)
-      cloog_program_extract_scalars(p,scatteringl) ;
+	cloog_program_extract_scalars(p, scatteringl, options);
       
-      cloog_program_scatter(p,scatteringl) ;
+      cloog_program_scatter(p, scatteringl, options);
       cloog_scattering_list_free(scatteringl);
     }
     else
@@ -682,9 +677,7 @@ CloogProgram * cloog_program_malloc()
   /* Memory allocation for the CloogProgram structure. */
   program = (CloogProgram *)malloc(sizeof(CloogProgram)) ;
   if (program == NULL) 
-  { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-    exit(1) ;
-  }
+    cloog_die("memory overflow.\n");
   
   /* We set the various fields with default values. */
   program->language     = 'c' ;
@@ -727,8 +720,9 @@ CloogOptions * options ;
 #endif
 
   if (options->override)
-  { fprintf(stderr,
-    "[CLooG]WARNING: you are using -override option, be aware that the "
+  {
+    cloog_msg(options, CLOOG_WARNING,
+    "you are using -override option, be aware that the "
     "generated\n                code may be incorrect.\n") ;
   }
   else
@@ -738,8 +732,9 @@ CloogOptions * options ;
      *    it is the case, we set -l depth to the first acceptable value.
      */
     if ((program->nb_scattdims > options->l) && (options->l >= 0))
-    { fprintf(stderr,
-      "[CLooG]WARNING: -l depth is less than the scattering dimension number "
+    {
+      cloog_msg(options, CLOOG_WARNING,
+      "-l depth is less than the scattering dimension number "
       "(the \n                generated code may be incorrect), it has been "
       "automaticaly set\n                to this value (use option -override "
       "to override).\n") ;
@@ -754,8 +749,9 @@ CloogOptions * options ;
      */
     if (((options->f > 1) || (options->f < 0)) &&
         ((options->l > program->nb_scattdims) || (options->l < 0)))
-    { fprintf(stderr,
-      "[CLooG]WARNING: -f depth is more than one, -l depth has been "
+    {
+      cloog_msg(options, CLOOG_WARNING,
+      "-f depth is more than one, -l depth has been "
       "automaticaly set\n                to the scattering dimension number "
       "(target code may have\n                duplicated iterations), -l depth "
       "has been automaticaly set to\n                this value (use option "
@@ -818,7 +814,8 @@ CloogOptions * options ;
  * - April   30th 2005: first attempt.
  * - June 10-11th 2005: first working version.
  */
-void cloog_program_block(CloogProgram * program, CloogScatteringList * scattering)
+void cloog_program_block(CloogProgram *program,
+	CloogScatteringList *scattering, CloogOptions *options)
 { int blocked_reference=0, blocked=0, nb_blocked=0 ;
   CloogLoop * reference, * start, * loop ;
   CloogScatteringList * scatt_reference, * scatt_loop, * scatt_start;
@@ -925,7 +922,7 @@ void cloog_program_block(CloogProgram * program, CloogScatteringList * scatterin
   }
   
   if (nb_blocked != 0)
-  fprintf(stderr, "[CLooG]INFO: %d domains have been blocked.\n",nb_blocked) ;
+    cloog_msg(options, CLOOG_INFO, "%d domains have been blocked.\n", nb_blocked);
 }
 
 
@@ -943,9 +940,8 @@ void cloog_program_block(CloogProgram * program, CloogScatteringList * scatterin
  * - June 14th 2005: first developments.
  * - June 30th 2005: first version.
  */ 
-void cloog_program_extract_scalars(program, scattering)
-CloogProgram * program ;
-CloogScatteringList * scattering ;
+void cloog_program_extract_scalars(CloogProgram *program,
+	CloogScatteringList *scattering, CloogOptions *options)
 { int i, j, scalar, current, nb_scaldims=0 ;
   CloogScatteringList *start;
   CloogScattering *old;
@@ -1004,9 +1000,7 @@ CloogScatteringList * scattering ;
       if (!cloog_scattering_lazy_isscalar(scattering->domain, i,
 						&block->scaldims[current])) {
 	/* We should have found a scalar value: if not, there is an error. */
-	fprintf(stderr,
-		"[CLooG]ERROR: dimension %d is not scalar as expected.\n", i);
-	exit(0);
+	cloog_die("dimension %d is not scalar as expected.\n", i);
       }
       blocklist = blocklist->next ;
       scattering = scattering->next ;
@@ -1037,7 +1031,7 @@ CloogScatteringList * scattering ;
   }
   
   if (nb_scaldims != 0)
-  fprintf(stderr, "[CLooG]INFO: %d dimensions (over %d) are scalar.\n",
+    cloog_msg(options, CLOOG_INFO, "%d dimensions (over %d) are scalar.\n",
           nb_scaldims,program->nb_scattdims) ;
 }
 
@@ -1050,7 +1044,7 @@ CloogScatteringList * scattering ;
  * - November 6th 2001: first version. 
  */
 void cloog_program_scatter(CloogProgram *program,
-				CloogScatteringList *scattering)
+			CloogScatteringList *scattering, CloogOptions *options)
 { int scattering_dim, scattering_dim2, not_enough_constraints=0 ;
   CloogLoop * loop ;
   
@@ -1061,9 +1055,7 @@ void cloog_program_scatter(CloogProgram *program,
     scattering_dim = cloog_scattering_dimension(scattering->domain,
 							     loop->domain);
     if (scattering_dim < 0)
-    { fprintf(stderr, "[CLooG]ERROR: scattering has not enough dimensions.\n") ;
-      exit(1) ;
-    }
+      cloog_die("scattering has not enough dimensions.\n");
     if (!cloog_scattering_fully_specified(scattering->domain, loop->domain))
     not_enough_constraints ++ ;
          
@@ -1080,10 +1072,7 @@ void cloog_program_scatter(CloogProgram *program,
     { scattering_dim2 = cloog_scattering_dimension(scattering->domain,
 								loop->domain);
       if (scattering_dim2 != scattering_dim)
-      { fprintf(stderr, "[CLooG]ERROR: "
-                        "scattering dimensions are not the same.\n") ;
-        exit(1) ;
-      }
+        cloog_die("scattering dimensions are not the same.\n") ;
       if (!cloog_scattering_fully_specified(scattering->domain, loop->domain))
       not_enough_constraints ++ ;
       
@@ -1092,11 +1081,11 @@ void cloog_program_scatter(CloogProgram *program,
       scattering = scattering->next ;
     }
     if ((loop != NULL) || (scattering != NULL))
-    fprintf(stderr, "[CLooG]WARNING: "
+      cloog_msg(options, CLOOG_WARNING,
                     "there is not a scattering for each statement.\n");
     
     if (not_enough_constraints)
-    fprintf(stderr, "[CLooG]WARNING: not enough constraints for "
+      cloog_msg(options, CLOOG_WARNING, "not enough constraints for "
                     "%d scattering function(s).\n",not_enough_constraints) ;
   }
 }

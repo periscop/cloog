@@ -767,9 +767,7 @@ CloogDomain * cloog_domain_malloc()
   
   domain = (CloogDomain *)malloc(sizeof(CloogDomain)) ;
   if (domain == NULL) 
-  { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-    exit(1) ;
-  }
+    cloog_die("memory overflow.\n");
   cloog_domain_leak_up() ;
   
   /* We set the various fields with default values. */

@@ -249,7 +249,7 @@ test_run: generate_test$(EXEEXT)
 	for x in $(FINITE_CLOOGTEST_C) ; do \
 		echo -n "Verify file $$x... " ; \
 		echo -n "generating... " ; \
-		$(top_builddir)/cloog$(EXEEXT) -callable 1 $(srcdir)/$$x.cloog > test_test.c 2> /dev/null; \
+		$(top_builddir)/cloog$(EXEEXT) -q -callable 1 $(srcdir)/$$x.cloog > test_test.c ; \
 		./generate_test$(EXEEXT) < $(srcdir)/$$x.cloog > test_main.c; \
 		echo -n "compiling... " ; \
 		$(COMPILE) -c test_test.c; \
@@ -267,7 +267,7 @@ test_run: generate_test$(EXEEXT)
 	(echo -e $(SPECIAL_OPTIONS)) | while read x options; do \
 		echo -n "Verify file $$x ($$options)... " ; \
 		echo -n "generating... " ; \
-		$(top_builddir)/cloog$(EXEEXT) -callable 1 $$options $(srcdir)/$$x.cloog > test_test.c 2> /dev/null; \
+		$(top_builddir)/cloog$(EXEEXT) -q -callable 1 $$options $(srcdir)/$$x.cloog > test_test.c ; \
 		./generate_test$(EXEEXT) < $(srcdir)/$$x.cloog > test_main.c; \
 		echo -n "compiling... " ; \
 		$(COMPILE) -c test_test.c; \
@@ -285,7 +285,7 @@ test_run: generate_test$(EXEEXT)
 	(echo -e $(SPECIAL_OPTIONS)) | while read x options; do \
 		echo -n "Verify file $$x ($$options -sh 1)... " ; \
 		echo -n "generating... " ; \
-		$(top_builddir)/cloog$(EXEEXT) -callable 1 $$options -sh 1 $(srcdir)/$$x.cloog > test_test.c 2> /dev/null; \
+		$(top_builddir)/cloog$(EXEEXT) -q -callable 1 $$options -sh 1 $(srcdir)/$$x.cloog > test_test.c ; \
 		./generate_test$(EXEEXT) < $(srcdir)/$$x.cloog > test_main.c; \
 		echo -n "compiling... " ; \
 		$(COMPILE) -c test_test.c; \

@@ -290,15 +290,11 @@ char * prefix, first_item ;
   { /* Memory allocation. */
     names = (char **)malloc(nb_items*sizeof(char *)) ;
     if (names == NULL) 
-    { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-      exit(1) ;
-    }
+      cloog_die("memory overflow.\n");
     for (i=0;i<nb_items;i++)
     { names[i] = (char *)malloc(MAX_NAME*sizeof(char)) ;
       if (names[i] == NULL) 
-      { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-        exit(1) ;
-      }
+	cloog_die("memory overflow.\n");
     }
     
     do  /* Skip the comments, spaces and empty lines... */
@@ -309,22 +305,16 @@ char * prefix, first_item ;
     while (c != NULL && (*c == '#' || *c == '\n'));
     
     if (c == NULL) 
-    { fprintf(stderr, "[CLooG]ERROR: no names in input file.\n") ;
-      exit(1) ;
-    }
+      cloog_die("no names in input file.\n");
     for (i=0;i<nb_items;i++) 
     { /* All names must be on the same line. */
       while (isspace(*c))
       c++ ;
       if (!*c || *c == '#' || *c == '\n')
-      { fprintf(stderr, "[CLooG]ERROR: not enough names in input file.\n") ;
-        exit(1) ;
-      }
+        cloog_die("not enough names in input file.\n");
       /* n is strlen(str). */
       if (sscanf(c,"%s%n",str,&n) == 0) 
-      { fprintf(stderr, "[CLooG]ERROR: no names in input file.\n") ;
-        exit(1) ;
-      }
+        cloog_die("no names in input file.\n");
       sscanf(str,"%s",names[i]) ;
       c += n ;
     }
@@ -355,9 +345,7 @@ CloogNames * cloog_names_malloc()
   /* Memory allocation for the CloogNames structure. */
   names = (CloogNames *)malloc(sizeof(CloogNames)) ;
   if (names == NULL) 
-  { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-    exit(1) ;
-  }
+    cloog_die("memory overflow.\n");
   
   /* We set the various fields with default values. */
   names->nb_scalars    = 0 ;
@@ -429,15 +417,11 @@ char ** cloog_names_generate_items(int nb_items, char * prefix, char first_item)
     
   names = (char **)malloc(nb_items*sizeof(char *)) ;
   if (names == NULL) 
-  { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-    exit(1) ;
-  }
+    cloog_die("memory overflow.\n");
   for (i=0;i<nb_items;i++)
   { names[i] = (char *)malloc(MAX_NAME*sizeof(char)) ;
     if (names[i] == NULL) 
-    { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-      exit(1) ;
-    }
+      cloog_die("memory overflow.\n");
     if (prefix == NULL)
     sprintf(names[i],"%c",first_item+i) ;
     else
@@ -480,9 +464,7 @@ char first_s,    first_t,       first_i,      first_p ;
 
   names = (CloogNames *)malloc(sizeof(CloogNames)) ;
   if (names == NULL) 
-  { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-    exit(1) ;
-  }
+    cloog_die("memory overflow.\n");
   
   names->nb_scalars    = nb_scalars ;
   names->nb_scattering = nb_scattering ;
@@ -521,14 +503,10 @@ void cloog_names_scalarize(CloogNames * names, int nb_scattdims, int * scaldims)
   nb_scattering = names->nb_scattering - nb_scalars ;
   scattering = (char **)malloc(nb_scattering * sizeof(char *)) ;
   if (scattering == NULL) 
-  { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-    exit(1) ;
-  }
+    cloog_die("memory overflow.\n");
   scalars = (char **)malloc(nb_scalars * sizeof(char *)) ;
   if (scalars == NULL) 
-  { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-    exit(1) ;
-  }
+    cloog_die("memory overflow.\n");
   
   current_scalar = 0 ;
   current_scattering  = 0 ;

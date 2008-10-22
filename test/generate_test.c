@@ -63,12 +63,14 @@ int main()
 	int range;
 	int i, j;
 	CloogOptions *options = cloog_options_malloc();
-	CloogDomain *domain = get_param_domain(options);
+	CloogDomain *domain;
 	CloogDomain *cube, *tmp;
 	CloogProgram *p;
 	CloogStatement *statement;
 	cloog_int_t m, M;
 
+	options->quiet = 1;
+	domain = get_param_domain(options);
 	dim = cloog_domain_dimension(domain);
 
 	if (dim >= 8)

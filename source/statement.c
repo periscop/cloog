@@ -178,9 +178,7 @@ CloogStatement * cloog_statement_malloc()
   /* Memory allocation for the CloogStatement structure. */
   statement = (CloogStatement *)malloc(sizeof(CloogStatement)) ;
   if (statement == NULL) 
-  { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-    exit(1) ;
-  }
+    cloog_die("memory overflow.\n");
   cloog_statement_leak_up() ;
   
   /* We set the various fields with default values. */
@@ -236,9 +234,7 @@ CloogStatement * cloog_statement_copy(CloogStatement * source)
 
     temp = (CloogStatement *)malloc(sizeof(CloogStatement)) ;
     if (temp == NULL)
-    { fprintf(stderr, "Memory Overflow.\n") ;
-      exit(1) ;
-    }
+      cloog_die("memory overflow.\n");
     
     temp->number = source->number ;
     temp->usr    = source->usr ;

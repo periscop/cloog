@@ -282,9 +282,7 @@ CloogLoop * cloog_loop_read(FILE * foo, int number, int nb_parameters,
   /* Memory allocation and information reading for the first domain: */
   loop = (CloogLoop *)malloc(sizeof(CloogLoop)) ;
   if (loop == NULL) 
-  { fprintf(stderr, "Memory Overflow.\n") ;
-    exit(1) ;
-  }
+    cloog_die("memory overflow.\n");
   /* domain. */
   loop->domain = cloog_domain_union_read(foo, nb_parameters, options);
   if (loop->domain != NULL)
@@ -330,9 +328,7 @@ CloogLoop * cloog_loop_malloc()
   /* Memory allocation for the CloogLoop structure. */
   loop = (CloogLoop *)malloc(sizeof(CloogLoop)) ;
   if (loop == NULL) 
-  { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-    exit(1) ;
-  }
+    cloog_die("memory overflow.\n");
   cloog_loop_leak_up() ;
  
   

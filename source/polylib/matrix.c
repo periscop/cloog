@@ -350,19 +350,13 @@ CloogMatrix * cloog_matrix_read(FILE * foo)
     while (c != NULL && (*c == '#' || *c == '\n'));
     
     if (c == NULL) 
-    { fprintf(stderr, "[CLooG]ERROR: not enough rows.\n") ;
-      exit(1) ;
-    }
+      cloog_die("not enough rows.\n");
     for (j=0;j<matrix->NbColumns;j++) 
     { if (c == NULL || *c == '#' || *c == '\n')
-      { fprintf(stderr, "[CLooG]ERROR: not enough columns.\n") ;
-        exit(1) ;
-      }
+        cloog_die("not enough columns.\n");
       /* NdCed : Dans le n ca met strlen(str). */
       if (sscanf(c,"%s%n",str,&n) == 0) 
-      { fprintf(stderr, "[CLooG]ERROR: not enough rows.\n") ;
-        exit(1) ;
-      }
+        cloog_die("not enough rows.\n");
       value_read(*(p++),str) ;
       c += n ;
     }

@@ -101,12 +101,12 @@ int main(int argv, char * argc[])
       (cloog_statement_allocated != cloog_statement_freed) ||
       (cloog_block_allocated     != cloog_block_freed)     ||
       (cloog_int_allocated       != cloog_int_freed))
-  { fprintf(stderr,
-            "[CLooG]INFO: an internal problem has been detected (it should have"
+  {
+    cloog_msg(options, CLOOG_INFO,
+            "an internal problem has been detected (it should have"
 	    " no\n             consequence on the correctness of the output)."
 	    " Please send (if\n	     you can) your input file, the first line "
-	    "given by typing 'cloog -v'\n	     and your full command ") ;
-    fprintf(stderr,
+	    "given by typing 'cloog -v'\n	     and your full command "
             "line call to CLooG including options to\n	     <cedric.bastoul"
 	    "@inria.fr>. Thank you for your participation to get\n"
 	    "	     CLooG better and safer.\n") ;

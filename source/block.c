@@ -253,9 +253,7 @@ CloogBlock * cloog_block_malloc()
   /* Memory allocation for the CloogBlock structure. */
   block = (CloogBlock *)malloc(sizeof(CloogBlock)) ;
   if (block == NULL) 
-  { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-    exit(1) ;
-  }
+    cloog_die("memory overflow.\n");
   cloog_block_leak_up() ;
   
   /* We set the various fields with default values. */
@@ -317,9 +315,7 @@ CloogBlockList * cloog_block_list_malloc()
   /* Memory allocation for the CloogBlock structure. */
   blocklist = (CloogBlockList *)malloc(sizeof(CloogBlockList)) ;
   if (blocklist == NULL) 
-  { fprintf(stderr, "[CLooG]ERROR: memory overflow.\n") ;
-    exit(1) ;
-  }
+    cloog_die("memory overflow.\n");
   
   /* We set the various fields with default values. */
   blocklist->block = NULL ;

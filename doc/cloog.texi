@@ -828,6 +828,7 @@ input file @code{basic.cloog} with default options by typing:
 * Output::
 * Help::
 * Version ::
+* Quiet ::
 @end menu
 
 @node Last Depth to Optimize Control
@@ -1292,6 +1293,12 @@ void test(int M, int N)
 
      @code{--version} or @code{-v}: this option ask CLooG to print some version
      informations.
+
+@node Quiet
+@subsection Quiet @code{--quiet} or @code{-q}
+
+     @code{--quiet} or @code{-q}: this option tells CLooG not to print
+     any informational messages.
 
 
 @c %/*************************************************************************
