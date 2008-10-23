@@ -643,6 +643,9 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
       
       cloog_program_scatter(p, scatteringl, options);
       cloog_scattering_list_free(scatteringl);
+
+      if (!options->noblocks)
+	p->loop = cloog_loop_block(p->loop, p->scaldims, p->nb_scattdims);
     }
     else
     { p->nb_scattdims = 0 ;

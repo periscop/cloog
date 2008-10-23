@@ -1529,6 +1529,133 @@ CloogOptions * options ;
 }
 
 
+/* Compare loop with the next loop based on their constant dimensions.
+ * The result is < 0, == 0 or > 0 depending on whether the constant
+ * dimensions of loop are lexicographically smaller, equal or greater
+ * than those of loop->next.
+ * If loop is the last in the list, then it is assumed to be smaller
+ * than the "next" one.
+ */
+static int cloog_loop_next_scal_cmp(CloogLoop *loop)
+{
+    int i;
+    int nb_scaldims;
+
+    if (!loop->next)
+	return -1;
+
+    nb_scaldims = loop->block->nb_scaldims;
+    if (loop->next->block->nb_scaldims < nb_scaldims)
+	nb_scaldims = loop->next->block->nb_scaldims;
+
+    for (i = 0; i < nb_scaldims; ++i) {
+	int cmp = cloog_int_cmp(loop->block->scaldims[i],
+				loop->next->block->scaldims[i]);
+	if (cmp)
+	    return cmp;
+    }
+    return loop->block->nb_scaldims - loop->next->block->nb_scaldims;
+}
+
+
+/* Check whether the globally constant dimensions of a and b
+ * have the same value for all globally constant dimensions
+ * that are situated before any (locally) non-constant dimension.
+ */
+static int cloog_loop_equal_prefix(CloogLoop *a, CloogLoop *b,
+				    int *scaldims, int nb_scattdims)
+{
+    int i;
+    int cst = 0;
+    int dim = 0;
+
+    for (i = 0; i < nb_scattdims; ++i) {
+	if (!scaldims[i]) {
+	    dim++;
+	    continue;
+	}
+	if (!cloog_int_eq(a->block->scaldims[cst], b->block->scaldims[cst]))
+	    break;
+	cst++;
+    }
+    for (i = i + 1; i < nb_scattdims; ++i) {
+	if (scaldims[i])
+	    continue;
+	if (!cloog_domain_lazy_isconstant(a->domain, dim))
+	    return 0;
+	/* No need to check that dim is also constant in b and that the
+	 * constant values are equal.  That will happen during the check
+	 * whether the two domains are equal.
+	 */
+	dim++;
+    }
+    return 1;
+}
+
+
+/* Try to block adjacent loops in the loop list "loop".
+ * We only attempt blocking if the constant dimensions of the loops
+ * in the least are (not necessarily strictly) increasing.
+ * Then we look for a sublist such that the first (begin) has constant
+ * dimensions strictly larger than the previous loop in the complete
+ * list and such that the loop (end) after the last loop in the sublist
+ * has constant dimensions strictly larger than the last loop in the sublist.
+ * Furthermore, all loops in the sublist should have the same domain
+ * (with globally constant dimensions removed) and the difference
+ * (if any) in constant dimensions may only occur after all the
+ * (locally) constant dimensions.
+ * If we find such a sublist, then the blocks of all but the first
+ * are merged into the block of the first.
+ *
+ * Note that this function can only be called before the global
+ * blocklist has been created because it may otherwise modify and destroy
+ * elements on that list.
+ */
+CloogLoop *cloog_loop_block(CloogLoop *loop, int *scaldims, int nb_scattdims)
+{
+    CloogLoop *begin, *end, *l;
+    int begin_after_previous;
+    int end_after_previous;
+
+    if (!loop->next)
+	return loop;
+    for (begin = loop; begin; begin = begin->next) {
+	if (!begin->block || !begin->block->scaldims)
+	    return loop;
+	if (cloog_loop_next_scal_cmp(loop) > 0)
+	    return loop;
+    }
+
+    begin_after_previous = 1;
+    for (begin = loop; begin; begin = begin->next) {
+	if (!begin_after_previous) {
+	    begin_after_previous = cloog_loop_next_scal_cmp(begin) < 0;
+	    continue;
+	}
+
+	end_after_previous = cloog_loop_next_scal_cmp(begin) < 0;
+	for (end = begin->next; end; end = end->next) {
+	    if (!cloog_loop_equal_prefix(begin, end, scaldims, nb_scattdims))
+		break;
+	    if (!cloog_domain_lazy_equal(begin->domain, end->domain))
+		break;
+	    end_after_previous = cloog_loop_next_scal_cmp(end) < 0;
+	}
+	if (end != begin->next && end_after_previous) {
+	    for (l = begin->next; l != end; l = begin->next) {
+		cloog_block_merge(begin->block, l->block);
+		begin->next = l->next;
+		cloog_loop_free_parts(l, 1, 0, 1, 0);
+	    }
+	}
+
+	begin_after_previous = cloog_loop_next_scal_cmp(begin) < 0;
+    }
+
+    return loop;
+}
+
+
 /**
  * cloog_loop_generate function:
  * Adaptation from LoopGen 0.4 by F. Quillere. This function implements the

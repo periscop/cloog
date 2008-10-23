@@ -97,6 +97,7 @@ CloogLoop * cloog_loop_read(FILE * foo, int number, int nb_parameters,
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
+CloogLoop * cloog_loop_block(CloogLoop *loop, int *scaldims, int nb_scattdims);
 CloogLoop * cloog_loop_malloc(void);
 CloogLoop * cloog_loop_generate(CloogLoop *, CloogDomain *, int, int,
                                 int *, int, int, CloogOptions *) ;

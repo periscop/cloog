@@ -1616,23 +1616,11 @@ CloogDomain *cloog_domain_cut_first(CloogDomain *domain, CloogDomain **rest)
 }
 
 
-/**
- * cloog_scattering_lazy_isscalar function:
- * this function returns 1 if the dimension 'dimension' in the domain 'domain'
- * is scalar, this means that the only constraint on this dimension must have
- * the shape "x.dimension + scalar = 0" with x an integral variable. This
- * function is lazy since we only accept x=1 (further calculations are easier
- * in this way).
- * If value is not NULL, then it is set to the constant value of dimension.
- * - June 14th 2005: first version.
- * - June 21rd 2005: Adaptation for GMP.
- */
-int cloog_scattering_lazy_isscalar(CloogScattering *domain, int dimension,
+static int polyhedron_lazy_isconstant(Polyhedron *polyhedron, int dimension,
 					cloog_int_t *value)
-{ int i, j ;
-  Polyhedron * polyhedron ;
- 
-  polyhedron = domain->polyhedron ;
+{
+  int i, j;
+
   /* For each constraint... */
   for (i=0;i<polyhedron->NbConstraints;i++)
   { /* ...if it is concerned by the potentially scalar dimension... */
@@ -1658,6 +1646,36 @@ int cloog_scattering_lazy_isscalar(CloogScattering *domain, int dimension,
   }
   
   return 0;
+}
+
+
+/**
+ * cloog_scattering_lazy_isscalar function:
+ * this function returns 1 if the dimension 'dimension' in the domain 'domain'
+ * is scalar, this means that the only constraint on this dimension must have
+ * the shape "x.dimension + scalar = 0" with x an integral variable. This
+ * function is lazy since we only accept x=1 (further calculations are easier
+ * in this way).
+ * If value is not NULL, then it is set to the constant value of dimension.
+ * - June 14th 2005: first version.
+ * - June 21rd 2005: Adaptation for GMP.
+ */
+int cloog_scattering_lazy_isscalar(CloogScattering *domain, int dimension,
+					cloog_int_t *value)
+{
+  return polyhedron_lazy_isconstant(domain->polyhedron, dimension, value);
+}
+
+
+/**
+ * cloog_domain_lazy_isconstant function:
+ * this function returns 1 if the dimension 'dimension' in the
+ * domain 'domain' is constant.
+ * If value is not NULL, then it is set to the constant value of dimension.
+ */
+int cloog_domain_lazy_isconstant(CloogDomain *domain, int dimension)
+{
+  return polyhedron_lazy_isconstant(domain->polyhedron, dimension, NULL);
 }
 
 

@@ -212,7 +212,8 @@ void cloog_block_free(CloogBlock * block)
       
         free(block->scaldims) ;
       }
-      cloog_statement_free(block->statement) ;
+      if (block->statement)
+	cloog_statement_free(block->statement);
       free(block) ;
     }
   }
@@ -389,8 +390,8 @@ void cloog_block_merge(CloogBlock * block, CloogBlock * merged)
   else
   block->statement = merged->statement ;
 
-  cloog_block_leak_down() ;
-  free(merged) ;
+  merged->statement = NULL;
+  cloog_block_free(merged);
 }
 
 

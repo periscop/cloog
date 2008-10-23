@@ -660,6 +660,18 @@ int cloog_scattering_lazy_isscalar(CloogScattering *scatt, int dimension,
 
 
 /**
+ * cloog_domain_lazy_isconstant function:
+ * this function returns 1 if the dimension 'dimension' in the
+ * domain 'domain' is constant.
+ * If value is not NULL, then it is set to the constant value of dimension.
+ */
+int cloog_domain_lazy_isconstant(CloogDomain *domain, int dimension)
+{
+	return isl_set_fast_dim_is_fixed(domain, dimension, NULL);
+}
+
+
+/**
  * cloog_scattering_erase_dimension function:
  * this function returns a CloogDomain structure builds from 'domain' where
  * we removed the dimension 'dimension' and every constraint involving this
