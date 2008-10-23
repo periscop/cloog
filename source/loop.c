@@ -664,6 +664,30 @@ CloogLoop * cloog_loop_concat(CloogLoop * a, CloogLoop * b)
 
 
 /**
+ * cloog_loop_combine:
+ * Combine consecutive loops with identical domains into
+ * a single loop with the concatenation of their inner loops
+ * as inner loop.
+ */
+CloogLoop *cloog_loop_combine(CloogLoop *loop)
+{
+    CloogLoop *first, *second;
+
+    for (first = loop; first; first = first->next) {
+	while (first->next) {
+	    if (!cloog_domain_lazy_equal(first->domain, first->next->domain))
+		break;
+	    second = first->next;
+	    first->inner = cloog_loop_concat(first->inner, second->inner);
+	    first->next = second->next;
+	    cloog_loop_free_parts(second, 1, 0, 0, 0);
+	}
+    }
+
+    return loop;
+}
+
+/**
  * cloog_loop_separate function:
  * This function implements the Quillere algorithm for separation of multiple
  * loops: for a given set of polyhedra (loop), it computes a set of disjoint
@@ -688,6 +712,8 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
   
   if (loop == NULL)
   return NULL ;
+
+  loop = cloog_loop_combine(loop);
   
   if (loop->next == NULL)
   return cloog_loop_disjoint(loop) ;
