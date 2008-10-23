@@ -535,6 +535,18 @@ static CloogScatteringList *cloog_scattering_list_read(FILE * foo,
 }
 
 
+static void cloog_program_construct_block_list(CloogProgram *p)
+{
+    CloogLoop *loop;
+    CloogBlockList **next = &p->blocklist;
+
+    for (loop = p->loop; loop; loop = loop->next) {
+	*next = cloog_block_list_alloc(loop->block);
+	next = &(*next)->next;
+    }
+}
+
+
 /**
  * cloog_program_read function:
  * This function read the informations to put in a CloogProgram structure from
@@ -550,7 +562,6 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
   char s[MAX_STRING], language, prefix[2]={'c','\0'},
        ** scattering, ** iterators, ** parameters;
   CloogLoop * current, * next ;
-  CloogBlockList * previous ;
   CloogScatteringList * scatteringl;
   CloogProgram * p ;
   
@@ -582,8 +593,6 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
   if (nb_statements > 0)
   { /* Reading of the first domain. */
     p->loop = cloog_loop_read(file, 0, nb_parameters, options);
-    p->blocklist = cloog_block_list_alloc(p->loop->block) ;
-    previous = p->blocklist ;
     
     if (p->loop->domain != NULL)
     nb_iterators = cloog_domain_dimension(p->loop->domain) - nb_parameters ;
@@ -597,9 +606,6 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
       if (next->domain != NULL)
       if (cloog_domain_dimension(next->domain) - nb_parameters > nb_iterators)
       nb_iterators = cloog_domain_dimension(next->domain) - nb_parameters ;
-      
-      previous->next = cloog_block_list_alloc(next->block) ;
-      previous = previous->next ;    
     
       current->next = next ;
       current = current->next ;
@@ -647,6 +653,8 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
                                  NULL, scattering,    iterators,    parameters);
   
     cloog_names_scalarize(p->names,p->nb_scattdims,p->scaldims) ;
+
+    cloog_program_construct_block_list(p);
   }
   else
   { p->loop      = NULL ;
@@ -819,15 +827,9 @@ void cloog_program_block(CloogProgram *program,
 { int blocked_reference=0, blocked=0, nb_blocked=0 ;
   CloogLoop * reference, * start, * loop ;
   CloogScatteringList * scatt_reference, * scatt_loop, * scatt_start;
-  CloogBlockList * previous ;
   
   if ((program->loop == NULL) || (program->loop->next == NULL))
   return ;
-
-  /* We will have to rebuild the block list. */
-  cloog_block_list_free(program->blocklist) ;
-  program->blocklist = cloog_block_list_alloc(program->loop->block) ;
-  previous = program->blocklist ;
   
   /* The process will use three variables for the linked list :
    * - 'start' is the starting point of a new block,
@@ -876,10 +878,6 @@ void cloog_program_block(CloogProgram *program,
       blocked= 0 ;
       start = loop ;
       scatt_start = scatt_loop ;
-      
-      /* We update the block list. */
-      previous->next = cloog_block_list_alloc(start->block) ;
-      previous = previous->next ;    
     }
 
     /* If the reference node has been included into a block, we can free it. */
@@ -945,7 +943,7 @@ void cloog_program_extract_scalars(CloogProgram *program,
 { int i, j, scalar, current, nb_scaldims=0 ;
   CloogScatteringList *start;
   CloogScattering *old;
-  CloogBlockList * blocklist ;
+  CloogLoop *loop;
   CloogBlock * block ;
 
   start = scattering ;
@@ -974,15 +972,12 @@ void cloog_program_extract_scalars(CloogProgram *program,
   /* Otherwise, in each block, we have to put the number of scalar dimensions,
    * and to allocate the memory for the scalar values.
    */
-  blocklist = program->blocklist ;
-  while (blocklist != NULL)
-  { block = blocklist->block ;
+  for (loop = program->loop; loop; loop = loop->next) {
+    block = loop->block;
     block->nb_scaldims = nb_scaldims ;
     block->scaldims = (cloog_int_t *)malloc(nb_scaldims*sizeof(cloog_int_t));
     for (i=0;i<nb_scaldims;i++)
     cloog_int_init(block->scaldims[i]);
-    
-    blocklist = blocklist->next ;
   }
   
   /* Then we have to fill these scalar values, so we can erase those dimensions
@@ -993,16 +988,15 @@ void cloog_program_extract_scalars(CloogProgram *program,
   current = nb_scaldims - 1 ;
   for (i=program->nb_scattdims-1;i>=0;i--)
   if (program->scaldims[i])
-  { blocklist = program->blocklist ;
+  {
     scattering = start ;
-    while (blocklist != NULL)
-    { block = blocklist->block ;
+    for (loop = program->loop; loop; loop = loop->next) {
+      block = loop->block;
       if (!cloog_scattering_lazy_isscalar(scattering->domain, i,
 						&block->scaldims[current])) {
 	/* We should have found a scalar value: if not, there is an error. */
 	cloog_die("dimension %d is not scalar as expected.\n", i);
       }
-      blocklist = blocklist->next ;
       scattering = scattering->next ;
     } 
   
