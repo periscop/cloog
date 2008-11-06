@@ -70,7 +70,7 @@ DEFAULT_INCLUDES = -I.
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 AM_CFLAGS = -Wall
 libcloog_polylib_la_CPPFLAGS = @POLYLIB_CPPFLAGS@ -DCLOOG_POLYLIB
-libcloog_polylib_la_LDFLAGS = @POLYLIB_LDFLAGS@
+libcloog_polylib_la_LDFLAGS = -rpath $(libdir) @POLYLIB_LDFLAGS@
 libcloog_polylib_la_LIBADD = @POLYLIB_LIBS@
 libcloog_polylib_la_SOURCES = \
 	$(SOURCES_CORE) \
@@ -78,7 +78,7 @@ libcloog_polylib_la_SOURCES = \
 	source/polylib/matrix.c \
 	source/polylib/backend_options.c
 libcloog_isl_la_CPPFLAGS = @ISL_CPPFLAGS@ -DCLOOG_ISL
-libcloog_isl_la_LDFLAGS = @ISL_LDFLAGS@
+libcloog_isl_la_LDFLAGS = -rpath $(libdir) @ISL_LDFLAGS@
 libcloog_isl_la_LIBADD = @ISL_LIBS@ $(ISL_LA)
 libcloog_isl_la_SOURCES = \
 	$(SOURCES_CORE) \
