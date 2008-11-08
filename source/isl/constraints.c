@@ -33,7 +33,7 @@ void cloog_constraint_set_free(CloogConstraintSet *constraints)
 int cloog_constraint_set_contains_level(CloogConstraintSet *constraints,
 			int level, int nb_parameters)
 {
-	return constraints->dim >= level;
+	return isl_basic_set_n_dim(constraints) >= level;
 }
 
 /* Check if the variable at position level is defined by an
@@ -91,12 +91,12 @@ CloogConstraint cloog_constraint_set_defining_inequalities(
 int cloog_constraint_set_total_dimension(CloogConstraintSet *constraints)
 {
 	assert(constraints->n_div == 0);
-	return constraints->nparam + constraints->dim;
+	return isl_basic_set_total_dim(constraints);
 }
 
 int cloog_constraint_set_n_iterators(CloogConstraintSet *constraints, int n_par)
 {
-	return cloog_constraint_set_total_dimension(constraints) - n_par;
+	return isl_basic_set_n_dim(constraints);
 }
 
 
@@ -255,12 +255,14 @@ void cloog_equal_add(CloogEqualities *equal, CloogConstraintSet *matrix,
 			int level, CloogConstraint line, int nb_par)
 { 
 	struct isl_basic_set *bset;
+	unsigned nparam;
 	assert(cloog_constraint_is_valid(line));
   
 	equal->types[level-1] = cloog_constraint_equal_type(line, level);
 	bset = isl_basic_set_from_constraint(line);
-	bset = isl_basic_set_extend(bset, bset->nparam,
-				    equal->total_dim - bset->nparam, 0, 0, 0);
+	nparam = isl_basic_set_n_param(bset);
+	bset = isl_basic_set_extend(bset, nparam,
+				    equal->total_dim - nparam, 0, 0, 0);
 	equal->constraints[level-1] = bset;
 }
 
@@ -406,24 +408,24 @@ void cloog_constraint_coefficient_get(CloogConstraint constraint,
 			int var, cloog_int_t *val)
 {
 	struct isl_basic_set *bset = isl_basic_set_constraint_set(constraint);
+	unsigned dim = isl_basic_set_n_dim(bset);
 
-	if (var < bset->dim)
+	if (var < dim)
 		isl_basic_set_constraint_get_dim(constraint, var, val);
 	else
-		isl_basic_set_constraint_get_param(constraint,
-							var - bset->dim, val);
+		isl_basic_set_constraint_get_param(constraint, var - dim, val);
 }
 
 void cloog_constraint_coefficient_set(CloogConstraint constraint,
 			int var, cloog_int_t val)
 {
 	struct isl_basic_set *bset = isl_basic_set_constraint_set(constraint);
+	unsigned dim = isl_basic_set_n_dim(bset);
 
-	if (var < bset->dim)
+	if (var < dim)
 		isl_basic_set_constraint_set_dim(constraint, var, val);
 	else
-		isl_basic_set_constraint_set_param(constraint,
-							var - bset->dim, val);
+		isl_basic_set_constraint_set_param(constraint, var - dim, val);
 }
 
 void cloog_constraint_constant_get(CloogConstraint constraint, cloog_int_t *val)

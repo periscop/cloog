@@ -96,8 +96,9 @@ CloogDomain *cloog_domain_convex(CloogDomain *domain)
  */
 static struct isl_basic_set *set_bounds(struct isl_set *set, int dim)
 {
+	unsigned set_dim = isl_set_n_dim(set);
 	set = isl_set_copy(set);
-	set = isl_set_eliminate_dims(set, dim + 1, set->dim - (dim + 1));
+	set = isl_set_eliminate_dims(set, dim + 1, set_dim - (dim + 1));
 	set = isl_set_eliminate_dims(set, 0, dim);
 	return isl_set_convex_hull(set);
 }
@@ -117,14 +118,15 @@ CloogDomain *cloog_domain_simple_convex(CloogDomain *domain, int nb_par)
 {
 	int i;
 	struct isl_basic_set *hull;
+	unsigned dim = isl_set_n_dim(domain);
 
 	if (cloog_domain_isconvex(domain))
 		return cloog_domain_copy(domain);
 
-	if (domain->dim == 0)
+	if (dim == 0)
 		return cloog_domain_convex(domain);
 
-	for (i = 0; i < domain->dim; ++i) {
+	for (i = 0; i < dim; ++i) {
 		struct isl_basic_set *bounds;
 		bounds = set_bounds(domain, i);
 		if (!i)
@@ -132,7 +134,7 @@ CloogDomain *cloog_domain_simple_convex(CloogDomain *domain, int nb_par)
 		else
 			hull = isl_basic_set_intersect(hull, bounds);
 	}
-	if (domain->dim == 1)
+	if (dim == 1)
 		return isl_set_from_basic_set(hull);
 
 	hull = isl_basic_set_intersect(hull,
@@ -267,7 +269,7 @@ void cloog_domain_sort(CloogDomain **doms, unsigned nb_doms, unsigned level,
  */
 CloogDomain *cloog_domain_empty(CloogDomain *template)
 {
-	return isl_set_empty(template->ctx, template->nparam, template->dim);
+	return isl_set_empty_like(template);
 }
 
 
@@ -352,7 +354,7 @@ CloogDomain *cloog_domain_read_context(FILE *input, CloogOptions *options)
 
 	bset = isl_basic_set_read_from_file(ctx, input, 0, ISL_FORMAT_POLYLIB);
 	assert(bset);
-	model = isl_basic_set_empty(ctx, bset->dim, 0);
+	model = isl_basic_set_empty(ctx, isl_basic_set_n_dim(bset), 0);
 	bset = isl_basic_set_from_underlying_set(bset, model);
 
 	return isl_set_from_basic_set(bset);
@@ -366,7 +368,7 @@ CloogDomain *cloog_domain_read_context(FILE *input, CloogOptions *options)
 CloogDomain *cloog_domain_from_context(CloogDomain *context)
 {
 	struct isl_basic_set *model;
-	model = isl_basic_set_empty(context->ctx, 0, context->nparam);
+	model = isl_basic_set_empty(context->ctx, 0, isl_set_n_param(context));
 	context = isl_set_to_underlying_set(context);
 	return isl_set_from_underlying_set(context, model);
 }
@@ -399,11 +401,18 @@ CloogScattering *cloog_scattering_read(FILE *input,
 	struct isl_ctx *ctx = options->backend->ctx;
 	struct isl_basic_set *bset;
 	struct isl_basic_map *scat;
+	struct isl_dim *dims;
+	unsigned nparam;
+	unsigned dim;
+	unsigned n_scat;
 
-	bset = isl_basic_set_read_from_file(ctx, input, domain->nparam,
+	nparam = isl_set_n_param(domain);
+	bset = isl_basic_set_read_from_file(ctx, input, nparam,
 						ISL_FORMAT_POLYLIB);
-	scat = isl_basic_map_from_basic_set(bset,
-					bset->dim - domain->dim, domain->dim);
+	dim = isl_set_n_dim(domain);
+	n_scat = isl_basic_set_n_dim(bset) - dim;
+	dims = isl_dim_alloc(ctx, nparam, n_scat, dim);
+	scat = isl_basic_map_from_basic_set(bset, dims);
 	return isl_map_from_basic_map(scat);
 }
 
@@ -444,7 +453,7 @@ CloogDomain *cloog_domain_universe(unsigned dim, CloogOptions *options)
 CloogDomain *cloog_domain_project(CloogDomain *domain, int level, int nb_par)
 {
 	return isl_set_remove_dims(isl_set_copy(domain),
-					level, domain->dim - level);
+					level, isl_set_n_dim(domain) - level);
 }
 
 
@@ -554,30 +563,36 @@ int cloog_scattering_lazy_block(CloogScattering *s1, CloogScattering *s2,
 			    CloogScatteringList *scattering, int scattdims)
 {
 	int i;
+	struct isl_dim *dims;
 	struct isl_map *rel;
 	struct isl_set *delta;
 	int fixed, block;
 	isl_int cst;
+	unsigned dim;
+	unsigned n_scat;
 
-	if (s1->n_in != s2->n_in)
+	n_scat = isl_map_n_in(s1);
+	if (n_scat != isl_map_n_in(s2))
 		return 0;
 
-	rel = isl_map_identity(s1->ctx, s1->nparam, s1->n_out);
+	dim = isl_map_n_out(s1);
+	dims = isl_dim_set_alloc(s1->ctx, isl_map_n_param(s1), dim);
+	rel = isl_map_identity(dims);
 	rel = isl_map_apply_range(isl_map_copy(s2), rel);
 	rel = isl_map_reverse(rel);
 	rel = isl_map_apply_range(isl_map_copy(s1), rel);
 	delta = isl_map_deltas(rel);
 	isl_int_init(cst);
-	for (i = 0; i < s1->n_in; ++i) {
+	for (i = 0; i < n_scat; ++i) {
 		fixed = isl_set_fast_dim_is_fixed(delta, i, &cst);
 		if (fixed != 1)
 			break;
-		if (i+1 < s1->n_in && !isl_int_is_zero(cst))
+		if (i+1 < n_scat && !isl_int_is_zero(cst))
 			break;
 		if (!isl_int_is_zero(cst) && !isl_int_is_one(cst))
 			break;
 	}
-	block = i >= s1->n_in;
+	block = i >= n_scat;
 	isl_int_clear(cst);
 	isl_set_free(delta);
 	return block;
@@ -613,12 +628,12 @@ int cloog_scattering_list_lazy_same(CloogScatteringList *list)
 
 int cloog_domain_dimension(CloogDomain * domain)
 {
-	return domain->dim + domain->nparam;
+	return isl_set_n_dim(domain) + isl_set_n_param(domain);
 }
 
 int cloog_scattering_dimension(CloogScattering *scatt, CloogDomain *domain)
 {
-	return scatt->n_in;
+	return isl_map_n_in(scatt);
 }
 
 int cloog_domain_isconvex(CloogDomain * domain)
