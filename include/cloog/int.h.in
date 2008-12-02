@@ -11,6 +11,12 @@
 #if defined(CLOOG_INT_GMP)
 #include <string.h>
 #include <gmp.h>
+#ifndef mp_get_memory_functions
+void mp_get_memory_functions(
+		void *(**alloc_func_ptr) (size_t),
+		void *(**realloc_func_ptr) (void *, size_t, size_t),
+		void (**free_func_ptr) (void *, size_t));
+#endif
 #endif
 
 #if defined(__cplusplus)

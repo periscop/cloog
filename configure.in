@@ -120,6 +120,12 @@ system)
                  __gmpz_init,
                  [LIBS="$LIBS -lgmp"],
                  [AC_MSG_ERROR(Can't find gmp library.)])
+    need_get_memory_functions=false
+    AC_CHECK_DECLS(mp_get_memory_functions,[],[
+	    need_get_memory_functions=true
+    ],[#include <gmp.h>])
+    AM_CONDITIONAL(NEED_GET_MEMORY_FUNCTIONS,
+		    test x$need_get_memory_functions = xtrue)
     ;;
 esac
 

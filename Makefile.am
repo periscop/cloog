@@ -52,7 +52,12 @@ bin_PROGRAMS = cloog
 lib_LTLIBRARIES = @CLOOG_LIBRARIES@
 EXTRA_LTLIBRARIES = libcloog-polylib.la libcloog-isl.la
 
+if NEED_GET_MEMORY_FUNCTIONS
+GET_MEMORY_FUNCTIONS=source/mp_get_memory_functions.c
+endif
+
 SOURCES_CORE = \
+	$(GET_MEMORY_FUNCTIONS) \
 	source/block.c \
 	source/clast.c \
 	source/int.c \
