@@ -466,7 +466,7 @@ CloogLoop ** start, ** now, * loop ;
 {
   cloog_int_t one;
   CloogLoop * sep, * inner ;
-  CloogDomain * domain, * convex, * seen, * seen_before, * temp, * rest ;
+  CloogDomain *domain, *seen, *seen_before, *temp, *rest;
   CloogBlock * block ;
   
   cloog_int_init(one);
@@ -474,15 +474,9 @@ CloogLoop ** start, ** now, * loop ;
   
   if (cloog_domain_isconvex(loop->domain))
   cloog_loop_add(start,now,loop) ;
-  else
-  { /* Seems useless but may simplify the union expression (PolyLib pb). */
-    convex = cloog_domain_convex(loop->domain) ;
-    temp   = cloog_domain_difference(convex,loop->domain) ;
-    cloog_domain_free(loop->domain) ;
+  else {
+    domain = cloog_domain_simplify_union(loop->domain);
     loop->domain = NULL ;
-    domain = cloog_domain_difference(convex,temp) ;
-    cloog_domain_free(convex) ;
-    cloog_domain_free(temp) ;
     
     /* We separate the first element of the rest of the union. */
     domain = cloog_domain_cut_first(domain, &rest);

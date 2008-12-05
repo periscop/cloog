@@ -127,6 +127,7 @@ int           cloog_scattering_lazy_isscalar(CloogScattering *, int,
 int           cloog_domain_lazy_isconstant(CloogDomain *domain, int dimension);
 int           cloog_scattering_list_lazy_same(CloogScatteringList *);
 CloogDomain * cloog_domain_cut_first(CloogDomain *domain, CloogDomain **rest);
+CloogDomain * cloog_domain_simplify_union(CloogDomain *domain);
 CloogScattering * cloog_scattering_erase_dimension(CloogScattering *, int);
 
 int           cloog_domain_dimension(CloogDomain *) ;
