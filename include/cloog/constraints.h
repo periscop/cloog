@@ -80,8 +80,10 @@ CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *, CloogEqu
 CloogConstraint cloog_constraint_first(CloogConstraintSet *constraints);
 int             cloog_constraint_is_valid(CloogConstraint constraint);
 CloogConstraint cloog_constraint_next(CloogConstraint constraint);
+CloogConstraint cloog_constraint_copy(CloogConstraint constraint);
+void            cloog_constraint_release(CloogConstraint constraint);
 CloogConstraint cloog_constraint_invalid(void);
-CloogConstraintSet *cloog_constraint_set(CloogConstraint constraint);
+int             cloog_constraint_total_dimension(CloogConstraint constraint);
 
 CloogConstraint cloog_equal_constraint(CloogEqualities *equal, int j);
 void            cloog_equal_add(CloogEqualities *equal,
@@ -104,7 +106,7 @@ void          cloog_constraint_coefficient_get(CloogConstraint constraint,
 void          cloog_constraint_coefficient_set(CloogConstraint constraint,
 			int var, cloog_int_t val);
 void          cloog_constraint_clear(CloogConstraint constraint);
-void          cloog_constraint_copy(CloogConstraint constraint,
+void          cloog_constraint_copy_coefficients(CloogConstraint constraint,
 			cloog_int_t *dst);
 
 #endif

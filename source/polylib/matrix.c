@@ -253,6 +253,11 @@ int cloog_equal_total_dimension(CloogEqualities *equal)
 	return cloog_constraint_set_total_dimension(equal->constraints);
 }
 
+int cloog_constraint_total_dimension(CloogConstraint constraint)
+{
+	return cloog_constraint_set_total_dimension(constraint.set);
+}
+
 /**
  * cloog_matrix_alloc function:
  * This function allocates the memory space for a CloogMatrix structure having
@@ -648,7 +653,7 @@ void cloog_equal_add(CloogEqualities *equal, CloogConstraintSet *matrix,
       value_assign(equal->constraints->p[level-1][j], line.line[0][j]);
   for (j = 0; j < nb_par + 1; j++)
       value_assign(equal->constraints->p[level-1][equal->constraints->NbColumns-j-1],
-		   line.line[0][cloog_constraint_set(line)->NbColumns-j-1]);
+		   line.line[0][line.set->NbColumns-j-1]);
   
   cloog_equal_update(equal, level, nb_par);
 }
@@ -1003,7 +1008,8 @@ void cloog_constraint_constant_get(CloogConstraint constraint, cloog_int_t *val)
  * i.e., first the coefficients of the variables, then the coefficients
  * of the parameters and finally the constant.
  */
-void cloog_constraint_copy(CloogConstraint constraint, cloog_int_t *dst)
+void cloog_constraint_copy_coefficients(CloogConstraint constraint,
+					cloog_int_t *dst)
 {
 	Vector_Copy(constraint.line[0]+1, dst, constraint.set->NbColumns-1);
 }
@@ -1042,15 +1048,19 @@ CloogConstraint cloog_constraint_next(CloogConstraint constraint)
 	return c;
 }
 
+CloogConstraint cloog_constraint_copy(CloogConstraint constraint)
+{
+	return constraint;
+}
+
+void cloog_constraint_release(CloogConstraint constraint)
+{
+}
+
 CloogConstraint cloog_equal_constraint(CloogEqualities *equal, int j)
 {
 	CloogConstraint c;
 	c.set = equal->constraints;
 	c.line = &equal->constraints->p[j];
 	return c;
-}
-
-CloogConstraintSet *cloog_constraint_set(CloogConstraint constraint)
-{
-	return constraint.set;
 }

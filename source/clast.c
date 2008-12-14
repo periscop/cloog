@@ -493,6 +493,7 @@ static struct clast_stmt * clast_equal(CloogInfos *infos)
       iterator = i - infos->names->nb_scattering ;
       equal_constraint = cloog_equal_constraint(equal, i);
       e = clast_bound_from_constraint(equal_constraint, i+1, infos->names);
+      cloog_constraint_release(equal_constraint);
       *next = &new_clast_assignment(infos->names->iterators[iterator], e)->stmt;
       next = &(*next)->next;
     }
@@ -532,6 +533,7 @@ static struct clast_stmt * clast_equal_cpp(int level, CloogInfos *infos)
   { if (cloog_equal_type(equal, i+1)) {
       equal_constraint = cloog_equal_constraint(equal, i);
       e = clast_bound_from_constraint(equal_constraint, i+1, infos->names);
+      cloog_constraint_release(equal_constraint);
     } else {
       cloog_int_set_si(one, 1);
       e = &new_clast_term(one, 
@@ -572,10 +574,10 @@ struct clast_expr *clast_bound_from_constraint(CloogConstraint constraint,
   struct clast_expr *e = NULL;
   struct cloog_vec *line_vector;
 
-  len = cloog_constraint_set_total_dimension(cloog_constraint_set(constraint)) + 2;
+  len = cloog_constraint_total_dimension(constraint) + 2;
   line_vector = cloog_vec_alloc(len);
   line = line_vector->p;
-  cloog_constraint_copy(constraint, line+1);
+  cloog_constraint_copy_coefficients(constraint, line+1);
   cloog_int_init(temp);
   cloog_int_init(numerator);
   cloog_int_init(denominator);
@@ -874,7 +876,8 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 	
 	  if (minmax == -1)
 	    continue;
-	  for (l = cloog_constraint_next(j); cloog_constraint_is_valid(l);
+	  l = cloog_constraint_copy(j);
+	  for (l = cloog_constraint_next(l); cloog_constraint_is_valid(l);
 	       l = cloog_constraint_next(l))
 	    if (((minmax == 1) && cloog_constraint_is_lower_bound(l, i-1)) ||
 		((minmax == 0) && cloog_constraint_is_upper_bound(l, i-1)))
@@ -972,7 +975,7 @@ static void insert_modulo_guard(CloogConstraint upper,
     return;
   }
 
-  len = cloog_constraint_set_total_dimension(cloog_constraint_set(upper)) + 2;
+  len = cloog_constraint_total_dimension(upper) + 2;
   len2 = cloog_equal_total_dimension(infos->equal) + 2;
   nb_par = infos->names->nb_parameters;
   nb_iter = len - 2 - nb_par;
@@ -1000,7 +1003,7 @@ static void insert_modulo_guard(CloogConstraint upper,
   line_vector2 = cloog_vec_alloc(len2);
   line = line_vector->p;
   line2 = line_vector2->p;
-  cloog_constraint_copy(upper, line+1);
+  cloog_constraint_copy_coefficients(upper, line+1);
   if (cloog_int_is_pos(line[level]))
     cloog_seq_neg(line+1, line+1, len-1);
   cloog_int_neg(line[level], line[level]);
@@ -1026,11 +1029,15 @@ static void insert_modulo_guard(CloogConstraint upper,
 	continue;
       equal_constraint = cloog_equal_constraint(infos->equal, j);
       cloog_constraint_coefficient_get(equal_constraint, j, &val);
-      if (!cloog_int_is_divisible_by(val, line[level]))
+      if (!cloog_int_is_divisible_by(val, line[level])) {
+	cloog_constraint_release(equal_constraint);
 	continue;
+      }
       cloog_constraint_coefficient_get(equal_constraint, i-1, &val);
-      if (cloog_int_is_divisible_by(val, line[level]))
+      if (cloog_int_is_divisible_by(val, line[level])) {
+	cloog_constraint_release(equal_constraint);
 	continue;
+      }
       for (k = j; k > i; --k) {
 	cloog_constraint_coefficient_get(equal_constraint, k-1, &val);
 	if (cloog_int_is_zero(val))
@@ -1038,21 +1045,26 @@ static void insert_modulo_guard(CloogConstraint upper,
 	if (!cloog_int_is_divisible_by(val, line[level]))
 	  break;
       }
-      if (k > i)
+      if (k > i) {
+	 cloog_constraint_release(equal_constraint);
 	 continue;
+      }
       cloog_constraint_coefficient_get(equal_constraint, i-1, &val);
       Euclid(val, line[level], &x, &y, &g);
-      if (!cloog_int_is_divisible_by(val, line[i]))
+      if (!cloog_int_is_divisible_by(val, line[i])) {
+	cloog_constraint_release(equal_constraint);
 	continue;
+      }
       cloog_int_divexact(val, line[i], g);
       cloog_int_neg(val, val);
       cloog_int_mul(val, val, x);
       cloog_int_set_si(y, 1);
       /* Add (infos->equal->p[j][i])^{-1} * line[i] times the equality */
-      cloog_constraint_copy(equal_constraint, line2+1);
+      cloog_constraint_copy_coefficients(equal_constraint, line2+1);
       cloog_seq_combine(line+1, y, line+1, val, line2+1, i);
       cloog_seq_combine(line+len-nb_par-1, y, line+len-nb_par-1,
 					   val, line2+len2-nb_par-1, nb_par+1);
+      cloog_constraint_release(equal_constraint);
       break;
     }
     if (j >= 0) {
@@ -1208,6 +1220,9 @@ static void insert_equation(CloogConstraint upper, CloogConstraint lower,
     **next = &ass->stmt;
     *next = &(**next)->next;
   }
+
+  cloog_constraint_release(lower);
+  cloog_constraint_release(upper);
 
   return;
 }

@@ -378,7 +378,7 @@ void cloog_constraint_clear(CloogConstraint constraint)
 void cloog_constraint_coefficient_get(CloogConstraint constraint,
 			int var, cloog_int_t *val)
 {
-	struct isl_basic_set *bset = cloog_constraint_set(constraint);
+	struct isl_basic_set *bset = isl_basic_set_constraint_set(constraint);
 
 	if (var < bset->dim)
 		isl_basic_set_constraint_get_dim(constraint, var, val);
@@ -390,7 +390,7 @@ void cloog_constraint_coefficient_get(CloogConstraint constraint,
 void cloog_constraint_coefficient_set(CloogConstraint constraint,
 			int var, cloog_int_t val)
 {
-	struct isl_basic_set *bset = cloog_constraint_set(constraint);
+	struct isl_basic_set *bset = isl_basic_set_constraint_set(constraint);
 
 	if (var < bset->dim)
 		isl_basic_set_constraint_set_dim(constraint, var, val);
@@ -409,13 +409,13 @@ void cloog_constraint_constant_get(CloogConstraint constraint, cloog_int_t *val)
  * i.e., first the coefficients of the variables, then the coefficients
  * of the parameters and finally the constant.
  */
-void cloog_constraint_copy(CloogConstraint constraint, cloog_int_t *dst)
+void cloog_constraint_copy_coefficients(CloogConstraint constraint, cloog_int_t *dst)
 {
 	int i;
 	unsigned dim;
 
 	dim = cloog_constraint_set_total_dimension(
-					cloog_constraint_set(constraint));
+					isl_basic_set_constraint_set(constraint));
 
 	for (i = 0; i < dim; ++i)
 		cloog_constraint_coefficient_get(constraint, i, dst+i);
@@ -432,6 +432,12 @@ int cloog_constraint_is_valid(CloogConstraint constraint)
 	return isl_basic_set_constraint_is_valid(constraint);
 }
 
+int cloog_constraint_total_dimension(CloogConstraint constraint)
+{
+	return cloog_constraint_set_total_dimension(
+				isl_basic_set_constraint_set(constraint));
+}
+
 CloogConstraint cloog_constraint_first(CloogConstraintSet *constraints)
 {
 	return isl_basic_set_first_constraint(constraints);
@@ -442,12 +448,16 @@ CloogConstraint cloog_constraint_next(CloogConstraint constraint)
 	return isl_basic_set_constraint_next(constraint);
 }
 
+void cloog_constraint_release(CloogConstraint constraint)
+{
+}
+
+CloogConstraint cloog_constraint_copy(CloogConstraint constraint)
+{
+	return constraint;
+}
+
 CloogConstraint cloog_equal_constraint(CloogEqualities *equal, int j)
 {
 	return isl_basic_set_first_constraint(equal->constraints[j]);
-}
-
-CloogConstraintSet *cloog_constraint_set(CloogConstraint constraint)
-{
-	return isl_basic_set_constraint_set(constraint);
 }
