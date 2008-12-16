@@ -18,7 +18,7 @@ struct cloogequalities {
 };
 typedef struct cloogequalities CloogEqualities;
 
-typedef struct isl_basic_set_constraint CloogConstraint;
+typedef struct isl_constraint *CloogConstraint;
 
 #if defined(__cplusplus)
   }
