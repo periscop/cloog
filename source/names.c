@@ -527,3 +527,15 @@ void cloog_names_scalarize(CloogNames * names, int nb_scattdims, int * scaldims)
   names->nb_scattering = nb_scattering ;
   names->nb_scalars    = nb_scalars ;
 }
+
+/**
+ * Return the name at a given level (starting at one).
+ * May be a scattering dimension or an iterator of the original domain.
+ */
+const char *cloog_names_name_at_level(CloogNames *names, int level)
+{
+  if (level <= names->nb_scattering)
+    return names->scattering[level - 1];
+  else
+    return names->iterators[level - names->nb_scattering - 1];
+}

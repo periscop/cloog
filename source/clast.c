@@ -537,7 +537,7 @@ static struct clast_stmt * clast_equal_cpp(int level, CloogInfos *infos)
     } else {
       cloog_int_set_si(one, 1);
       e = &new_clast_term(one, 
-		 infos->names->iterators[i-infos->names->nb_scattering])->expr;
+		 cloog_names_name_at_level(infos->names, i+1))->expr;
     }
     *next = &new_clast_assignment(NULL, e)->stmt;
     next = &(*next)->next;
@@ -569,7 +569,7 @@ struct clast_expr *clast_bound_from_constraint(CloogConstraint constraint,
 					       int level, CloogNames *names)
 { 
   int i, nb_iter, sign, nb_elts=0, len;
-  char * name;
+  const char *name;
   cloog_int_t *line, numerator, denominator, temp, division;
   struct clast_expr *e = NULL;
   struct cloog_vec *line_vector;
@@ -597,10 +597,7 @@ struct clast_expr *clast_bound_from_constraint(CloogConstraint constraint,
     nb_iter = len - 2 - names->nb_parameters;
     for (i=1;i<=nb_iter;i++)
     if ((i != level) && !cloog_int_is_zero(line[i])) {
-      if (i <= names->nb_scattering)
-        name = names->scattering[i-1];
-      else
-        name = names->iterators[i-names->nb_scattering-1];
+      name = cloog_names_name_at_level(names, i);
       
       if (sign == -1)
 	cloog_int_neg(temp,line[i]);
@@ -796,7 +793,7 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 { 
   int i, guarded, minmax=-1, nb_and = 0, nb_iter ;
   int total_dim;
-  char * name;
+  const char *name;
   CloogConstraintSet *copy;
   CloogConstraint j, l;
   struct clast_guard *g;
@@ -828,11 +825,7 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 	     !cloog_constraint_involves(j, level-1))) {
 	  struct clast_term *t;
 	  if (i <= nb_iter)
-	  { if (i <= infos->names->nb_scattering)
-	    name = infos->names->scattering[i-1] ;
-	    else
-	    name = infos->names->iterators[i-infos->names->nb_scattering-1] ;
-	  }
+	    name = cloog_names_name_at_level(infos->names, i);
 	  else
 	  name = infos->names->parameters[i-(nb_iter+1)] ;
 	  
@@ -1099,7 +1092,7 @@ static void insert_modulo_guard(CloogConstraint upper,
     struct clast_reduction *r;
     struct clast_expr *e;
     struct clast_guard *g;
-    char * name;
+    const char *name;
 
     r = new_clast_reduction(clast_red_sum, nb_elts+1);
     nb_elts = 0;
@@ -1111,10 +1104,7 @@ static void insert_modulo_guard(CloogConstraint upper,
       if (cloog_int_is_divisible_by(infos->stride[i-1], line[level]))
 	continue;
 
-      if (i <= infos->names->nb_scattering)
-	name = infos->names->scattering[i-1];
-      else
-	name = infos->names->iterators[i-infos->names->nb_scattering-1];
+      name = cloog_names_name_at_level(infos->names, i);
 
       r->elts[nb_elts++] = &new_clast_term(line[i], name)->expr;
     }
@@ -1211,11 +1201,7 @@ static void insert_equation(CloogConstraint upper, CloogConstraint lower,
     }
 		
     e = clast_bound_from_constraint(upper, level, infos->names);
-    if (level <= infos->names->nb_scattering)
-	ass = new_clast_assignment(infos->names->scattering[level-1], e);
-    else
-	ass = new_clast_assignment(
-            infos->names->iterators[level-infos->names->nb_scattering-1], e);
+    ass = new_clast_assignment(cloog_names_name_at_level(infos->names, level), e);
 
     **next = &ass->stmt;
     *next = &(**next)->next;
@@ -1251,15 +1237,12 @@ static void insert_equation(CloogConstraint upper, CloogConstraint lower,
 static void insert_for(CloogConstraintSet *constraints, int level,
 		       struct clast_stmt ***next, CloogInfos *infos)
 {
-  char * iterator ;
+  const char *iterator;
   struct clast_expr *e1;
   struct clast_expr *e2;
   struct clast_assignment *ass;
   
-  if (level <= infos->names->nb_scattering)
-  iterator = infos->names->scattering[level-1] ;
-  else
-  iterator = infos->names->iterators[level-infos->names->nb_scattering-1] ;
+  iterator = cloog_names_name_at_level(infos->names, level);
   
   e1 = clast_minmax(constraints, level, 1, 0, infos);
   e2 = clast_minmax(constraints, level, 0, 0, infos);

@@ -94,6 +94,7 @@ CloogNames * cloog_names_alloc(int,int,int,int,char **,char **,char **,char **);
 char ** cloog_names_generate_items(int, char *, char) ;
 CloogNames * cloog_names_generate(int, int, int, int, char, char, char, char) ;
 void cloog_names_scalarize(CloogNames *, int, int *) ;
+const char * cloog_names_name_at_level(CloogNames *names, int level);
 
 #if defined(__cplusplus)
   }
