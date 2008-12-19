@@ -349,12 +349,14 @@ void cloog_scattering_list_free(CloogScatteringList *list)
 CloogDomain *cloog_domain_read_context(FILE *input, CloogOptions *options)
 {
 	struct isl_ctx *ctx = options->backend->ctx;
+	struct isl_dim *param_dim;
 	struct isl_basic_set *bset;
 	struct isl_basic_set *model;
 
 	bset = isl_basic_set_read_from_file(ctx, input, 0, ISL_FORMAT_POLYLIB);
 	assert(bset);
-	model = isl_basic_set_empty(ctx, isl_basic_set_n_dim(bset), 0);
+	param_dim = isl_dim_set_alloc(ctx, isl_basic_set_n_dim(bset), 0);
+	model = isl_basic_set_empty(param_dim);
 	bset = isl_basic_set_from_underlying_set(bset, model);
 
 	return isl_set_from_basic_set(bset);
@@ -367,8 +369,11 @@ CloogDomain *cloog_domain_read_context(FILE *input, CloogOptions *options)
  */
 CloogDomain *cloog_domain_from_context(CloogDomain *context)
 {
+	struct isl_dim *dim;
 	struct isl_basic_set *model;
-	model = isl_basic_set_empty(context->ctx, 0, isl_set_n_param(context));
+
+	dim = isl_dim_set_alloc(context->ctx, 0, isl_set_n_param(context));
+	model = isl_basic_set_empty(dim);
 	context = isl_set_to_underlying_set(context);
 	return isl_set_from_underlying_set(context, model);
 }
@@ -438,9 +443,11 @@ int cloog_domain_isempty(CloogDomain *domain)
  */
 CloogDomain *cloog_domain_universe(unsigned dim, CloogOptions *options)
 {
+	struct isl_dim *dims;
 	struct isl_basic_set *bset;
 
-	bset = isl_basic_set_universe(options->backend->ctx, 0, dim);
+	dims = isl_dim_set_alloc(options->backend->ctx, 0, dim);
+	bset = isl_basic_set_universe(dims);
 	return isl_set_from_basic_set(bset);
 }
 
