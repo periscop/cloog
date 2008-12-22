@@ -60,7 +60,15 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
 			struct clast_stmt ***next, CloogInfos *infos);
 
 
-struct clast_term *new_clast_term(cloog_int_t c, const char *v)
+struct clast_name *new_clast_name(const char *name)
+{
+    struct clast_name *n = malloc(sizeof(struct clast_name));
+    n->expr.type = expr_name;
+    n->name = name;
+    return n;
+}
+
+struct clast_term *new_clast_term(cloog_int_t c, struct clast_expr *v)
 {
     struct clast_term *t = malloc(sizeof(struct clast_term));
     t->expr.type = expr_term;
@@ -246,9 +254,15 @@ struct clast_guard *new_clast_guard(int n)
     return g;
 }
 
+void free_clast_name(struct clast_name *n)
+{
+    free(n);
+}
+
 void free_clast_term(struct clast_term *t)
 {
     cloog_int_clear(t->val);
+    free_clast_expr(t->var);
     free(t);
 }
 
@@ -272,6 +286,9 @@ void free_clast_expr(struct clast_expr *e)
     if (!e)
 	return;
     switch (e->type) {
+    case expr_name:
+	free_clast_name((struct clast_name*) e);
+	break;
     case expr_term:
 	free_clast_term((struct clast_term*) e);
 	break;
@@ -303,6 +320,11 @@ void cloog_clast_free(struct clast_stmt *s)
     }
 }
 
+static int clast_name_cmp(struct clast_name *n1, struct clast_name *n2)
+{
+    return n1->name == n2->name ? 0 : strcmp(n1->name, n2->name);
+}
+
 static int clast_term_cmp(struct clast_term *t1, struct clast_term *t2)
 {
     int c;
@@ -310,7 +332,8 @@ static int clast_term_cmp(struct clast_term *t1, struct clast_term *t2)
 	return -1;
     if (t1->var && !t2->var)
 	return 1;
-    if (t1->var != t2->var && (c = strcmp(t1->var, t2->var)))
+    c = clast_expr_cmp(t1->var, t2->var);
+    if (c)
 	return c;
     return cloog_int_cmp(t1->val, t2->val);
 }
@@ -355,6 +378,9 @@ static int clast_expr_cmp(struct clast_expr *e1, struct clast_expr *e2)
     if (e1->type != e2->type)
 	return e1->type - e2->type;
     switch (e1->type) {
+    case expr_name:
+	return clast_name_cmp((struct clast_name*) e1, 
+				(struct clast_name*) e2);
     case expr_term:
 	return clast_term_cmp((struct clast_term*) e1, 
 				(struct clast_term*) e2);
@@ -536,8 +562,8 @@ static struct clast_stmt * clast_equal_cpp(int level, CloogInfos *infos)
       cloog_constraint_release(equal_constraint);
     } else {
       cloog_int_set_si(one, 1);
-      e = &new_clast_term(one, 
-		 cloog_names_name_at_level(infos->names, i+1))->expr;
+      e = &new_clast_term(one, &new_clast_name(
+		 cloog_names_name_at_level(infos->names, i+1))->expr)->expr;
     }
     *next = &new_clast_assignment(NULL, e)->stmt;
     next = &(*next)->next;
@@ -604,7 +630,8 @@ struct clast_expr *clast_bound_from_constraint(CloogConstraint constraint,
       else
 	cloog_int_set(temp,line[i]);
       
-      r->elts[nb_elts++] = &new_clast_term(temp, name)->expr;
+      r->elts[nb_elts++] = &new_clast_term(temp,
+				&new_clast_name(name)->expr)->expr;
     }    
 
     /* Next, the parameters. */
@@ -617,7 +644,8 @@ struct clast_expr *clast_bound_from_constraint(CloogConstraint constraint,
       else
 	cloog_int_set(temp,line[i]);
       
-      r->elts[nb_elts++] = &new_clast_term(temp, name)->expr;
+      r->elts[nb_elts++] = &new_clast_term(temp,
+				&new_clast_name(name)->expr)->expr;
     }    
 
     if (sign == -1) {
@@ -829,7 +857,8 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 	  else
 	  name = infos->names->parameters[i-(nb_iter+1)] ;
 	  
-	  g->eq[nb_and].LHS = &(t = new_clast_term(one, name))->expr;
+	  g->eq[nb_and].LHS = &(t = new_clast_term(one,
+					&new_clast_name(name)->expr))->expr;
 	  if (!level || cloog_constraint_is_equality(j)) {
 	    /* put the "denominator" in the LHS */
 	    cloog_constraint_coefficient_get(j, i-1, &t->val);
@@ -1106,7 +1135,8 @@ static void insert_modulo_guard(CloogConstraint upper,
 
       name = cloog_names_name_at_level(infos->names, i);
 
-      r->elts[nb_elts++] = &new_clast_term(line[i], name)->expr;
+      r->elts[nb_elts++] = &new_clast_term(line[i],
+				&new_clast_name(name)->expr)->expr;
     }
 
     /* ...the parameters... */
@@ -1115,7 +1145,8 @@ static void insert_modulo_guard(CloogConstraint upper,
 	continue;
 
       name = infos->names->parameters[i-nb_iter-1] ;
-      r->elts[nb_elts++] = &new_clast_term(line[i], name)->expr;
+      r->elts[nb_elts++] = &new_clast_term(line[i],
+				&new_clast_name(name)->expr)->expr;
     }
 
     /* ...the constant. */

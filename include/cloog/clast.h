@@ -6,13 +6,23 @@ extern "C"
 #endif 
 
 struct clast_expr {
-    enum { expr_term, expr_bin, expr_red } type;
+    enum { expr_name, expr_term, expr_bin, expr_red } type;
 };
 
+struct clast_name {
+    struct clast_expr	expr;
+    const char *	name;
+};
+
+/* Represents the term
+ *	val * var	(if var != NULL)
+ * or
+ *	val		(if var == NULL)
+ */
 struct clast_term {
     struct clast_expr	expr;
     cloog_int_t		val;
-    const char *	var;
+    struct clast_expr  *var;
 };
 
 enum clast_red_type { clast_red_sum, clast_red_min, clast_red_max };
@@ -100,7 +110,8 @@ struct clast_stmt *cloog_clast_create(CloogProgram *program,
 				      CloogOptions *options);
 void cloog_clast_free(struct clast_stmt *s);
 
-struct clast_term *new_clast_term(cloog_int_t c, const char *v);
+struct clast_name *new_clast_name(const char *name);
+struct clast_term *new_clast_term(cloog_int_t c, struct clast_expr *v);
 struct clast_binary *new_clast_binary(enum clast_bin_type t, 
 				      struct clast_expr *lhs, cloog_int_t rhs);
 struct clast_reduction *new_clast_reduction(enum clast_red_type t, int n);
@@ -114,6 +125,7 @@ struct clast_for *new_clast_for(const char *it, struct clast_expr *LB,
 				struct clast_expr *UB, cloog_int_t stride);
 struct clast_guard *new_clast_guard(int n);
 
+void free_clast_name(struct clast_name *t);
 void free_clast_term(struct clast_term *t);
 void free_clast_binary(struct clast_binary *b);
 void free_clast_reduction(struct clast_reduction *r);

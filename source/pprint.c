@@ -56,28 +56,42 @@
 
 
 
+void pprint_expr(struct cloogoptions *i, FILE *dst, struct clast_expr *e);
+
+void pprint_name(FILE *dst, struct clast_name *n)
+{
+    fprintf(dst, "%s", n->name);
+}
+
 /**
  * This function returns a string containing the printing of a value (possibly
  * an iterator or a parameter with its coefficient or a constant).
  * - val is the coefficient or constant value,
  * - name is a string containing the name of the iterator or of the parameter,
  */
-void pprint_term(FILE *dst, struct clast_term *t)
+void pprint_term(struct cloogoptions *i, FILE *dst, struct clast_term *t)
 {
     if (t->var) {
+	int group = t->var->type == expr_red && 
+		    ((struct clast_reduction*) t->var)->n > 1;
 	if (cloog_int_is_one(t->val))
-	    fprintf(dst, "%s", t->var);
+	    ;
 	else if (cloog_int_is_neg_one(t->val))
-	    fprintf(dst, "-%s", t->var);
+	    fprintf(dst, "-");
         else {
 	    cloog_int_print(dst, t->val);
-	    fprintf(dst, "*%s", t->var);
+	    fprintf(dst, "*");
 	}
+	if (group)
+	    fprintf(dst, "(");
+	pprint_expr(i, dst, t->var);
+	if (group)
+	    fprintf(dst, ")");
     } else
 	cloog_int_print(dst, t->val);
 }
 
-void pprint_sum(FILE *dst, struct clast_reduction *r)
+void pprint_sum(struct cloogoptions *opt, FILE *dst, struct clast_reduction *r)
 {
     int i;
     struct clast_term *t;
@@ -85,18 +99,16 @@ void pprint_sum(FILE *dst, struct clast_reduction *r)
     assert(r->n >= 1);
     assert(r->elts[0]->type == expr_term);
     t = (struct clast_term *) r->elts[0];
-    pprint_term(dst, t);
+    pprint_term(opt, dst, t);
 
     for (i = 1; i < r->n; ++i) {
 	assert(r->elts[i]->type == expr_term);
 	t = (struct clast_term *) r->elts[i];
 	if (cloog_int_is_pos(t->val))
 	    fprintf(dst, "+");
-	pprint_term(dst, t);
+	pprint_term(opt, dst, t);
     }
 }
-
-void pprint_expr(struct cloogoptions *i, FILE *dst, struct clast_expr *e);
 
 void pprint_binary(struct cloogoptions *i, FILE *dst, struct clast_binary *b)
 {
@@ -182,7 +194,7 @@ void pprint_reduction(struct cloogoptions *i, FILE *dst, struct clast_reduction 
 {
     switch (r->type) {
     case clast_red_sum:
-	pprint_sum(dst, r);
+	pprint_sum(i, dst, r);
 	break;
     case clast_red_min:
     case clast_red_max:
@@ -205,8 +217,11 @@ void pprint_expr(struct cloogoptions *i, FILE *dst, struct clast_expr *e)
     if (!e)
 	return;
     switch (e->type) {
+    case expr_name:
+	pprint_name(dst, (struct clast_name*) e);
+	break;
     case expr_term:
-	pprint_term(dst, (struct clast_term*) e);
+	pprint_term(i, dst, (struct clast_term*) e);
 	break;
     case expr_red:
 	pprint_reduction(i, dst, (struct clast_reduction*) e);
