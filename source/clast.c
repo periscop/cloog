@@ -594,8 +594,7 @@ static struct clast_stmt * clast_equal_cpp(int level, CloogInfos *infos)
 struct clast_expr *clast_bound_from_constraint(CloogConstraint constraint,
 					       int level, CloogNames *names)
 { 
-  int i, nb_iter, sign, nb_elts=0, len;
-  const char *name;
+  int i, sign, nb_elts=0, len;
   cloog_int_t *line, numerator, denominator, temp, division;
   struct clast_expr *e = NULL;
   struct cloog_vec *line_vector;
@@ -619,33 +618,21 @@ struct clast_expr *clast_bound_from_constraint(CloogConstraint constraint,
     r = new_clast_reduction(clast_red_sum, nb_elts);
     nb_elts = 0;
 
-    /* First, we have to print the iterators. */
-    nb_iter = len - 2 - names->nb_parameters;
-    for (i=1;i<=nb_iter;i++)
-    if ((i != level) && !cloog_int_is_zero(line[i])) {
-      name = cloog_names_name_at_level(names, i);
-      
-      if (sign == -1)
-	cloog_int_neg(temp,line[i]);
-      else
-	cloog_int_set(temp,line[i]);
-      
-      r->elts[nb_elts++] = &new_clast_term(temp,
-				&new_clast_name(name)->expr)->expr;
-    }    
+    /* First, we have to print the iterators and the parameters. */
+    for (i = 1; i <= len - 2; i++) {
+      struct clast_expr *v;
 
-    /* Next, the parameters. */
-    for (i = nb_iter + 1; i <= len - 2; i++)
-    if ((i != level) && !cloog_int_is_zero(line[i])) {
-      name = names->parameters[i-nb_iter-1];
+      if (i == level || cloog_int_is_zero(line[i]))
+	continue;
+
+      v = cloog_constraint_variable_expr(constraint, i, names);
       
       if (sign == -1)
 	cloog_int_neg(temp,line[i]);
       else
 	cloog_int_set(temp,line[i]);
       
-      r->elts[nb_elts++] = &new_clast_term(temp,
-				&new_clast_name(name)->expr)->expr;
+      r->elts[nb_elts++] = &new_clast_term(temp, v)->expr;
     }    
 
     if (sign == -1) {
@@ -821,7 +808,6 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 { 
   int i, guarded, minmax=-1, nb_and = 0, nb_iter ;
   int total_dim;
-  const char *name;
   CloogConstraintSet *copy;
   CloogConstraint j, l;
   struct clast_guard *g;
@@ -851,14 +837,11 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 	if (cloog_constraint_involves(j, i-1) &&
 	    (!level || (nb_iter < level) ||
 	     !cloog_constraint_involves(j, level-1))) {
+	  struct clast_expr *v;
 	  struct clast_term *t;
-	  if (i <= nb_iter)
-	    name = cloog_names_name_at_level(infos->names, i);
-	  else
-	  name = infos->names->parameters[i-(nb_iter+1)] ;
-	  
-	  g->eq[nb_and].LHS = &(t = new_clast_term(one,
-					&new_clast_name(name)->expr))->expr;
+
+	  v = cloog_constraint_variable_expr(j, i, infos->names);
+	  g->eq[nb_and].LHS = &(t = new_clast_term(one, v))->expr;
 	  if (!level || cloog_constraint_is_equality(j)) {
 	    /* put the "denominator" in the LHS */
 	    cloog_constraint_coefficient_get(j, i-1, &t->val);

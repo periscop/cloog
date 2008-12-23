@@ -109,6 +109,9 @@ void          cloog_constraint_clear(CloogConstraint constraint);
 void          cloog_constraint_copy_coefficients(CloogConstraint constraint,
 			cloog_int_t *dst);
 
+struct clast_expr *cloog_constraint_variable_expr(CloogConstraint constraint,
+			int level, CloogNames *names);
+
 #endif
 
 #if defined(__cplusplus)

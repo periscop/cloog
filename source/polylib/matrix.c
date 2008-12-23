@@ -956,6 +956,28 @@ CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *matrix,
 
 
 /**
+ * Return clast_expr corresponding to the variable "level" (1 based) in
+ * the given constraint.
+ */
+struct clast_expr *cloog_constraint_variable_expr(CloogConstraint constraint,
+	int level, CloogNames *names)
+{
+	int total_dim, nb_iter;
+	const char *name;
+
+	total_dim = cloog_constraint_total_dimension(constraint);
+	nb_iter = total_dim - names->nb_parameters;
+
+	if (level <= nb_iter)
+		name = cloog_names_name_at_level(names, level);
+	else
+		name = names->parameters[level - (nb_iter+1)] ;
+
+	return &new_clast_name(name)->expr;
+}
+
+
+/**
  * Return true if constraint c involves variable v (zero-based).
  */
 int cloog_constraint_involves(CloogConstraint constraint, int v)

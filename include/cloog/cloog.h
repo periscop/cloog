@@ -43,11 +43,11 @@
 #include <cloog/version.h>
 #include <cloog/int.h>
 #include <cloog/options.h>
+#include <cloog/names.h>
 #include <cloog/constraints.h>
 #include <cloog/domain.h>
 #include <cloog/statement.h>
 #include <cloog/block.h>
-#include <cloog/names.h>
 #include <cloog/loop.h>
 #include <cloog/program.h>
 #include <cloog/clast.h>
