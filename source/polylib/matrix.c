@@ -950,11 +950,6 @@ CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *matrix,
 }
 
 
-int cloog_constraint_set_count(CloogConstraintSet *constraints)
-{
-	return constraints->NbRows;
-}
-
 /**
  * Return true if constraint c involves variable v (zero-based).
  */

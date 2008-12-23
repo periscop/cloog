@@ -74,7 +74,6 @@ int           cloog_constraint_set_contains_level(CloogConstraintSet *constraint
 int           cloog_constraint_set_total_dimension(CloogConstraintSet *constraints);
 CloogConstraintSet *cloog_constraint_set_copy(CloogConstraintSet *);
 CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *, CloogEqualities *, int, int);
-int           cloog_constraint_set_count(CloogConstraintSet *constraints);
 
 #if defined(CLOOG_POLYLIB) || defined(CLOOG_ISL)
 
