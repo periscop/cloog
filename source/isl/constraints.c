@@ -122,7 +122,6 @@ CloogConstraint cloog_constraint_set_defining_inequalities(
 
 int cloog_constraint_set_total_dimension(CloogConstraintSet *constraints)
 {
-	assert(constraints->n_div == 0);
 	return isl_basic_set_total_dim(constraints);
 }
 
@@ -366,6 +365,76 @@ CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *matrix,
 }
 
 
+static struct cloog_isl_dim constraint_cloog_dim_to_isl_dim(
+					CloogConstraint constraint, int pos)
+{
+	enum isl_dim_type types[] = { isl_dim_set, isl_dim_div, isl_dim_param };
+	int i;
+	struct cloog_isl_dim ci_dim;
+
+	for (i = 0; i < 3; ++i) {
+		unsigned dim = isl_constraint_dim(constraint, types[i]);
+		if (pos < dim) {
+			ci_dim.type = types[i];
+			ci_dim.pos = pos;
+			return ci_dim;
+		}
+		pos -= dim;
+	}
+	assert(0);
+}
+
+static struct clast_expr *div_expr(CloogConstraint constraint, int pos,
+					CloogNames *names)
+{
+	int i, nb_elts;
+	unsigned dim = cloog_constraint_total_dimension(constraint);
+	cloog_int_t c;
+	struct clast_reduction *r;
+	struct clast_expr *e = NULL;
+	struct isl_div *div;
+
+	div = isl_constraint_div(constraint, pos);
+
+	cloog_int_init(c);
+	for (i = 0, nb_elts = 0; i < dim; ++i) {
+		struct cloog_isl_dim dim;
+
+		dim = constraint_cloog_dim_to_isl_dim(constraint, i);
+		isl_div_get_coefficient(div, dim.type, dim.pos, &c);
+		if (!cloog_int_is_zero(c))
+			++nb_elts;
+	}
+	isl_div_get_constant(div, &c);
+	if (!cloog_int_is_zero(c))
+		++nb_elts;
+
+	r = new_clast_reduction(clast_red_sum, nb_elts);
+	for (i = 0, nb_elts = 0; i < dim; ++i) {
+		struct clast_expr *v;
+		struct cloog_isl_dim dim;
+
+		dim = constraint_cloog_dim_to_isl_dim(constraint, i);
+		isl_div_get_coefficient(div, dim.type, dim.pos, &c);
+		if (cloog_int_is_zero(c))
+			continue;
+
+		v = cloog_constraint_variable_expr(constraint, 1 + i, names);
+
+		r->elts[nb_elts++] = &new_clast_term(c, v)->expr;
+	}
+	isl_div_get_constant(div, &c);
+	if (!cloog_int_is_zero(c))
+		r->elts[nb_elts++] = &new_clast_term(c, NULL)->expr;
+
+	isl_div_get_denominator(div, &c);
+	e = &new_clast_binary(clast_bin_fdiv, &r->expr, c)->expr;
+
+	cloog_int_clear(c);
+
+	return e;
+}
+
 /**
  * Return clast_expr corresponding to the variable "level" (1 based) in
  * the given constraint.
@@ -373,16 +442,19 @@ CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *matrix,
 struct clast_expr *cloog_constraint_variable_expr(CloogConstraint constraint,
 	int level, CloogNames *names)
 {
-	int total_dim, nb_iter;
+	struct cloog_isl_dim dim;
 	const char *name;
 
-	total_dim = cloog_constraint_total_dimension(constraint);
-	nb_iter = total_dim - names->nb_parameters;
+	assert(constraint);
 
-	if (level <= nb_iter)
+	dim = constraint_cloog_dim_to_isl_dim(constraint, level - 1);
+	if (dim.type == isl_dim_div)
+		return div_expr(constraint, dim.pos, names);
+
+	if (dim.type == isl_dim_set)
 		name = cloog_names_name_at_level(names, level);
 	else
-		name = names->parameters[level - (nb_iter+1)] ;
+		name = names->parameters[dim.pos];
 
 	return &new_clast_name(name)->expr;
 }
@@ -440,34 +512,24 @@ void cloog_constraint_clear(CloogConstraint constraint)
 void cloog_constraint_coefficient_get(CloogConstraint constraint,
 			int var, cloog_int_t *val)
 {
-	unsigned dim;
+	struct cloog_isl_dim dim;
 
 	if (!constraint)
 		return;
 
-	dim = isl_constraint_dim(constraint, isl_dim_set);
-	if (var < dim)
-		isl_constraint_get_coefficient(constraint,
-						isl_dim_set, var, val);
-	else
-		isl_constraint_get_coefficient(constraint,
-						isl_dim_param, var - dim, val);
+	dim = constraint_cloog_dim_to_isl_dim(constraint, var);
+	isl_constraint_get_coefficient(constraint, dim.type, dim.pos, val);
 }
 
 void cloog_constraint_coefficient_set(CloogConstraint constraint,
 			int var, cloog_int_t val)
 {
-	unsigned dim;
+	struct cloog_isl_dim dim;
 
 	assert(constraint);
 
-	dim = isl_constraint_dim(constraint, isl_dim_set);
-	if (var < dim)
-		isl_constraint_set_coefficient(constraint,
-						isl_dim_set, var, val);
-	else
-		isl_constraint_set_coefficient(constraint,
-						isl_dim_param, var - dim, val);
+	dim = constraint_cloog_dim_to_isl_dim(constraint, var);
+	isl_constraint_set_coefficient(constraint, dim.type, dim.pos, val);
 }
 
 void cloog_constraint_constant_get(CloogConstraint constraint, cloog_int_t *val)
