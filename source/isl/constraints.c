@@ -36,6 +36,30 @@ int cloog_constraint_set_contains_level(CloogConstraintSet *constraints,
 	return isl_basic_set_n_dim(constraints) >= level;
 }
 
+struct cloog_isl_dim {
+	enum isl_dim_type type;
+	int		  pos;
+};
+
+static struct cloog_isl_dim set_cloog_dim_to_isl_dim(
+					CloogConstraintSet *bset, int pos)
+{
+	enum isl_dim_type types[] = { isl_dim_set, isl_dim_div, isl_dim_param };
+	int i;
+	struct cloog_isl_dim ci_dim;
+
+	for (i = 0; i < 3; ++i) {
+		unsigned dim = isl_basic_set_dim(bset, types[i]);
+		if (pos < dim) {
+			ci_dim.type = types[i];
+			ci_dim.pos = pos;
+			return ci_dim;
+		}
+		pos -= dim;
+	}
+	assert(0);
+}
+
 /* Check if the variable at position level is defined by an
  * equality.  If so, return the row number.  Otherwise, return -1.
  */
@@ -43,8 +67,10 @@ CloogConstraint cloog_constraint_set_defining_equality(
 	CloogConstraintSet *bset, int level)
 {
 	struct isl_constraint *c;
+	struct cloog_isl_dim dim;
 
-	if (isl_basic_set_has_defining_equality(bset, level - 1, &c))
+	dim = set_cloog_dim_to_isl_dim(bset, level - 1);
+	if (isl_basic_set_has_defining_equality(bset, dim.type, dim.pos, &c))
 		return c;
 	else
 		return NULL;
@@ -71,8 +97,10 @@ CloogConstraint cloog_constraint_set_defining_inequalities(
 {
 	struct isl_constraint *upper;
 	struct isl_constraint *c;
+	struct cloog_isl_dim dim;
 
-	if (!isl_basic_set_has_defining_inequalities(bset, level - 1,
+	dim = set_cloog_dim_to_isl_dim(bset, level - 1);
+	if (!isl_basic_set_has_defining_inequalities(bset, dim.type, dim.pos,
 								lower, &upper))
 		return cloog_constraint_invalid();
 	for (c = isl_basic_set_first_constraint(isl_basic_set_copy(bset)); c;
