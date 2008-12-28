@@ -827,7 +827,8 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
      */
     copy = cloog_constraint_set_copy(constraints);
     
-    nb_iter = total_dim - infos->names->nb_parameters;
+    nb_iter = cloog_constraint_set_n_iterators(constraints,
+						infos->names->nb_parameters);
  
     nb_and = 0 ;
     /* We search for guard parts. */

@@ -248,6 +248,12 @@ int cloog_constraint_set_total_dimension(CloogConstraintSet *constraints)
 {
 	return constraints->NbColumns - 2;
 }
+
+int cloog_constraint_set_n_iterators(CloogConstraintSet *constraint, int nb_par)
+{
+	return cloog_constraint_set_total_dimension(constraint) - nb_par;
+}
+
 int cloog_equal_total_dimension(CloogEqualities *equal)
 {
 	return cloog_constraint_set_total_dimension(equal->constraints);

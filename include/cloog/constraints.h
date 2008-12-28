@@ -72,6 +72,8 @@ void          cloog_constraint_set_free(CloogConstraintSet *);
 int           cloog_constraint_set_contains_level(CloogConstraintSet *constraints,
 			int level, int nb_parameters);
 int           cloog_constraint_set_total_dimension(CloogConstraintSet *constraints);
+int           cloog_constraint_set_n_iterators(CloogConstraintSet *constraints,
+			int nb_parameters);
 CloogConstraintSet *cloog_constraint_set_copy(CloogConstraintSet *);
 CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *, CloogEqualities *, int, int);
 

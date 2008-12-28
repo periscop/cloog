@@ -94,6 +94,11 @@ int cloog_constraint_set_total_dimension(CloogConstraintSet *constraints)
 	return constraints->nparam + constraints->dim;
 }
 
+int cloog_constraint_set_n_iterators(CloogConstraintSet *constraints, int n_par)
+{
+	return cloog_constraint_set_total_dimension(constraints) - n_par;
+}
+
 
 /******************************************************************************
  *                        Equalities spreading functions                      *
