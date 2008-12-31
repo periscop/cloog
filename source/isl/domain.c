@@ -118,6 +118,7 @@ CloogDomain *cloog_domain_simple_convex(CloogDomain *domain, int nb_par)
 {
 	int i;
 	struct isl_basic_set *hull;
+	struct isl_set *set;
 	unsigned dim = isl_set_n_dim(domain);
 
 	if (cloog_domain_isconvex(domain))
@@ -126,14 +127,17 @@ CloogDomain *cloog_domain_simple_convex(CloogDomain *domain, int nb_par)
 	if (dim == 0)
 		return cloog_domain_convex(domain);
 
+	set = isl_set_remove_divs(isl_set_copy(domain));
+
 	for (i = 0; i < dim; ++i) {
 		struct isl_basic_set *bounds;
-		bounds = set_bounds(domain, i);
+		bounds = set_bounds(set, i);
 		if (!i)
 			hull = bounds;
 		else
 			hull = isl_basic_set_intersect(hull, bounds);
 	}
+	isl_set_free(set);
 	if (dim == 1)
 		return isl_set_from_basic_set(hull);
 
