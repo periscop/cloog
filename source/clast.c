@@ -777,6 +777,45 @@ static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
 
 
 /**
+ * Insert modulo guards defined by existentially quantified dimensions.
+ *
+ * This function is called from within insert_guard and receives
+ * a copy of the constraints.  Any constraint used in constructing
+ * a modulo guard is removed from this copy to avoid insert_guard
+ * adding a duplicate (pair of) constraint(s).
+ */
+static void insert_extra_modulo_guards(CloogConstraintSet *constraints,
+		struct clast_stmt ***next, CloogInfos *infos)
+{
+    int i;
+    int nb_iter;
+    int total_dim;
+    CloogConstraint upper, lower;
+
+    total_dim = cloog_constraint_set_total_dimension(constraints);
+    nb_iter = cloog_constraint_set_n_iterators(constraints,
+						infos->names->nb_parameters);
+
+    for (i = total_dim - infos->names->nb_parameters; i >= nb_iter + 1; i--) {
+	if (cloog_constraint_is_valid(upper =
+		cloog_constraint_set_defining_equality(constraints, i))) {
+	    insert_modulo_guard(upper, cloog_constraint_invalid(), i, next, infos);
+	    cloog_constraint_clear(upper);
+	    cloog_constraint_release(upper);
+	} else if (cloog_constraint_is_valid(upper =
+		    cloog_constraint_set_defining_inequalities(constraints,
+			      i, &lower, infos->names->nb_parameters))) {
+	    insert_modulo_guard(upper, lower, i, next, infos);
+	    cloog_constraint_clear(upper);
+	    cloog_constraint_clear(lower);
+	    cloog_constraint_release(upper);
+	    cloog_constraint_release(lower);
+	}
+    }
+}
+
+
+/**
  * insert_guard function:
  * This function inserts a guard in the clast.
  * A guard on an element (level) is :
@@ -816,6 +855,10 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
   if (constraints == NULL)
     return;
 
+    copy = cloog_constraint_set_copy(constraints);
+
+    insert_extra_modulo_guards(copy, next, infos);
+    
     cloog_int_init(one);
     cloog_int_set_si(one, 1);
   
@@ -825,8 +868,6 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
     /* Well, it looks complicated because I wanted to have a particular, more
      * readable, ordering, obviously this function may be far much simpler !
      */
-    copy = cloog_constraint_set_copy(constraints);
-    
     nb_iter = cloog_constraint_set_n_iterators(constraints,
 						infos->names->nb_parameters);
  
