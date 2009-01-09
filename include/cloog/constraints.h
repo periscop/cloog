@@ -36,10 +36,6 @@
 
 #ifndef CLOOG_CONSTRAINTS_H
 #define CLOOG_CONSTRAINTS_H
-#if defined(__cplusplus)
-extern "C" 
-  {
-#endif 
 
 #if defined(CLOOG_POLYLIB)
 #include <cloog/polylib/matrix.h>
@@ -52,6 +48,10 @@ struct cloogequalities;
 typedef struct cloogequalities CloogEqualities;
 #endif
 
+#if defined(__cplusplus)
+extern "C" 
+  {
+#endif 
 
 /******************************************************************************
  *                        Equalities spreading functions                      *
