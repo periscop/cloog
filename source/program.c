@@ -468,8 +468,9 @@ CloogOptions * options ;
   
   /* The end of the compilable code in case of 'compilable' option. */
   if (options->compilable && (program->language == 'c'))
-  { fprintf(file,"\n  printf(\"Number of integral points: %%d.\\n\",total) ;") ;
-    fprintf(file,"\n  return 0 ;\n}\n") ;
+  {
+    fprintf(file, "\n  printf(\"Number of integral points: %%d.\\n\",total);");
+    fprintf(file, "\n  return 0;\n}\n");
   } else if (options->callable && program->language == 'c')
     print_callable_postamble(file, program);
 }

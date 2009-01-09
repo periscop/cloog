@@ -268,7 +268,7 @@ void pprint_user_stmt(struct cloogoptions *options, FILE *dst,
     }
     fprintf(dst, ")");
     if (options->language != LANGUAGE_FORTRAN)
-	fprintf(dst, " ;");
+	fprintf(dst, ";");
     fprintf(dst, "\n");
 }
 
@@ -371,7 +371,7 @@ void pprint_stmt_list(struct cloogoptions *options, FILE *dst, int indent,
 	if (CLAST_STMT_IS_A(s, stmt_ass)) {
 	    pprint_assignment(options, dst, (struct clast_assignment *) s);
 	    if (options->language != LANGUAGE_FORTRAN)
-		fprintf(dst, " ;");
+		fprintf(dst, ";");
 	    fprintf(dst, "\n");
 	} else if (CLAST_STMT_IS_A(s, stmt_user)) {
 	    pprint_user_stmt(options, dst, (struct clast_user_stmt *) s);
