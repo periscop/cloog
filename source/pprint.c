@@ -259,16 +259,14 @@ void pprint_user_stmt(struct cloogoptions *options, FILE *dst,
 {
     struct clast_stmt *t;
     fprintf(dst, "S%d", u->statement->number);
-    if (options->cpp || u->substitutions)
-	fprintf(dst, "(");
+    fprintf(dst, "(");
     for (t = u->substitutions; t; t = t->next) {
 	assert(CLAST_STMT_IS_A(t, stmt_ass));
 	pprint_assignment(options, dst, (struct clast_assignment *)t);
 	if (t->next)
 	    fprintf(dst, ",");
     }
-    if (options->cpp || u->substitutions)
-	fprintf(dst, ")");
+    fprintf(dst, ")");
     if (options->language != LANGUAGE_FORTRAN)
 	fprintf(dst, " ;");
     fprintf(dst, "\n");

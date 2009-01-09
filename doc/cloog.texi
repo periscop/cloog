@@ -820,7 +820,6 @@ input file @code{basic.cloog} with default options by typing:
 * Once Time Loop Elimination::
 * Equality Spreading::
 * First Level for Spreading::
-* C PreProcessor Friendly::
 * Statement Block::
 * Loop Strides::
 * Compilable Code::
@@ -1042,39 +1041,6 @@ for (j=0;j<=N+c1;j++) @{
 @end group
 @end example
 
-
-@node C PreProcessor Friendly 
-@subsection C PreProcessor Friendly @code{-cpp <boolean>}
-
-     @code{-cpp <boolean>}: this option ask CLooG for printing a less
-     human-readable but compilable code by using the C preprocessor
-     (@code{boolean=1}). In this case each statement is written as a
-     function of the iterators corresponding to its domain dimensions:
-     @code{Si(value_of_iterator_1,...,value_of_iterator_n)}. It follows
-     that the user can easily add preprocessor macros to define each
-     statement and use the generated textual code directly for compilation.
-     When @code{boolean} is set to 0, the pretty printer has the default
-     behaviour. Default value is 0.
-@example
-@group
-/* Generated using a given input file and @strong{option -cpp 0} */
-for (j=0;j<=N+M;j++) @{
-  S1(i = N) ;
-@}
-@end group
-@end example
-@example
-@group
-/* Generated using the same input file but @strong{option -cpp 1} */
-/* and a preprocessor macro set by the user */
-
-#define S1(i,j) A[(j)]=3*(i)
-
-for (j=0;j<=N+M;j++) @{
-  S1(N,j) ;
-@}
-@end group
-@end example
 
 @node Statement Block  
 @subsection Statement Block @code{-block <boolean>}

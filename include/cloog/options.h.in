@@ -89,9 +89,6 @@ struct cloogoptions
   int block ;     /* 1 to make one new block {...} per new dimension,
                    * 0 otherwise.
                    */
-  int cpp ;       /* 1 to generate a pseudo-code easily compilable by using
-                   * preprocessing, 0 otherwise.
-                   */
   int compilable; /* 1 to generate a compilable code by using
                    * preprocessing, 0 otherwise.
                    */

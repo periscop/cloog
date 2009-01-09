@@ -122,7 +122,6 @@ void cloog_options_print(FILE * foo, CloogOptions * options)
   fprintf(foo,"fsp         = %3d,\n",options->fsp) ;
   fprintf(foo,"otl         = %3d.\n",options->otl) ;
   fprintf(foo,"block       = %3d.\n",options->block) ;
-  fprintf(foo,"cpp         = %3d.\n",options->cpp) ;
   fprintf(foo,"compilable  = %3d.\n",options->compilable) ;
   fprintf(foo,"callable    = %3d.\n",options->callable) ;
   fprintf(foo,"UNDOCUMENTED OPTIONS FOR THE AUTHOR ONLY\n") ;
@@ -190,8 +189,6 @@ void cloog_options_help()
   "  -block <boolean>      Make a new statement block per iterator in C\n"
   "                        programs (1) or not (0) (default setting: 0).\n") ;
   printf(
-  "  -cpp <boolean>        Compilable block by using preprocessor (1) or not "
-  "(0)\n                        (default setting:  0).\n"
   "  -compilable <number>  Compilable code by using preprocessor (not 0) or" 
   "\n                        not (0), number being the value of the parameters"
   "\n                        (default setting:  0).\n"
@@ -306,7 +303,6 @@ CloogOptions * cloog_core_options_malloc(void)
   options->fsp         =  1 ;  /* The First level to SPread is the first. */
   options->otl         =  1 ;  /* We want to fire One Time Loops. */
   options->block       =  0 ;  /* We don't want to force statement blocks. */
-  options->cpp         =  0 ;  /* No preprocessing facilities. */
   options->compilable  =  0 ;  /* No compilable code. */
   options->callable    =  0 ;  /* No callable code. */
   options->quiet       =  0;   /* Do print informational messages. */
@@ -373,21 +369,14 @@ CloogOptions ** options ;
     if (strcmp(argc[i],"-block") == 0)
     cloog_options_set(&(*options)->block,argv,argc,&i) ;
     else
-    if (strcmp(argc[i],"-cpp") == 0)
-    cloog_options_set(&(*options)->cpp,argv,argc,&i) ;
-    else
     if (strcmp(argc[i],"-compilable") == 0)
-    { cloog_options_set(&(*options)->compilable,argv,argc,&i) ;
-      (*options)->cpp = 1 ;
-    }
-    else if (strcmp(argc[i], "-callable") == 0) {
+      cloog_options_set(&(*options)->compilable, argv, argc, &i);
+    else if (strcmp(argc[i], "-callable") == 0)
       cloog_options_set(&(*options)->callable, argv, argc, &i);
-      (*options)->cpp = 1;
-    } else
+    else
     if (strcmp(argc[i],"-loopo") == 0) /* Special option for the LooPo team ! */
     { (*options)->esp   = 0 ;
       (*options)->block = 1 ;
-      (*options)->cpp   = 1 ;
     }
     else
     if (strcmp(argc[i],"-bipbip") == 0)/* Special option for the author only !*/

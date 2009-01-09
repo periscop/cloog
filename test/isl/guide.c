@@ -1,14 +1,14 @@
-/* Generated from ../../../git/cloog/test/guide.cloog by CLooG 0.14.0-135-g7671e98 gmp bits in 0.04s. */
+/* Generated from ../../../git/cloog/test/guide.cloog by CLooG 0.14.0-136-gb91ef26 gmp bits in 0.05s. */
 if (N >= 1) {
   for (i=1;i<=N;i++) {
     if (i <= min(2*M,M-1)) {
-      S1 ;
+      S1(i) ;
     }
     if (i >= M) {
-      S1 ;
+      S1(i) ;
     }
   }
   for (i=N+1;i<=2*N;i++) {
-    S2 ;
+    S2(i) ;
   }
 }

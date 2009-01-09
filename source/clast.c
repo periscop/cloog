@@ -38,8 +38,7 @@ static int clast_equal_add(CloogEqualities *equal,
 				int level, CloogConstraint constraint,
 				CloogInfos *infos);
 
-static struct clast_stmt * clast_equal(CloogInfos *infos);
-static struct clast_stmt * clast_equal_cpp(int level, CloogInfos *infos);
+static struct clast_stmt *clast_equal(int level, CloogInfos *infos);
 static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
 					int level, int max, int guard, 
 					CloogInfos *infos);
@@ -488,45 +487,8 @@ static int clast_equal_add(CloogEqualities *equal,
 
 
 
-
 /**
  * clast_equal function:
- * This function returns the content an equality matrix (equal) into a clast_stmt.
- * - the infos structure gives the user all options on code printing and more. 
- **
- * - July   2nd 2002: first version. 
- * - March 16th 2003: return now a string instead of printing directly and do
- *                    not write 'Sx()' if there is no spreading, but only 'Sx'. 
- */
-static struct clast_stmt * clast_equal(CloogInfos *infos)
-{ 
-  int i, iterator ;
-  struct clast_expr *e;
-  struct clast_stmt *a = NULL;
-  struct clast_stmt **next = &a;
-  CloogEqualities *equal = infos->equal;
-  CloogConstraint equal_constraint;
-
-  /* It is not necessary to print here the scattering iterators since they
-   * never appear in the statement bodies.
-   */
-  for (i = infos->names->nb_scattering; i< cloog_equal_count(equal); i++) {
-    if (cloog_equal_type(equal, i+1) && clast_equal_allow(equal,i+1,i,infos)) {
-      iterator = i - infos->names->nb_scattering ;
-      equal_constraint = cloog_equal_constraint(equal, i);
-      e = clast_bound_from_constraint(equal_constraint, i+1, infos->names);
-      cloog_constraint_release(equal_constraint);
-      *next = &new_clast_assignment(infos->names->iterators[iterator], e)->stmt;
-      next = &(*next)->next;
-    }
-  }
-
-  return a;
-}
-
-
-/**
- * clast_equal_cpp function:
  * This function prints the substitution data of a statement into a clast_stmt.
  * Using this function instead of pprint_equal is useful for generating
  * a compilable pseudo-code by using preprocessor macro for each statement.
@@ -539,7 +501,7 @@ static struct clast_stmt * clast_equal(CloogInfos *infos)
  * - March    12th 2004: first version. 
  * - November 21th 2005: (debug) now works well with GMP version. 
  */
-static struct clast_stmt * clast_equal_cpp(int level, CloogInfos *infos)
+static struct clast_stmt *clast_equal(int level, CloogInfos *infos)
 { 
   int i ;
   cloog_int_t one;
@@ -1349,10 +1311,7 @@ static void insert_block(CloogBlock *block, int level,
 	return;
 
     for (statement = block->statement; statement; statement = statement->next) {
-	if (infos->options->cpp == 0)
-	    subs = clast_equal(infos);
-	else
-	    subs = clast_equal_cpp(level,infos);
+	subs = clast_equal(level,infos);
 
 	**next = &new_clast_user_stmt(statement, subs)->stmt;
 	*next = &(**next)->next;

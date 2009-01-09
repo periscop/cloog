@@ -89,7 +89,6 @@ int main()
 	cloog_domain_free(tmp);
 	cloog_domain_free(cube);
 
-	options->cpp = 1;
 	p = cloog_program_malloc();
 	assert(p);
 	p->names = cloog_names_malloc();
