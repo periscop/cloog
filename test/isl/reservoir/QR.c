@@ -1,4 +1,4 @@
-/* Generated from ../../../git/cloog/test/./reservoir/QR.cloog by CLooG 0.14.0-117-g7c6f653 gmp bits in 0.85s. */
+/* Generated from ../../../git/cloog/test/./reservoir/QR.cloog by CLooG 0.14.0-135-g7671e98 gmp bits in 0.22s. */
 if (N >= 1) {
   S1(i = 0) ;
   if ((M >= 1) && (N == 1)) {
@@ -37,136 +37,81 @@ if (N >= 1) {
   }
   for (c2=2;c2<=min(M,N-1);c2++) {
     for (c4=c2-1;c4<=N-1;c4++) {
-      i = c2-2 ;
-      S6(j = c4) ;
+      S6(i = c2-2,j = c4) ;
       for (c6=c2-2;c6<=M-1;c6++) {
-        i = c2-2 ;
-        S7(j = c4,k = c6) ;
+        S7(i = c2-2,j = c4,k = c6) ;
       }
-      i = c2-2 ;
-      S8(j = c4) ;
+      S8(i = c2-2,j = c4) ;
       for (c6=c2-2;c6<=M-1;c6++) {
-        i = c2-2 ;
-        S9(j = c4,k = c6) ;
+        S9(i = c2-2,j = c4,k = c6) ;
       }
     }
     for (c4=c2-1;c4<=M-1;c4++) {
-      i = c2-1 ;
-      S2(j = c4) ;
+      S2(i = c2-1,j = c4) ;
     }
-    i = c2-1 ;
-    S3 ;
+    S3(i = c2-1) ;
     for (c4=c2-1;c4<=M-1;c4++) {
-      i = c2-1 ;
-      S4(j = c4) ;
+      S4(i = c2-1,j = c4) ;
     }
-    i = c2-1 ;
-    S10 ;
+    S10(i = c2-1) ;
     S1(i = c2) ;
-    i = c2-1 ;
-    S5 ;
+    S5(i = c2-1) ;
   }
   if ((M <= N-2) && (M >= 1)) {
-    c2 = M+1 ;
     for (c4=M;c4<=N-1;c4++) {
-      i = M-1 ;
-      S6(j = c4) ;
-      c6 = M-1 ;
-      i = M-1 ;
-      k = M-1 ;
-      S7(j = c4) ;
-      i = M-1 ;
-      S8(j = c4) ;
-      c6 = M-1 ;
-      i = M-1 ;
-      k = M-1 ;
-      S9(j = c4) ;
+      S6(i = M-1,j = c4) ;
+      S7(i = M-1,j = c4,k = M-1) ;
+      S8(i = M-1,j = c4) ;
+      S9(i = M-1,j = c4,k = M-1) ;
     }
     S3(i = M) ;
     S10(i = M) ;
-    i = M+1 ;
-    S1 ;
+    S1(i = M+1) ;
     S5(i = M) ;
   }
   for (c2=max(2,M+2);c2<=N-1;c2++) {
     for (c4=c2-1;c4<=N-1;c4++) {
-      i = c2-2 ;
-      S6(j = c4) ;
-      i = c2-2 ;
-      S8(j = c4) ;
+      S6(i = c2-2,j = c4) ;
+      S8(i = c2-2,j = c4) ;
     }
-    i = c2-1 ;
-    S3 ;
-    i = c2-1 ;
-    S10 ;
+    S3(i = c2-1) ;
+    S10(i = c2-1) ;
     S1(i = c2) ;
-    i = c2-1 ;
-    S5 ;
+    S5(i = c2-1) ;
   }
   if ((M >= N) && (N >= 2)) {
-    c4 = N-1 ;
-    i = N-2 ;
-    j = N-1 ;
-    S6 ;
+    S6(i = N-2,j = N-1) ;
     for (c6=N-2;c6<=M-1;c6++) {
-      i = N-2 ;
-      j = N-1 ;
-      S7(k = c6) ;
+      S7(i = N-2,j = N-1,k = c6) ;
     }
-    i = N-2 ;
-    j = N-1 ;
-    S8 ;
+    S8(i = N-2,j = N-1) ;
     for (c6=N-2;c6<=M-1;c6++) {
-      i = N-2 ;
-      j = N-1 ;
-      S9(k = c6) ;
+      S9(i = N-2,j = N-1,k = c6) ;
     }
     for (c4=N-1;c4<=M-1;c4++) {
-      i = N-1 ;
-      S2(j = c4) ;
+      S2(i = N-1,j = c4) ;
     }
-    i = N-1 ;
-    S3 ;
+    S3(i = N-1) ;
     for (c4=N-1;c4<=M-1;c4++) {
-      i = N-1 ;
-      S4(j = c4) ;
+      S4(i = N-1,j = c4) ;
     }
-    i = N-1 ;
-    S10 ;
-    i = N-1 ;
-    S5 ;
+    S10(i = N-1) ;
+    S5(i = N-1) ;
   }
   if ((M == N-1) && (M >= 1)) {
-    c2 = M+1 ;
-    i = M-1 ;
-    S6(j = M) ;
-    c6 = M-1 ;
-    i = M-1 ;
-    k = M-1 ;
-    S7(j = M) ;
-    i = M-1 ;
-    S8(j = M) ;
-    c6 = M-1 ;
-    i = M-1 ;
-    k = M-1 ;
-    S9(j = M) ;
+    S6(i = M-1,j = M) ;
+    S7(i = M-1,j = M,k = M-1) ;
+    S8(i = M-1,j = M) ;
+    S9(i = M-1,j = M,k = M-1) ;
     S3(i = M) ;
     S10(i = M) ;
     S5(i = M) ;
   }
   if ((M <= N-2) && (N >= 2)) {
-    c4 = N-1 ;
-    i = N-2 ;
-    j = N-1 ;
-    S6 ;
-    i = N-2 ;
-    j = N-1 ;
-    S8 ;
-    i = N-1 ;
-    S3 ;
-    i = N-1 ;
-    S10 ;
-    i = N-1 ;
-    S5 ;
+    S6(i = N-2,j = N-1) ;
+    S8(i = N-2,j = N-1) ;
+    S3(i = N-1) ;
+    S10(i = N-1) ;
+    S5(i = N-1) ;
   }
 }

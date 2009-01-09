@@ -1,4 +1,4 @@
-/* Generated from ../../../git/cloog/test/forwardsub-3-1-2.cloog by CLooG 0.14.0-91-g5d3da4b gmp bits in 0.01s. */
+/* Generated from ../../../git/cloog/test/forwardsub-3-1-2.cloog by CLooG 0.14.0-135-g7671e98 gmp bits in 0.01s. */
 S3(i = 2,j = 1) ;
 S1(i = 3,j = 1) ;
 S1(i = 4,j = 1) ;
@@ -20,5 +20,4 @@ for (i=M+2;i<=2*M-1;i++) {
     S4(j = i/2) ;
   }
 }
-i = 2*M ;
-S4(j = M) ;
+S4(i = 2*M,j = M) ;

@@ -302,7 +302,7 @@ CloogOptions * cloog_core_options_malloc(void)
   options->sh	       =  0;   /* Compute actual convex hull. */
   options->name	       = "";
   /* OPTIONS FOR PRETTY PRINTING */
-  options->esp         =  0 ;  /* We don't want Equality SPreading.*/
+  options->esp         =  1 ;  /* We don't want Equality SPreading.*/
   options->fsp         =  1 ;  /* The First level to SPread is the first. */
   options->otl         =  1 ;  /* We want to fire One Time Loops. */
   options->block       =  0 ;  /* We don't want to force statement blocks. */

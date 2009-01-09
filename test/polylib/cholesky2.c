@@ -1,4 +1,4 @@
-/* Generated from ../../../git/cloog/test/cholesky2.cloog by CLooG 0.14.0-117-g5444fca gmp bits in 0.09s. */
+/* Generated from ../../../git/cloog/test/cholesky2.cloog by CLooG 0.14.0-135-g7671e98 gmp bits in 0.10s. */
 if (M >= 1) {
   if (M >= 2) {
     for (c2=1;c2<=M-1;c2++) {
@@ -29,53 +29,42 @@ if (M >= 1) {
   }
   for (c1=3;c1<=3*M-7;c1++) {
     if ((c1+2)%3 == 0) {
-      i = (c1+2)/3 ;
-      S3 ;
+      S3(i = (c1+2)/3) ;
     }
     if (c1%3 == 0) {
-      c2 = (c1+3)/3 ;
-      i = (c1+3)/3 ;
-      S2(j = c1/3) ;
+      S2(i = (c1+3)/3,j = c1/3) ;
     }
     c2 = floord(c1+6,3) ;
     if ((c1+1)%3 == 0) {
-      i = (c1+1)/3 ;
-      S6(j = c2) ;
+      S6(i = (c1+1)/3,j = c2) ;
     }
     if (c1%3 == 0) {
       S2(i = c2,j = c1/3) ;
     }
     for (c2=ceild(c1+7,3);c2<=M;c2++) {
       if ((c1+1)%3 == 0) {
-        i = (c1+1)/3 ;
-        S6(j = c2) ;
+        S6(i = (c1+1)/3,j = c2) ;
       }
       if (c1%3 == 0) {
         S2(i = c2,j = c1/3) ;
       }
       if ((c1+1)%3 == 0) {
-        c3 = (c1+1)/3 ;
         for (i=ceild(c1+4,3);i<=c2-1;i++) {
-          k = (c1+1)/3 ;
-          S5(j = c2) ;
+          S5(j = c2,k = (c1+1)/3) ;
         }
       }
     }
   }
   for (c1=max(3,3*M-6);c1<=3*M-4;c1++) {
     if ((c1+2)%3 == 0) {
-      i = (c1+2)/3 ;
-      S3 ;
+      S3(i = (c1+2)/3) ;
     }
     if (c1%3 == 0) {
-      c2 = (c1+3)/3 ;
-      i = (c1+3)/3 ;
-      S2(j = c1/3) ;
+      S2(i = (c1+3)/3,j = c1/3) ;
     }
     for (c2=ceild(c1+4,3);c2<=M;c2++) {
       if ((c1+1)%3 == 0) {
-        i = (c1+1)/3 ;
-        S6(j = c2) ;
+        S6(i = (c1+1)/3,j = c2) ;
       }
       if (c1%3 == 0) {
         S2(i = c2,j = c1/3) ;
@@ -83,10 +72,7 @@ if (M >= 1) {
     }
   }
   if (M >= 2) {
-    c1 = 3*M-3 ;
-    j = M-1 ;
-    S2(i = M) ;
+    S2(i = M,j = M-1) ;
   }
-  c1 = 3*M-2 ;
   S3(i = M) ;
 }

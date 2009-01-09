@@ -1,4 +1,4 @@
-/* Generated from ../../../git/cloog/test/./reservoir/pingali6.cloog by CLooG 0.14.0-117-g5444fca gmp bits in 0.02s. */
+/* Generated from ../../../git/cloog/test/./reservoir/pingali6.cloog by CLooG 0.14.0-135-g7671e98 gmp bits in 0.04s. */
 if (N >= 3) {
   for (c4=2;c4<=N-1;c4++) {
     for (c6=2;c6<=N-1;c6++) {
@@ -16,13 +16,11 @@ if (N >= 3) {
     for (c4=2;c4<=N-1;c4++) {
       for (c6=2;c6<=N-1;c6++) {
         if ((c2+1)%2 == 0) {
-          i = (c2-1)/2 ;
-          S2(j = c4,k = c6) ;
+          S2(i = (c2-1)/2,j = c4,k = c6) ;
         }
       }
     }
   }
-  c2 = 2*M+1 ;
   for (c4=2;c4<=N-1;c4++) {
     for (c6=2;c6<=N-1;c6++) {
       S2(i = M,j = c4,k = c6) ;

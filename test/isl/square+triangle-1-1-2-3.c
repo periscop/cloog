@@ -1,4 +1,4 @@
-/* Generated from ../../../git/cloog/test/square+triangle-1-1-2-3.cloog by CLooG 0.14.0-91-g5d3da4b gmp bits in 0.01s. */
+/* Generated from ../../../git/cloog/test/square+triangle-1-1-2-3.cloog by CLooG 0.14.0-135-g7671e98 gmp bits in 0.02s. */
 for (j=1;j<=M;j++) {
   S1(i = 1) ;
 }

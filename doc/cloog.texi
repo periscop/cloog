@@ -987,7 +987,7 @@ S1 ;
 
      @code{-esp <boolean>}: this option allows (@code{boolean=1}) or
      forbids (@code{boolean=0}) values spreading when there
-     are equalities. Default value is 0.
+     are equalities. Default value is 1.
 @example
 @group
 /* Generated using a given input file and @strong{option -esp 0} */
@@ -1962,7 +1962,7 @@ As a reminder, the default values are:
 @item @math{f = 1} (optimize control from the outermost loops),
 @item @math{strides = 0} (use only unit strides),
 @item @math{sh = 0} (do not simplify convex hulls),
-@item @math{esp = 0} (do not spread complex equalities),
+@item @math{esp = 1} (do not spread complex equalities),
 @item @math{fsp = 1} (start to spread from the first iterators),
 @item @math{otl = 1} (simplify loops running only once).
 @item @math{block = 0} (do not make statement blocks when not necessary).
