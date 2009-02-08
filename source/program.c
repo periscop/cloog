@@ -39,7 +39,9 @@
 
 # include <sys/types.h>
 # include <sys/time.h>
+#ifdef CLOOG_RUSAGE
 # include <sys/resource.h>
+#endif
 #include <stdarg.h>
 # include <stdlib.h>
 # include <stdio.h>
@@ -378,8 +380,13 @@ CloogOptions * options ;
   else
     options->language = LANGUAGE_C ;
  
+#ifdef CLOOG_RUSAGE
   print_comment(file, options, "Generated from %s by %s in %.2fs.",
 		options->name, cloog_version(), options->time);
+#else
+  print_comment(file, options, "Generated from %s by %s.",
+		options->name, cloog_version());
+#endif
 #ifdef CLOOG_MEMORY
   print_comment(file, options, "CLooG asked for %d KBytes.", options->memory);
   cloog_msg(CLOOG_INFO, "%.2fs and %dKB used for code generation.\n",
@@ -719,8 +726,11 @@ CloogProgram * cloog_program_malloc()
 CloogProgram * cloog_program_generate(program, options)
 CloogProgram * program ;
 CloogOptions * options ;
-{ float time ;
+{
+#ifdef CLOOG_RUSAGE
+  float time;
   struct rusage start, end ;
+#endif
   CloogLoop * loop ;
 #ifdef CLOOG_MEMORY
   char status_path[MAX_STRING_VAL] ;
@@ -771,7 +781,9 @@ CloogOptions * options ;
     }
   }
   
+#ifdef CLOOG_RUSAGE
   getrusage(RUSAGE_SELF, &start) ;
+#endif
   if (program->loop != NULL)
   { loop = program->loop ;
     
@@ -798,11 +810,13 @@ CloogOptions * options ;
     program->loop = loop ;
   }
     
+#ifdef CLOOG_RUSAGE
   getrusage(RUSAGE_SELF, &end) ;
   /* We calculate the time spent in code generation. */
   time =  (end.ru_utime.tv_usec -  start.ru_utime.tv_usec)/(float)(MEGA) ;
   time += (float)(end.ru_utime.tv_sec - start.ru_utime.tv_sec) ;
   options->time = time ;
+#endif
   
   return program ;
 }

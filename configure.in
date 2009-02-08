@@ -83,6 +83,9 @@ dnl  **************************************************************************/
 MP_BITS="MP"
 MP_DFLAGS=-DLINEAR_VALUE_IS_MP
 
+AC_CHECK_HEADERS([sys/resource.h],
+	[AC_DEFINE([CLOOG_RUSAGE], [], [Print time required to generate code])])
+
 AC_ARG_WITH(bits,
 	    [AS_HELP_STRING([--with-bits=32|64|gmp],
 			    [integer type to use])],
