@@ -48,6 +48,7 @@ extern "C"
 #define CLOOG_MEMORY 
  */
 #define CLOOG_SCALARS
+#undef CLOOG_RUSAGE
 
 struct cloogoptions;
 typedef struct cloogoptions CloogOptions;

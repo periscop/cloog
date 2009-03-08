@@ -291,6 +291,7 @@ AC_SUBST(BITS)
 
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_HEADERS(include/cloog/int.h)
+AC_CONFIG_HEADERS(include/cloog/options.h)
 AC_CONFIG_FILES(Makefile test/Makefile include/cloog/polylib/backend.h)
 AC_CONFIG_FILES(autoconf/Doxyfile)
 AC_CONFIG_FILES(doc/Makefile)

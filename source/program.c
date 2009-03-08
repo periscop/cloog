@@ -39,9 +39,6 @@
 
 # include <sys/types.h>
 # include <sys/time.h>
-#ifdef CLOOG_RUSAGE
-# include <sys/resource.h>
-#endif
 #include <stdarg.h>
 # include <stdlib.h>
 # include <stdio.h>
@@ -49,6 +46,9 @@
 # include <ctype.h>
 # include <unistd.h>
 # include "../include/cloog/cloog.h"
+#ifdef CLOOG_RUSAGE
+# include <sys/resource.h>
+#endif
 
 
 /******************************************************************************
