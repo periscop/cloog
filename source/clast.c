@@ -351,8 +351,7 @@ static int clast_reduction_cmp(struct clast_reduction *r1, struct clast_reductio
     int i;
     int c;
 
-    if (r1->type == clast_red_max && r2->type == clast_red_min && 
-	    r1->n == 1 && r2->n == 1)
+    if (r1->n == 1 && r2->n == 1)
 	return clast_expr_cmp(r1->elts[0], r2->elts[0]);
     if (r1->type != r2->type)
 	return r1->type - r2->type;
