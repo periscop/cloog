@@ -432,6 +432,8 @@ static struct clast_expr *div_expr(CloogConstraint constraint, int pos,
 
 	cloog_int_clear(c);
 
+	isl_div_free(div);
+
 	return e;
 }
 
