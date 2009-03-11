@@ -734,15 +734,16 @@ static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
 
 
 /**
- * Insert modulo guards defined by existentially quantified dimensions.
+ * Insert modulo guards defined by existentially quantified dimensions,
+ * not involving the given level.
  *
- * This function is called from within insert_guard and receives
- * a copy of the constraints.  Any constraint used in constructing
- * a modulo guard is removed from this copy to avoid insert_guard
+ * This function is called from within insert_guard or insert_for.
+ * Any constraint used in constructing * a modulo guard is removed
+ * from the constraint set to avoid insert_guard or insert_for
  * adding a duplicate (pair of) constraint(s).
  */
 static void insert_extra_modulo_guards(CloogConstraintSet *constraints,
-		struct clast_stmt ***next, CloogInfos *infos)
+		int level, struct clast_stmt ***next, CloogInfos *infos)
 {
     int i;
     int nb_iter;
@@ -756,15 +757,22 @@ static void insert_extra_modulo_guards(CloogConstraintSet *constraints,
     for (i = total_dim - infos->names->nb_parameters; i >= nb_iter + 1; i--) {
 	if (cloog_constraint_is_valid(upper =
 		cloog_constraint_set_defining_equality(constraints, i))) {
-	    insert_modulo_guard(upper, cloog_constraint_invalid(), i, next, infos);
-	    cloog_constraint_clear(upper);
+	    if (!level || (nb_iter < level) ||
+		    !cloog_constraint_involves(upper, level-1)) {
+		insert_modulo_guard(upper,
+				cloog_constraint_invalid(), i, next, infos);
+		cloog_constraint_clear(upper);
+	    }
 	    cloog_constraint_release(upper);
 	} else if (cloog_constraint_is_valid(upper =
 		    cloog_constraint_set_defining_inequalities(constraints,
 			      i, &lower, infos->names->nb_parameters))) {
-	    insert_modulo_guard(upper, lower, i, next, infos);
-	    cloog_constraint_clear(upper);
-	    cloog_constraint_clear(lower);
+	    if (!level || (nb_iter < level) ||
+		    !cloog_constraint_involves(upper, level-1)) {
+		insert_modulo_guard(upper, lower, i, next, infos);
+		cloog_constraint_clear(upper);
+		cloog_constraint_clear(lower);
+	    }
 	    cloog_constraint_release(upper);
 	    cloog_constraint_release(lower);
 	}
@@ -814,7 +822,7 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 
     copy = cloog_constraint_set_copy(constraints);
 
-    insert_extra_modulo_guards(copy, next, infos);
+    insert_extra_modulo_guards(copy, level, next, infos);
     
     cloog_int_init(one);
     cloog_int_set_si(one, 1);
@@ -1230,22 +1238,25 @@ static void insert_equation(CloogConstraint upper, CloogConstraint lower,
 /**
  * insert_for function:
  * This function inserts a for loop in the clast.
- * A loop header according to an element is the conjonction of a minimum and a
- * maximum on the element (they give the loop bounds).
+ * A loop header according to an element is the conjunction of a minimum and a
+ * maximum on a given element (they give the loop bounds).
  * For instance, considering these constraints and the element j:
  * i + j -9*M >= 0
  *    -j +5*M >= 0
  *     j -4*M >= 0
  * this function should return 'for (j=max(-i+9*M,4*M),j<=5*M;j++) {'.
- * - matrix is the polyhedron containing all the constraints,
+ * If the given element is involved in modulo guards defined by
+ * existentially quantified variables, then these guards should be
+ * inserted inside the for loop.  However, the constraints involved
+ * in this guard should not be used in determining the lower and upper
+ * bound of the loop.  We therefore insert the guards first (which
+ * removes the corresponding constraints from the constraint set)
+ * and then reattach the guard inside the loop.
+ * - constraints contains all constraints,
  * - level is the column number of the element in matrix we want to use,
  * - the infos structure gives the user some options about code printing,
  *   the number of parameters in matrix (nb_par), and the arrays of iterator
  *   names and parameters (iters and params). 
- **
- * - July 2nd 2002: first version (pick from pprint function). 
- * - March 6th 2003: infinite domain support. 
- * - June 29th 2003: non-unit strides support.
  */
 static void insert_for(CloogConstraintSet *constraints, int level,
 		       struct clast_stmt ***next, CloogInfos *infos)
@@ -1254,7 +1265,12 @@ static void insert_for(CloogConstraintSet *constraints, int level,
   struct clast_expr *e1;
   struct clast_expr *e2;
   struct clast_assignment *ass;
+  struct clast_stmt **old_next = *next;
+  struct clast_stmt *guard;
   
+  insert_extra_modulo_guards(constraints, 0, next, infos);
+  guard = *old_next;
+
   iterator = cloog_names_name_at_level(infos->names, level);
   
   e1 = clast_minmax(constraints, level, 1, 0, infos);
@@ -1266,20 +1282,29 @@ static void insert_for(CloogConstraintSet *constraints, int level,
    */
   if (!clast_expr_equal(e1, e2) || !infos->options->otl || (!e1 && !e2)) {
     struct clast_for *f = new_clast_for(iterator, e1, e2, infos->stride[level-1]);
-    **next = &f->stmt;
-    *next = &f->body;
+    *old_next = &f->stmt;
+    if (guard)
+	f->body = guard;
+    else
+	*next = &f->body;
   }
   else if (!clast_equal_add(infos->equal, constraints, level,
 				cloog_constraint_invalid(), infos)) {
     if (infos->options->block) {
 	struct clast_block *b = new_clast_block();
-	**next = &b->stmt;
-	*next = &b->body;
+	*old_next = &b->stmt;
+	if (guard)
+	    b->body = guard;
+	else
+	    *next = &b->body;
     }
     ass = new_clast_assignment(iterator, e1);
     free_clast_expr(e2);
-    **next = &ass->stmt;
-    *next = &(**next)->next;
+    *old_next = &ass->stmt;
+    if (guard)
+	ass->stmt.next = guard;
+    else
+	*next = &(**next)->next;
   } else {
     free_clast_expr(e1);
     free_clast_expr(e2);
