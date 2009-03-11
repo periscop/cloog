@@ -89,22 +89,6 @@ CloogDomain *cloog_domain_convex(CloogDomain *domain)
 
 
 /**
- * set_bounds:
- * Given a list (union) of polyhedra "set", this function returns a basic
- * set with constraints that reflect the (parametric) lower and
- * upper bound on dimension "dim".
- */
-static struct isl_basic_set *set_bounds(struct isl_set *set, int dim)
-{
-	unsigned set_dim = isl_set_n_dim(set);
-	set = isl_set_copy(set);
-	set = isl_set_eliminate_dims(set, dim + 1, set_dim - (dim + 1));
-	set = isl_set_eliminate_dims(set, 0, dim);
-	return isl_set_convex_hull(set);
-}
-
-
-/**
  * cloog_domain_simple_convex:
  * Given a list (union) of polyhedra, this function returns a "simple"
  * convex hull of this union.  In particular, the constraints of the
@@ -116,9 +100,7 @@ static struct isl_basic_set *set_bounds(struct isl_set *set, int dim)
  */
 CloogDomain *cloog_domain_simple_convex(CloogDomain *domain, int nb_par)
 {
-	int i;
 	struct isl_basic_set *hull;
-	struct isl_set *set;
 	unsigned dim = isl_set_n_dim(domain);
 
 	if (cloog_domain_isconvex(domain))
@@ -127,22 +109,7 @@ CloogDomain *cloog_domain_simple_convex(CloogDomain *domain, int nb_par)
 	if (dim == 0)
 		return cloog_domain_convex(domain);
 
-	set = isl_set_remove_divs(isl_set_copy(domain));
-
-	for (i = 0; i < dim; ++i) {
-		struct isl_basic_set *bounds;
-		bounds = set_bounds(set, i);
-		if (!i)
-			hull = bounds;
-		else
-			hull = isl_basic_set_intersect(hull, bounds);
-	}
-	isl_set_free(set);
-	if (dim == 1)
-		return isl_set_from_basic_set(hull);
-
-	hull = isl_basic_set_intersect(hull,
-				isl_set_simple_hull(isl_set_copy(domain)));
+	hull = isl_set_bounded_simple_hull(isl_set_copy(domain));
 	return isl_set_from_basic_set(hull);
 }
 
