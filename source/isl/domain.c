@@ -642,25 +642,12 @@ CloogDomain *cloog_domain_cut_first(CloogDomain *domain, CloogDomain **rest)
 /**
  * Given a union domain, try to find a simpler representation
  * using fewer sets in the union.
- * Since isl currently does not have a proper implementation for this
- * functionality, we compute
- *	convex(domain) \ (convex(domain) \ domain)
- * which usually approximates what we want.
  * The original "domain" itself is destroyed and may not be used
  * after a call to this function.
  */
 CloogDomain *cloog_domain_simplify_union(CloogDomain *domain)
 {
-      CloogDomain *convex, *temp;
-
-      convex = cloog_domain_convex(domain);
-      temp = cloog_domain_difference(convex, domain);
-      cloog_domain_free(domain);
-      domain = cloog_domain_difference(convex, temp);
-      cloog_domain_free(convex);
-      cloog_domain_free(temp);
-
-      return domain;
+      return isl_set_coalesce(domain);
 }
 
 
