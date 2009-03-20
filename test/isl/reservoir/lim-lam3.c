@@ -1,4 +1,4 @@
-/* Generated from ../../../git/cloog/test/reservoir/lim-lam3.cloog by CLooG 0.14.0-162-g1e599e0 gmp bits in 0.03s. */
+/* Generated from ../../../git/cloog/test/reservoir/lim-lam3.cloog by CLooG 0.14.0-162-gaf9e78f gmp bits in 0.03s. */
 if (M == 1) {
   S4(1);
 }
@@ -8,8 +8,8 @@ for (c2=5;c2<=min(8,5*M-1);c2++) {
   }
 }
 for (c2=9;c2<=min(13,3*M+3);c2++) {
-  for (c4=max(1,ceild(c2-M-3,4));c4<=floord(c2-4,5);c4++) {
-    S2(c2-4*c4-3,c4);
+  if ((c2 >= 9) && (c2 <= M+7)) {
+    S2(c2-7,1);
   }
   if (c2%5 == 0) {
     S4(c2/5);
