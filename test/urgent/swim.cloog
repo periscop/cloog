@@ -1,6 +1,6 @@
 c # language is C
 # ---------- CONTEXT ----------
-1 # Context (no constraints on parameters)
+# Context (no constraints on parameters)
 1    8     # 1 lines, 8 columns
 0    0    0    0    0    0    0    0    
 

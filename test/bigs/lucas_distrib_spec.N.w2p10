@@ -4,7 +4,7 @@
 
 #-------------------CONTEXT------------------------
    c # language is c
-   1 # Context (no constarints on parameters)
+   # Context (no constarints on parameters)
    1 15		# 1 lines and 15 coloumns
    #    N    J    B   N8  COL  ROW  ILO  IHI    L N8BIT   II FRACMAX    K    1
    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0 

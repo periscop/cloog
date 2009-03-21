@@ -4,7 +4,7 @@
 
 #-------------------CONTEXT------------------------
    c # language is c
-   1 # Context (no constarints on parameters)
+   # Context (no constarints on parameters)
    1 10		# 1 lines and 10 coloumns
    #    N  IHI    P BASE_INDEX BITS0 alloc_addr WORD    A    1
    0    0    0    0    0    0    0    0    0    0 

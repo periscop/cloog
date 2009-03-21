@@ -4,7 +4,7 @@
 
 #-------------------CONTEXT------------------------
    c # language is c
-   1 # Context (no constarints on parameters)
+   # Context (no constarints on parameters)
    1 2		# 1 lines and 2 coloumns
    #    1
    0    0 

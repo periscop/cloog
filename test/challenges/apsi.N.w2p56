@@ -4,7 +4,7 @@
 
 #-------------------CONTEXT------------------------
    c # language is c
-   1 # Context (no constarints on parameters)
+   # Context (no constarints on parameters)
    1 16		# 1 lines and 16 coloumns
    # NSOU t$271   LZ   LY   LX   IN  LSX  LSY  LSZ   NX   NY   NZ   I1   I2    1
    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0 
