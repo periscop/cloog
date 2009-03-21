@@ -1731,6 +1731,50 @@ CloogOptions * options ;
 }
 
 
+/*
+ * Internal function for simplifying a single loop in a list of loops.
+ * See cloog_loop_simplify.
+ */
+static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
+	int level, int nb_par)
+{
+  int domain_dim;
+  CloogBlock * new_block ;
+  CloogLoop *simplified, *inner;
+  CloogDomain * domain, * simp, * inter, * extended_context ;
+
+  domain = loop->domain ;
+  
+  domain_dim = cloog_domain_dimension(domain) - nb_par ;
+  extended_context=cloog_domain_extend(context,domain_dim,nb_par);
+  inter = cloog_domain_intersection(domain,extended_context) ;
+  simp = cloog_domain_simplify(inter,extended_context) ;
+  cloog_domain_free(extended_context) ;
+
+  /* If the constraint system is never true, go to the next one. */
+  if (cloog_domain_never_integral(simp)) {
+    cloog_loop_free(loop->inner);
+    cloog_domain_free(inter);
+    cloog_domain_free(simp);
+    return NULL;
+  }
+
+  inner = cloog_loop_simplify(loop->inner,inter,level+1,nb_par) ;
+  cloog_domain_free(inter) ;
+  
+  if ((inner == NULL) && (loop->block == NULL)) {
+    cloog_domain_free(simp);
+    return NULL;
+  }
+
+  new_block = cloog_block_copy(loop->block) ;
+  
+  simplified = cloog_loop_alloc(simp, loop->stride, new_block, inner, NULL);
+
+  return(simplified) ; 
+}
+
+
 /**
  * cloog_loop_simplify function:
  * This function implements the part 6. of the Quillere algorithm, it
@@ -1756,59 +1800,30 @@ CloogLoop * cloog_loop_simplify(loop, context, level, nb_par)
 CloogLoop * loop ;
 CloogDomain * context ;
 int level, nb_par ;
-{ int domain_dim ;
-  CloogBlock * new_block ;
-  CloogLoop * simplified, * inner, * next ;
-  CloogDomain * domain, * simp, * inter, * extended_context ;
-	     
-  if (loop == NULL)
-  return(NULL) ;
-  
-  domain = loop->domain ;
-  
-  next = cloog_loop_simplify(loop->next,context,level,nb_par) ;
-  
-  domain_dim = cloog_domain_dimension(domain) - nb_par ;
-  extended_context=cloog_domain_extend(context,domain_dim,nb_par);
-  inter = cloog_domain_intersection(domain,extended_context) ;
-  simp = cloog_domain_simplify(inter,extended_context) ;
-  cloog_domain_free(extended_context) ;
+{
+  CloogLoop *now;
+  CloogLoop *res = NULL;
+  CloogLoop **next = &res;
 
-  /* If the constraint system is never true, go to the next one. */
-  if (cloog_domain_never_integral(simp)) {
-    loop->next = NULL;
-    cloog_loop_free(loop);
-    cloog_domain_free(inter);
-    cloog_domain_free(simp);
-    return next;
+  for (now = loop; now; now = now->next) {
+    *next = loop_simplify(now, context, level, nb_par);
+
+    now->inner = NULL; /* For loop integrity. */
+    cloog_domain_free(now->domain);
+    now->domain = NULL;
+
+    if (*next)
+      next = &(*next)->next;
   }
-
-  inner = cloog_loop_simplify(loop->inner,inter,level+1,nb_par) ;
-  cloog_domain_free(inter) ;
-  
-  if ((inner == NULL) && (loop->block == NULL))
-  { loop->inner = NULL ; /* For loop integrity. */
-    loop->next = NULL ;  /* For loop integrity. */
-    cloog_loop_free_parts(loop,1,1,1,0) ;
-    cloog_domain_free(simp);
-    return(next) ;
-  }
-
-  new_block = cloog_block_copy(loop->block) ;
-  
-  simplified = cloog_loop_alloc(simp,loop->stride,new_block,inner,next) ;
+  cloog_loop_free(loop);
   
   /* Examples like test/iftest2.cloog give unions of polyhedra after
    * simplifying, thus we we have to disjoint them. Another good reason to
    * put the simplifying step in the Quillere backtrack.
    */
-  simplified = cloog_loop_disjoint(simplified) ;
+  res = cloog_loop_disjoint(res);
 
-  loop->inner = NULL ; /* For loop integrity. */
-  loop->next = NULL ;  /* For loop integrity. */
-  cloog_loop_free_parts(loop,1,1,0,0) ;
-
-  return(simplified) ; 
+  return res;
 }
 
 
