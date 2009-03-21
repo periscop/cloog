@@ -978,7 +978,7 @@ static void insert_modulo_guard(CloogConstraint upper,
 {
   int i, j, k, nb_elts = 0, len, len2, nb_iter, in_stride = 0, nb_par;
   struct cloog_vec *line_vector, *line_vector2;
-  cloog_int_t *line, *line2, val, val2, x, y, g;
+  cloog_int_t *line, *line2, val, bound, x, y, g;
 
   cloog_int_init(val);
   cloog_constraint_coefficient_get(upper, level-1, &val);
@@ -992,17 +992,17 @@ static void insert_modulo_guard(CloogConstraint upper,
   nb_par = infos->names->nb_parameters;
   nb_iter = len - 2 - nb_par;
 
-  cloog_int_init(val2);
+  cloog_int_init(bound);
   /* Check if would be emitting the redundant constraint mod(e,m) <= m-1 */
   if (cloog_constraint_is_valid(lower)) {
     cloog_constraint_constant_get(upper, &val);
-    cloog_constraint_constant_get(lower, &val2);
-    cloog_int_add(val, val, val2);
-    cloog_int_add_ui(val, val, 1);
-    cloog_constraint_coefficient_get(lower, level-1, &val2);
-    if (cloog_int_eq(val, val2)) {
+    cloog_constraint_constant_get(lower, &bound);
+    cloog_int_add(bound, val, bound);
+    cloog_constraint_coefficient_get(lower, level-1, &val);
+    cloog_int_sub_ui(val, val, 1);
+    if (cloog_int_eq(val, bound)) {
       cloog_int_clear(val);
-      cloog_int_clear(val2);
+      cloog_int_clear(bound);
       return;
     }
   }
@@ -1155,10 +1155,7 @@ static void insert_modulo_guard(CloogConstraint upper,
       g->eq[0].sign = 0;
     } else {
       g->eq[0].LHS = e;
-      cloog_constraint_constant_get(upper, &val);
-      cloog_constraint_constant_get(lower, &val2);
-      cloog_int_add(val, val, val2);
-      g->eq[0].RHS = &new_clast_term(val, NULL)->expr;
+      g->eq[0].RHS = &new_clast_term(bound, NULL)->expr;
       g->eq[0].sign = -1;
     }
 
@@ -1170,7 +1167,7 @@ static void insert_modulo_guard(CloogConstraint upper,
   cloog_vec_free(line_vector2);
 
   cloog_int_clear(val);
-  cloog_int_clear(val2);
+  cloog_int_clear(bound);
   cloog_int_clear(x);
   cloog_int_clear(y);
   cloog_int_clear(g);
