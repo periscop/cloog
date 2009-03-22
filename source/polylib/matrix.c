@@ -1053,6 +1053,177 @@ int cloog_constraint_is_valid(CloogConstraint constraint)
 	return constraint.set != NULL && constraint.line != NULL;
 }
 
+/**
+ * Create a CloogConstraintSet containing enough information to perform
+ * a reduction on the upper equality (in this case lower is an invalid
+ * CloogConstraint) or the pair of inequalities upper and lower
+ * from within insert_modulo_guard.
+ * In the PolyLib backend, we return a CloogConstraintSet containting only
+ * the upper bound.  The reduction will not change the stride so there
+ * will be no need to recompute the bound on the modulo expression.
+ */
+CloogConstraintSet *cloog_constraint_set_for_reduction(CloogConstraint upper,
+	 CloogConstraint lower)
+{
+	CloogConstraintSet *set;
+
+	set = cloog_matrix_alloc(1, upper.set->NbColumns);
+	Vector_Copy(upper.line[0], set->p[0], set->NbColumns);
+	return set;
+}
+
+
+/* Computes x, y and g such that g = gcd(a,b) and a*x+b*y = g */
+static void Euclid(cloog_int_t a, cloog_int_t b,
+			cloog_int_t *x, cloog_int_t *y, cloog_int_t *g)
+{
+    cloog_int_t c, d, e, f, tmp;
+
+    cloog_int_init(c);
+    cloog_int_init(d);
+    cloog_int_init(e);
+    cloog_int_init(f);
+    cloog_int_init(tmp);
+    cloog_int_abs(c, a);
+    cloog_int_abs(d, b);
+    cloog_int_set_si(e, 1);
+    cloog_int_set_si(f, 0);
+    while (cloog_int_is_pos(d)) {
+	cloog_int_tdiv_q(tmp, c, d);
+	cloog_int_mul(tmp, tmp, f);
+	cloog_int_sub(e, e, tmp);
+	cloog_int_tdiv_q(tmp, c, d);
+	cloog_int_mul(tmp, tmp, d);
+	cloog_int_sub(c, c, tmp);
+	cloog_int_swap(c, d);
+	cloog_int_swap(e, f);
+    }
+    cloog_int_set(*g, c);
+    if (cloog_int_is_zero(a))
+	cloog_int_set_si(*x, 0);
+    else if (cloog_int_is_pos(a))
+	cloog_int_set(*x, e);
+    else cloog_int_neg(*x, e);
+    if (cloog_int_is_zero(b))
+	cloog_int_set_si(*y, 0);
+    else {
+	cloog_int_mul(tmp, a, *x);
+	cloog_int_sub(tmp, c, tmp);
+	cloog_int_divexact(*y, tmp, b);
+    }
+    cloog_int_clear(c);
+    cloog_int_clear(d);
+    cloog_int_clear(e);
+    cloog_int_clear(f);
+    cloog_int_clear(tmp);
+}
+
+/**
+ * Reduce the modulo guard expressed by "contraints" using equalities
+ * found in outer nesting levels (stored in "equal").
+ * The modulo guard may be an equality or a pair of inequalities.
+ * In case of a pair of inequalities, "constraints" only contains the
+ * upper bound and *bound contains the bound on the
+ * corresponding modulo expression.  The bound is left untouched by
+ * this function.
+ */
+CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
+	int level, CloogEqualities *equal, int nb_par, cloog_int_t *bound)
+{
+  int i, j, k, len, len2, nb_iter;
+  struct cloog_vec *line_vector2;
+  cloog_int_t *line, *line2, val, x, y, g;
+
+  len = constraints->NbColumns;
+  len2 = cloog_equal_total_dimension(equal) + 2;
+  nb_iter = len - 2 - nb_par;
+
+  cloog_int_init(val);
+  cloog_int_init(x);
+  cloog_int_init(y);
+  cloog_int_init(g);
+
+  line_vector2 = cloog_vec_alloc(len2);
+  line2 = line_vector2->p;
+
+  line = constraints->p[0];
+  if (cloog_int_is_pos(line[level]))
+    cloog_seq_neg(line+1, line+1, len-1);
+  cloog_int_neg(line[level], line[level]);
+  assert(cloog_int_is_pos(line[level]));
+
+  for (i = nb_iter; i >= 1; --i) {
+    if (i == level)
+      continue;
+    cloog_int_fdiv_r(line[i], line[i], line[level]);
+    if (cloog_int_is_zero(line[i]))
+      continue;
+
+    /* Look for an earlier variable that is also a multiple of line[level]
+     * and check whether we can use the corresponding affine expression
+     * to "reduce" the modulo guard, where reduction means that we eliminate
+     * a variable, possibly at the expense of introducing other variables
+     * with smaller index.
+     */
+    for (j = level-1; j >= 0; --j) {
+      CloogConstraint equal_constraint;
+      if (cloog_equal_type(equal, j+1) != EQTYPE_EXAFFINE)
+	continue;
+      equal_constraint = cloog_equal_constraint(equal, j);
+      cloog_constraint_coefficient_get(equal_constraint, j, &val);
+      if (!cloog_int_is_divisible_by(val, line[level])) {
+	cloog_constraint_release(equal_constraint);
+	continue;
+      }
+      cloog_constraint_coefficient_get(equal_constraint, i-1, &val);
+      if (cloog_int_is_divisible_by(val, line[level])) {
+	cloog_constraint_release(equal_constraint);
+	continue;
+      }
+      for (k = j; k > i; --k) {
+	cloog_constraint_coefficient_get(equal_constraint, k-1, &val);
+	if (cloog_int_is_zero(val))
+	  continue;
+	if (!cloog_int_is_divisible_by(val, line[level]))
+	  break;
+      }
+      if (k > i) {
+	 cloog_constraint_release(equal_constraint);
+	 continue;
+      }
+      cloog_constraint_coefficient_get(equal_constraint, i-1, &val);
+      Euclid(val, line[level], &x, &y, &g);
+      if (!cloog_int_is_divisible_by(val, line[i])) {
+	cloog_constraint_release(equal_constraint);
+	continue;
+      }
+      cloog_int_divexact(val, line[i], g);
+      cloog_int_neg(val, val);
+      cloog_int_mul(val, val, x);
+      cloog_int_set_si(y, 1);
+      /* Add (equal->p[j][i])^{-1} * line[i] times the equality */
+      cloog_constraint_copy_coefficients(equal_constraint, line2+1);
+      cloog_seq_combine(line+1, y, line+1, val, line2+1, i);
+      cloog_seq_combine(line+len-nb_par-1, y, line+len-nb_par-1,
+					   val, line2+len2-nb_par-1, nb_par+1);
+      cloog_constraint_release(equal_constraint);
+      break;
+    }
+  }
+
+  cloog_vec_free(line_vector2);
+
+  cloog_int_clear(val);
+  cloog_int_clear(x);
+  cloog_int_clear(y);
+  cloog_int_clear(g);
+
+  /* Make sure the line is not inverted again in the calling function. */
+  cloog_int_neg(line[level], line[level]);
+
+  return constraints;
+}
+
 CloogConstraint cloog_constraint_first(CloogConstraintSet *constraints)
 {
 	CloogConstraint c;

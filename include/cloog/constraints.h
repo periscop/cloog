@@ -79,6 +79,10 @@ CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *, CloogEqu
 
 #if defined(CLOOG_POLYLIB) || defined(CLOOG_ISL)
 
+CloogConstraintSet *cloog_constraint_set_for_reduction(CloogConstraint upper,
+	       CloogConstraint lower);
+CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
+	int level, CloogEqualities *equal, int nb_par, cloog_int_t *bound);
 CloogConstraint cloog_constraint_first(CloogConstraintSet *constraints);
 int             cloog_constraint_is_valid(CloogConstraint constraint);
 CloogConstraint cloog_constraint_next(CloogConstraint constraint);

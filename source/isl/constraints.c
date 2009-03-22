@@ -570,6 +570,114 @@ int cloog_constraint_total_dimension(CloogConstraint constraint)
 	return isl_constraint_dim(constraint, isl_dim_all);
 }
 
+/**
+ * Create a CloogConstraintSet containing enough information to perform
+ * a reduction on the upper equality (in this case lower is an invalid
+ * CloogConstraint) or the pair of inequalities upper and lower
+ * from within insert_modulo_guard.
+ * In the isl backend, we return a CloogConstraintSet containting both
+ * bounds, as the stride may change during the reduction and we may
+ * need to recompute the bound on the modulo expression.
+ */
+CloogConstraintSet *cloog_constraint_set_for_reduction(CloogConstraint upper,
+	CloogConstraint lower)
+{
+	CloogConstraintSet *set;
+
+	set = isl_basic_set_from_constraint(isl_constraint_copy(upper));
+	if (cloog_constraint_is_valid(lower))
+		set = isl_basic_set_add_constraint(set,
+						isl_constraint_copy(lower));
+	return set;
+}
+
+/**
+ * Reduce the modulo guard expressed by "contraints" using equalities
+ * found in outer nesting levels (stored in "equal").
+ * The modulo guard may be an equality or a pair of inequalities.
+ * In case of a pair of inequalities, *bound contains the bound on the
+ * corresponding modulo expression.  If any reduction is performed
+ * then this bound is recomputed.
+ *
+ * We first check if "level" corresponds to an existentially quantified
+ * variable.  If so, there is no need to reduce it as it would have
+ * been removed already if it had been redundant.
+ * Then we check if there are any equalities we can use.  If not,
+ * there is again nothing to reduce.
+ * For the actual reduction, we use isl_basic_set_gist, but this
+ * function will only perform the reduction we want hear if the
+ * the variable that imposes the modulo constraint has been projected
+ * out (i.e., turned into an existentially quantified variable).
+ * After the call to isl_basic_set_gist, we need to move the
+ * existential variable back into the position where the calling
+ * function expects it (assuming there are any constraints left).
+ * We do this by adding equality between the given dimension and
+ * the existentially quantified variable.
+ */
+CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
+	int level, CloogEqualities *equal, int nb_par, cloog_int_t *bound)
+{
+	int j;
+	struct isl_basic_set *eq;
+	struct isl_basic_map *id;
+	struct cloog_isl_dim dim;
+	struct isl_constraint *c;
+	struct isl_div *div;
+	unsigned constraints_dim;
+	int pos;
+	isl_int v;
+
+	dim = set_cloog_dim_to_isl_dim(constraints, level - 1);
+	if (dim.type != isl_dim_set)
+		return constraints;
+
+	eq = NULL;
+	for (j = 0; j < level - 1; ++j) {
+		if (equal->types[j] != EQTYPE_EXAFFINE)
+			continue;
+		if (!eq)
+			eq = isl_basic_set_copy(equal->constraints[j]);
+		else
+			eq = isl_basic_set_intersect(eq,
+				isl_basic_set_copy(equal->constraints[j]));
+	}
+	if (!eq)
+		return constraints;
+
+	id = isl_basic_map_identity(isl_basic_set_get_dim(constraints));
+	id = isl_basic_map_remove(id, isl_dim_out, dim.pos, 1);
+	constraints = isl_basic_set_apply(constraints, isl_basic_map_copy(id));
+	constraints = isl_basic_set_apply(constraints,
+						isl_basic_map_reverse(id));
+
+	constraints_dim = isl_basic_set_dim(constraints, isl_dim_set);
+	eq = isl_basic_set_remove_dims(eq, constraints_dim,
+			isl_basic_set_dim(eq, isl_dim_set) - constraints_dim);
+	constraints = isl_basic_set_gist(constraints, eq);
+	if (isl_basic_set_dim(constraints, isl_dim_div) != 1)
+		return constraints;
+
+	div = isl_basic_set_div(isl_basic_set_copy(constraints), 0);
+	c = isl_equality_alloc(isl_basic_set_get_dim(constraints));
+	c = isl_constraint_add_div(c, div, &pos);
+	isl_constraint_set_coefficient(c, isl_dim_set, dim.pos,
+					constraints->ctx->one);
+	isl_constraint_set_coefficient(c, isl_dim_div, pos,
+					constraints->ctx->negone);
+	constraints = isl_basic_set_add_constraint(constraints, c);
+
+	isl_int_init(v);
+	isl_int_set_si(*bound, 0);
+	for (c = cloog_constraint_first(constraints);
+	     cloog_constraint_is_valid(c); c = cloog_constraint_next(c)) {
+		cloog_constraint_constant_get(c, &v);
+		isl_int_add(*bound, *bound, v);
+	}
+	isl_int_clear(v);
+
+	return constraints;
+}
+
 CloogConstraint cloog_constraint_first(CloogConstraintSet *constraints)
 {
 	return isl_basic_set_first_constraint(isl_basic_set_copy(constraints));

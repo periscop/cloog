@@ -908,52 +908,6 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
   cloog_int_clear(one);
   return;
 }
-
-
-/* Computes x, y and g such that g = gcd(a,b) and a*x+b*y = g */
-static void Euclid(cloog_int_t a, cloog_int_t b,
-			cloog_int_t *x, cloog_int_t *y, cloog_int_t *g)
-{
-    cloog_int_t c, d, e, f, tmp;
-
-    cloog_int_init(c);
-    cloog_int_init(d);
-    cloog_int_init(e);
-    cloog_int_init(f);
-    cloog_int_init(tmp);
-    cloog_int_abs(c, a);
-    cloog_int_abs(d, b);
-    cloog_int_set_si(e, 1);
-    cloog_int_set_si(f, 0);
-    while (cloog_int_is_pos(d)) {
-	cloog_int_tdiv_q(tmp, c, d);
-	cloog_int_mul(tmp, tmp, f);
-	cloog_int_sub(e, e, tmp);
-	cloog_int_tdiv_q(tmp, c, d);
-	cloog_int_mul(tmp, tmp, d);
-	cloog_int_sub(c, c, tmp);
-	cloog_int_swap(c, d);
-	cloog_int_swap(e, f);
-    }
-    cloog_int_set(*g, c);
-    if (cloog_int_is_zero(a))
-	cloog_int_set_si(*x, 0);
-    else if (cloog_int_is_pos(a))
-	cloog_int_set(*x, e);
-    else cloog_int_neg(*x, e);
-    if (cloog_int_is_zero(b))
-	cloog_int_set_si(*y, 0);
-    else {
-	cloog_int_mul(tmp, a, *x);
-	cloog_int_sub(tmp, c, tmp);
-	cloog_int_divexact(*y, tmp, b);
-    }
-    cloog_int_clear(c);
-    cloog_int_clear(d);
-    cloog_int_clear(e);
-    cloog_int_clear(f);
-    cloog_int_clear(tmp);
-}
  
 
 /**
@@ -976,9 +930,10 @@ static void insert_modulo_guard(CloogConstraint upper,
 				CloogConstraint lower, int level,
 				struct clast_stmt ***next, CloogInfos *infos)
 {
-  int i, j, k, nb_elts = 0, len, len2, nb_iter, in_stride = 0, nb_par;
-  struct cloog_vec *line_vector, *line_vector2;
-  cloog_int_t *line, *line2, val, bound, x, y, g;
+  int i, nb_elts = 0, len, len2, nb_iter, in_stride = 0, nb_par;
+  struct cloog_vec *line_vector;
+  cloog_int_t *line, val, bound;
+  CloogConstraintSet *set;
 
   cloog_int_init(val);
   cloog_constraint_coefficient_get(upper, level-1, &val);
@@ -1007,14 +962,18 @@ static void insert_modulo_guard(CloogConstraint upper,
     }
   }
 
-  cloog_int_init(x);
-  cloog_int_init(y);
-  cloog_int_init(g);
+  set = cloog_constraint_set_for_reduction(upper, lower);
+  set = cloog_constraint_set_reduce(set, level, infos->equal, nb_par, &bound);
+  upper = cloog_constraint_first(set);
+  if (!cloog_constraint_is_valid(upper)) {
+    cloog_int_clear(val);
+    cloog_int_clear(bound);
+    cloog_constraint_set_free(set);
+    return;
+  }
 
   line_vector = cloog_vec_alloc(len);
-  line_vector2 = cloog_vec_alloc(len2);
   line = line_vector->p;
-  line2 = line_vector2->p;
   cloog_constraint_copy_coefficients(upper, line+1);
   if (cloog_int_is_pos(line[level]))
     cloog_seq_neg(line+1, line+1, len-1);
@@ -1022,68 +981,14 @@ static void insert_modulo_guard(CloogConstraint upper,
   assert(cloog_int_is_pos(line[level]));
 
   nb_elts = 0;
-  for (i = nb_iter; i >= 1; --i) {
+  for (i = 1; i <= len-1; ++i) {
     if (i == level)
       continue;
     cloog_int_fdiv_r(line[i], line[i], line[level]);
     if (cloog_int_is_zero(line[i]))
       continue;
-
-    /* Look for an earlier variable that is also a multiple of line[level]
-     * and check whether we can use the corresponding affine expression
-     * to "reduce" the modulo guard, where reduction means that we eliminate
-     * a variable, possibly at the expense of introducing other variables
-     * with smaller index.
-     */
-    for (j = level-1; j >= 0; --j) {
-      CloogConstraint equal_constraint;
-      if (cloog_equal_type(infos->equal, j+1) != EQTYPE_EXAFFINE)
-	continue;
-      equal_constraint = cloog_equal_constraint(infos->equal, j);
-      cloog_constraint_coefficient_get(equal_constraint, j, &val);
-      if (!cloog_int_is_divisible_by(val, line[level])) {
-	cloog_constraint_release(equal_constraint);
-	continue;
-      }
-      cloog_constraint_coefficient_get(equal_constraint, i-1, &val);
-      if (cloog_int_is_divisible_by(val, line[level])) {
-	cloog_constraint_release(equal_constraint);
-	continue;
-      }
-      for (k = j; k > i; --k) {
-	cloog_constraint_coefficient_get(equal_constraint, k-1, &val);
-	if (cloog_int_is_zero(val))
-	  continue;
-	if (!cloog_int_is_divisible_by(val, line[level]))
-	  break;
-      }
-      if (k > i) {
-	 cloog_constraint_release(equal_constraint);
-	 continue;
-      }
-      cloog_constraint_coefficient_get(equal_constraint, i-1, &val);
-      Euclid(val, line[level], &x, &y, &g);
-      if (!cloog_int_is_divisible_by(val, line[i])) {
-	cloog_constraint_release(equal_constraint);
-	continue;
-      }
-      cloog_int_divexact(val, line[i], g);
-      cloog_int_neg(val, val);
-      cloog_int_mul(val, val, x);
-      cloog_int_set_si(y, 1);
-      /* Add (infos->equal->p[j][i])^{-1} * line[i] times the equality */
-      cloog_constraint_copy_coefficients(equal_constraint, line2+1);
-      cloog_seq_combine(line+1, y, line+1, val, line2+1, i);
-      cloog_seq_combine(line+len-nb_par-1, y, line+len-nb_par-1,
-					   val, line2+len2-nb_par-1, nb_par+1);
-      cloog_constraint_release(equal_constraint);
-      break;
-    }
-    if (j >= 0) {
-      cloog_int_fdiv_r(line[i], line[i], line[level]);
-      assert(cloog_int_is_zero(line[i]));
+    if (i == len-1)
       continue;
-    }
 
     /* We need to know if an element of the equality has not to be printed
      * because of a stride that guarantees that this element can be divided by
@@ -1091,20 +996,13 @@ static void insert_modulo_guard(CloogConstraint upper,
      * is included in the stride calculation (more exactly in the strided
      * iterator new lower bound: the 'offset') and we have not to print it.
      */
-    if (!cloog_constraint_is_valid(lower) &&
+    if (i <= nb_iter && !cloog_constraint_is_valid(lower) &&
 	cloog_int_is_divisible_by(infos->stride[i-1], line[level])) {
       in_stride = 1;
       continue;
     }
 
     nb_elts++;
-  }
-  for (i = nb_iter+1; i <= len-1; ++i) {
-    cloog_int_fdiv_r(line[i], line[i], line[level]);
-    if (cloog_int_is_zero(line[i]))
-      continue;
-    if (i <= len-2)
-      nb_elts++;
   }
 
   if (nb_elts || (!cloog_int_is_zero(line[len-1]) && (!in_stride))) {
@@ -1163,14 +1061,11 @@ static void insert_modulo_guard(CloogConstraint upper,
     *next = &g->then;
   }
 
+  cloog_constraint_release(upper);
+  cloog_constraint_set_free(set);
   cloog_vec_free(line_vector);
-  cloog_vec_free(line_vector2);
-
   cloog_int_clear(val);
   cloog_int_clear(bound);
-  cloog_int_clear(x);
-  cloog_int_clear(y);
-  cloog_int_clear(g);
 }
 
 
