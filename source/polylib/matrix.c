@@ -431,20 +431,15 @@ CloogConstraintSet *cloog_equal_constraints(CloogEqualities *equal)
  * cloog_constraint_equal_type function :
  * This function returns the type of the equality in the constraint (line) of
  * (constraints) for the element (level). An equality is 'constant' iff all
- * other
- * factors are null except the constant one. It is a 'pure item' iff one and
- * only one factor is non null and is 1 or -1. Otherwise it is an 'affine
- * expression'.
+ * other factors are null except the constant one. It is a 'pure item' iff
+ * it is equal or opposite to a single variable or parameter.
+ * Otherwise it is an 'affine expression'.
  * For instance:
  *   i = -13 is constant, i = j, j = -M are pure items,
- *   j = 2*M, i = j+1 are affine expressions.
- * When the equality comes from a 'one time loop', (line) is ONE_TIME_LOOP.
- * This case require a specific treatment since we have to study all the
- * constraints.
+ *   j = 2*M, i = j+1, 2*j = M are affine expressions.
+ *
  * - constraints is the matrix of constraints,
  * - level is the column number in equal of the element which is 'equal to',
- * - line is the line number in equal of the constraint we want to study;
- *   if it is -1, all lines must be studied.
  **
  * - July     3rd 2002: first version, called pprint_equal_isconstant. 
  * - July     6th 2002: adaptation for the 3 types. 
@@ -460,6 +455,9 @@ static int cloog_constraint_equal_type(CloogConstraint constraint, int level)
     
   expr = *constraint.line;
   
+  if (value_notone_p(expr[level]) && value_notmone_p(expr[level]))
+    return EQTYPE_EXAFFINE;
+
   /* There is only one non null factor, and it must be +1 or -1 for
    * iterators or parameters.
    */ 

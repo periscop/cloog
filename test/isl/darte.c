@@ -1,4 +1,4 @@
-/* Generated from ../../../git/cloog/test/darte.cloog by CLooG 0.14.0-162-g1e599e0 gmp bits in 0.18s. */
+/* Generated from ../../../git/cloog/test/darte.cloog by CLooG 0.14.0-165-g01eb246 gmp bits in 0.18s. */
 if (n >= 1) {
   for (t3=n+3;t3<=3*n+1;t3++) {
     if ((t3+n+1)%2 == 0) {
@@ -23,10 +23,8 @@ if (n >= 1) {
     for (t2=2;t2<=4;t2++) {
       for (t3=t2+2;t3<=t2+4;t3++) {
         if (t2%2 == 0) {
-          if (t2%2 == 0) {
-            if ((t2+t3)%2 == 0) {
-              S1(t2/2,t2/2,(-t2+t3)/2);
-            }
+          if (t3%2 == 0) {
+            S1(t2/2,t2/2,(-t2+t3)/2);
           }
         }
       }

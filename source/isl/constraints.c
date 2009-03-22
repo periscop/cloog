@@ -192,20 +192,15 @@ int cloog_equal_count(CloogEqualities *equal)
  * cloog_constraint_equal_type function :
  * This function returns the type of the equality in the constraint (line) of
  * (constraints) for the element (level). An equality is 'constant' iff all
- * other
- * factors are null except the constant one. It is a 'pure item' iff one and
- * only one factor is non null and is 1 or -1. Otherwise it is an 'affine
- * expression'.
+ * other factors are null except the constant one. It is a 'pure item' iff
+ * it is equal or opposite to a single variable or parameter.
+ * Otherwise it is an 'affine expression'.
  * For instance:
  *   i = -13 is constant, i = j, j = -M are pure items,
- *   j = 2*M, i = j+1 are affine expressions.
- * When the equality comes from a 'one time loop', (line) is ONE_TIME_LOOP.
- * This case require a specific treatment since we have to study all the
- * constraints.
+ *   j = 2*M, i = j+1, 2*j = M are affine expressions.
+ *
  * - constraints is the matrix of constraints,
  * - level is the column number in equal of the element which is 'equal to',
- * - line is the line number in equal of the constraint we want to study;
- *   if it is -1, all lines must be studied.
  */
 static int cloog_constraint_equal_type(CloogConstraint constraint, int level)
 { 
@@ -217,6 +212,9 @@ static int cloog_constraint_equal_type(CloogConstraint constraint, int level)
 	isl_constraint_get_constant(constraint, &c);
 	if (!isl_int_is_zero(c))
 		type = EQTYPE_CONSTANT;
+	isl_constraint_get_coefficient(constraint, isl_dim_set, level - 1, &c);
+	if (!isl_int_is_one(c) && !isl_int_is_negone(c))
+		type = EQTYPE_EXAFFINE;
 	for (i = 0; i < isl_constraint_dim(constraint, isl_dim_param); ++i) {
 		isl_constraint_get_coefficient(constraint, isl_dim_param, i, &c);
 		if (isl_int_is_zero(c))

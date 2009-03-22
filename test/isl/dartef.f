@@ -1,4 +1,4 @@
-! Generated from ../../../git/cloog/test/dartef.cloog by CLooG 0.14.0-162-g1e599e0 gmp bits in 0.18s.
+! Generated from ../../../git/cloog/test/dartef.cloog by CLooG 0.14.0-165-g01eb246 gmp bits in 0.18s.
 IF (n >= 1) THEN
   DO t3=n+3, 3*n+1
     IF (MOD(t3+n+1, 2) == 0) THEN
@@ -23,10 +23,8 @@ IF (n >= 1) THEN
     DO t2=2, 4
       DO t3=t2+2, t2+4
         IF (MOD(t2, 2) == 0) THEN
-          IF (MOD(t2, 2) == 0) THEN
-            IF (MOD(t2+t3, 2) == 0) THEN
-              S1(t2/2,t2/2,(-t2+t3)/2)
-            END IF
+          IF (MOD(t3, 2) == 0) THEN
+            S1(t2/2,t2/2,(-t2+t3)/2)
           END IF
         END IF
       END DO
