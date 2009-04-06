@@ -75,12 +75,12 @@ void          cloog_domain_free(CloogDomain *) ;
 void          cloog_scattering_free(CloogScattering *);
 CloogDomain * cloog_domain_copy(CloogDomain *) ;
 CloogDomain * cloog_domain_convex(CloogDomain * Pol) ;
-CloogDomain * cloog_domain_simple_convex(CloogDomain * domain, int nb_par);
+CloogDomain * cloog_domain_simple_convex(CloogDomain * domain);
 CloogDomain * cloog_domain_simplify(CloogDomain *, CloogDomain *) ;
 CloogDomain * cloog_domain_union(CloogDomain *, CloogDomain *) ;
 CloogDomain * cloog_domain_intersection(CloogDomain *, CloogDomain *) ;
 CloogDomain * cloog_domain_difference(CloogDomain *, CloogDomain *) ;
-void          cloog_domain_sort(CloogDomain**,unsigned,unsigned,unsigned,int *);
+void          cloog_domain_sort(CloogDomain**,unsigned,unsigned,int *);
 CloogDomain * cloog_domain_empty(CloogDomain *model);
 
 
@@ -113,10 +113,10 @@ CloogScattering *cloog_scattering_read(FILE *foo,
 CloogConstraintSet *cloog_domain_constraints(CloogDomain *);
 int           cloog_domain_isempty(CloogDomain *) ;
 CloogDomain * cloog_domain_universe(unsigned dim, CloogOptions *options);
-CloogDomain * cloog_domain_project(CloogDomain *, int, int) ;
-CloogDomain * cloog_domain_extend(CloogDomain *, int, int) ;
+CloogDomain * cloog_domain_project(CloogDomain *, int);
+CloogDomain * cloog_domain_extend(CloogDomain *, int);
 int           cloog_domain_never_integral(CloogDomain *) ;
-void          cloog_domain_stride(CloogDomain *, int, int, cloog_int_t *, cloog_int_t *);
+void          cloog_domain_stride(CloogDomain *, int, cloog_int_t *, cloog_int_t *);
 int           cloog_domain_integral_lowerbound(CloogDomain *, int, cloog_int_t *);
 CloogDomain * cloog_domain_lowerbound_update(CloogDomain *, int, cloog_int_t);
 int           cloog_domain_lazy_disjoint(CloogDomain *, CloogDomain *) ;

@@ -95,10 +95,8 @@ CloogDomain *cloog_domain_convex(CloogDomain *domain)
  * the returned polyhedron consist of (parametric) lower and upper
  * bounds on individual variables and constraints that appear in the
  * original polyhedra.
- *
- * nb_par is the number of parameters of the domain.
  */
-CloogDomain *cloog_domain_simple_convex(CloogDomain *domain, int nb_par)
+CloogDomain *cloog_domain_simple_convex(CloogDomain *domain)
 {
 	struct isl_basic_set *hull;
 	unsigned dim = isl_set_n_dim(domain);
@@ -174,7 +172,7 @@ CloogDomain *cloog_domain_difference(CloogDomain *domain, CloogDomain *minus)
  * apply the topological sorting. 
  */
 void cloog_domain_sort(CloogDomain **doms, unsigned nb_doms, unsigned level,
-			unsigned nb_par, int *permut)
+			int *permut)
 {
 	int i, j, k, cmp;
 	struct isl_ctx *ctx;
@@ -428,7 +426,7 @@ CloogDomain *cloog_domain_universe(unsigned dim, CloogOptions *options)
  * This function returns the projection of
  * (domain) on the (level) first dimensions (i.e. outer loops).
  */ 
-CloogDomain *cloog_domain_project(CloogDomain *domain, int level, int nb_par)
+CloogDomain *cloog_domain_project(CloogDomain *domain, int level)
 {
 	return isl_set_remove_dims(isl_set_copy(domain),
 					level, isl_set_n_dim(domain) - level);
@@ -441,9 +439,10 @@ CloogDomain *cloog_domain_project(CloogDomain *domain, int level, int nb_par)
  * dimensions and (nb_par) parameters.
  * This function does not free (domain), and returns a new CloogDomain.
  */ 
-CloogDomain *cloog_domain_extend(CloogDomain *domain, int dim, int nb_par)
+CloogDomain *cloog_domain_extend(CloogDomain *domain, int dim)
 {
-	return isl_set_extend(isl_set_copy(domain), nb_par, dim);
+	return isl_set_extend(isl_set_copy(domain),
+				isl_set_n_param(domain), dim);
 }
 
 
@@ -475,7 +474,7 @@ int cloog_domain_never_integral(CloogDomain * domain)
  * - offset is the value of the constant c if the condition is of the shape
  *   (i + c)%s = 0, s being the stride.
  */
-void cloog_domain_stride(CloogDomain *domain, int strided_level, int nb_par,
+void cloog_domain_stride(CloogDomain *domain, int strided_level,
 	cloog_int_t *stride, cloog_int_t *offset)
 {
 	assert(domain->n == 1);

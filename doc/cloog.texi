@@ -1556,8 +1556,9 @@ initialized it yourself and if you are using the multiple precision version.
 @subsection CloogDomain
 @example
 @group
-struct cloogdomain
-@{ Polyhedron * polyhedron ;  /* The polyhedral domain. */
+struct cloogdomain @{
+  Polyhedron *polyhedron;    /* The polyhedral domain. */
+  int nb_par;                /* The number of parameters. */
 @} ;
 typedef struct cloogdomain CloogDomain ;
 @end group
@@ -2128,12 +2129,14 @@ return a pointer to the read @code{CloogProgram} structure.
 @subsection From Matrices to Domains and Conversely
 @example
 CloogMatrix * cloog_domain_domain2matrix(CloogDomain *) ;
-CloogDomain * cloog_domain_matrix2domain(CloogMatrix *) ;
+CloogDomain * cloog_domain_matrix2domain(CloogMatrix *, int nb_par);
 @end example
 @noindent Two functions are provided to translate a @code{CloogDomain}
 data structure to a @code{CloogMatrix} data structure and conversely.
 Each function takes as input a pointer to the data structure to translate
-and returns as output a pointer to the translated data structure. The
+and returns as output a pointer to the translated data structure.
+The @code{nb_par} parameter indicates the number of parameters
+in the domain.  The
 input data structure if neither modified nor freed. They
 may be quite useful for e.g. pretty printing since it is more convenient
 in constraint (matrix) representation.

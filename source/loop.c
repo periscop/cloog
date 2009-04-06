@@ -579,7 +579,7 @@ int nb_par ;
   domain = loop->domain ;
   if (cloog_domain_dimension(domain) > cloog_domain_dimension(context))
   { new_dimension = cloog_domain_dimension(domain) - nb_par ;
-    extended_context = cloog_domain_extend(context,new_dimension,nb_par) ;
+    extended_context = cloog_domain_extend(context, new_dimension);
     new_domain = cloog_domain_intersection(extended_context,loop->domain) ;
     cloog_domain_free(extended_context) ;
   }
@@ -626,7 +626,7 @@ CloogLoop * cloog_loop_project(CloogLoop * loop, int level, int nb_par)
   if ((cloog_domain_dimension(loop->domain)-nb_par) == level)
   new_domain = cloog_domain_copy(loop->domain) ;  
   else
-  new_domain = cloog_domain_project(loop->domain,level,nb_par) ;
+    new_domain = cloog_domain_project(loop->domain, level);
 
   new_loop = cloog_loop_alloc(new_domain,one,NULL,copy,NULL) ;
   cloog_int_clear(one);
@@ -897,7 +897,7 @@ CloogLoop * cloog_loop_merge(CloogLoop * loop, int nb_par, CloogOptions * option
         new_inner = cloog_loop_merge_inner_list(Q->inner, P->inner, old);
         temp = cloog_domain_union(P->domain,Q->domain) ;
 	if (options->sh)
-	  new_domain = cloog_domain_simple_convex(temp, nb_par);
+	  new_domain = cloog_domain_simple_convex(temp);
 	else
 	  new_domain = cloog_domain_convex(temp);
         cloog_domain_free(temp) ;
@@ -966,7 +966,7 @@ CloogLoop * cloog_loop_sort(CloogLoop * loop, int level, int nb_par)
   }
   
   /* cloog_domain_sort will fill up permut. */
-  cloog_domain_sort(doms, nb_loops, level, nb_par, permut);
+  cloog_domain_sort(doms, nb_loops, level, permut);
   
   /* With permut and loop_array we build the sorted list. */
   res = NULL ;
@@ -1023,7 +1023,7 @@ int level, nb_par ;
        */
       if ((cloog_domain_dimension(p->domain)-nb_par) > level)
       for (l=cloog_domain_dimension(p->domain)-nb_par-1;l>=level;l--)
-      { new_domain = cloog_domain_project(p->domain,l,nb_par) ;
+      { new_domain = cloog_domain_project(p->domain, l);
         temp = cloog_loop_alloc(new_domain,one,NULL,temp,NULL) ;
       }
 
@@ -1087,7 +1087,8 @@ void cloog_loop_stride(CloogLoop * loop, int level, int nb_par)
   while (inner != NULL)
   { /* If the minimun stride has not been found yet, find the stride. */
     if ((first_search) || (!cloog_int_is_one(stride)))
-    { cloog_domain_stride(inner->domain,level,nb_par,&potential,&offset) ;
+    {
+      cloog_domain_stride(inner->domain, level, &potential, &offset);
       if (!cloog_int_is_one(potential) && (!first_search))
       { /* Offsets must be the same for common stride. */
 	cloog_int_gcd(stride, potential, stride);
@@ -1747,7 +1748,7 @@ static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
   domain = loop->domain ;
   
   domain_dim = cloog_domain_dimension(domain) - nb_par ;
-  extended_context=cloog_domain_extend(context,domain_dim,nb_par);
+  extended_context = cloog_domain_extend(context, domain_dim);
   inter = cloog_domain_intersection(domain,extended_context) ;
   simp = cloog_domain_simplify(inter,extended_context) ;
   cloog_domain_free(extended_context) ;

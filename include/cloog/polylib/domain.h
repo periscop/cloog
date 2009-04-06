@@ -35,6 +35,7 @@ extern "C"
  */
 struct cloogdomain
 { Polyhedron * polyhedron ;      /**< The polyhedral domain. */
+  int nb_par;			 /**< Number of parameters in the domain. */
   int references ;               /**< Number of references to this structure. */
 } ;
 typedef struct cloogdomain CloogDomain ;
@@ -43,8 +44,8 @@ typedef struct cloogdomain CloogScattering;
 /******************************************************************************
  *                              PolyLib interface                             *
  ******************************************************************************/
-CloogDomain * cloog_domain_alloc(Polyhedron *) ;
-CloogDomain * cloog_domain_matrix2domain(Matrix *) ;
+CloogDomain * cloog_domain_alloc(Polyhedron *, int nb_par);
+CloogDomain * cloog_domain_matrix2domain(Matrix *, int nb_par);
 Matrix      * cloog_domain_domain2matrix(CloogDomain *) ;
 CloogDomain * cloog_domain_image(CloogDomain *, Matrix *) ;
 CloogDomain * cloog_domain_preimage(CloogDomain *, Matrix *) ;
@@ -62,7 +63,7 @@ CloogDomain * cloog_domain_read(FILE *foo, int nb_par, CloogOptions *options);
  *                            Processing functions                            *
  ******************************************************************************/
 CloogDomain * cloog_domain_malloc(void);
-CloogDomain * cloog_domain_bounds(CloogDomain * domain, int dim, int nb_par);
+CloogDomain * cloog_domain_bounds(CloogDomain * domain, int dim);
 
 #define cloog_domain_polyhedron(x)    (x)->polyhedron
 #define cloog_domain_nbconstraints(x) (x)->polyhedron->NbConstraints
