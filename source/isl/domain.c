@@ -605,7 +605,12 @@ int cloog_scattering_list_lazy_same(CloogScatteringList *list)
 
 int cloog_domain_dimension(CloogDomain * domain)
 {
-	return isl_set_n_dim(domain) + isl_set_n_param(domain);
+	return isl_set_n_dim(domain);
+}
+
+int cloog_domain_parameter_dimension(CloogDomain *domain)
+{
+	return isl_set_n_param(domain);
 }
 
 int cloog_scattering_dimension(CloogScattering *scatt, CloogDomain *domain)

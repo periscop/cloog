@@ -132,6 +132,7 @@ CloogDomain * cloog_domain_simplify_union(CloogDomain *domain);
 CloogScattering * cloog_scattering_erase_dimension(CloogScattering *, int);
 
 int           cloog_domain_dimension(CloogDomain *) ;
+int           cloog_domain_parameter_dimension(CloogDomain *domain);
 int           cloog_scattering_dimension(CloogScattering *, CloogDomain *);
 int           cloog_domain_isconvex(CloogDomain *) ;
 CloogDomain * cloog_domain_cube(int dim, cloog_int_t min, cloog_int_t max,

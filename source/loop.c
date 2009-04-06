@@ -287,7 +287,7 @@ CloogLoop * cloog_loop_read(FILE * foo, int number, int nb_parameters,
   /* domain. */
   loop->domain = cloog_domain_union_read(foo, nb_parameters, options);
   if (loop->domain != NULL)
-  nb_iterators = cloog_domain_dimension(loop->domain) - nb_parameters ;
+    nb_iterators = cloog_domain_dimension(loop->domain);
   else
   nb_iterators = 0 ;
   /* stride is initialized to 1. */
@@ -578,7 +578,8 @@ int nb_par ;
       
   domain = loop->domain ;
   if (cloog_domain_dimension(domain) > cloog_domain_dimension(context))
-  { new_dimension = cloog_domain_dimension(domain) - nb_par ;
+  {
+    new_dimension = cloog_domain_dimension(domain);
     extended_context = cloog_domain_extend(context, new_dimension);
     new_domain = cloog_domain_intersection(extended_context,loop->domain) ;
     cloog_domain_free(extended_context) ;
@@ -623,7 +624,7 @@ CloogLoop * cloog_loop_project(CloogLoop * loop, int level, int nb_par)
   copy = cloog_loop_alloc(loop->domain,loop->stride,loop->block,
                           loop->inner,NULL) ;
 
-  if ((cloog_domain_dimension(loop->domain)-nb_par) == level)
+  if (cloog_domain_dimension(loop->domain) == level)
   new_domain = cloog_domain_copy(loop->domain) ;  
   else
     new_domain = cloog_domain_project(loop->domain, level);
@@ -1021,8 +1022,8 @@ int level, nb_par ;
        * and smaller, and each projection includes the preceding projection
        * (thus, in the target list, dimensions are added one by one).
        */
-      if ((cloog_domain_dimension(p->domain)-nb_par) > level)
-      for (l=cloog_domain_dimension(p->domain)-nb_par-1;l>=level;l--)
+      if (cloog_domain_dimension(p->domain) > level)
+      for (l = cloog_domain_dimension(p->domain) - 1; l >= level; l--)
       { new_domain = cloog_domain_project(p->domain, l);
         temp = cloog_loop_alloc(new_domain,one,NULL,temp,NULL) ;
       }
@@ -1395,10 +1396,10 @@ CloogOptions * options ;
     into = NULL ;
     while (inner != NULL)
     { /* 4b. -ced- recurse for each sub-list of non terminal loops. */
-      if (cloog_domain_dimension(inner->domain) > (level + nb_par))
+      if (cloog_domain_dimension(inner->domain) > level)
       { end = inner ;
         while ((end->next != NULL) &&
-               (cloog_domain_dimension(end->next->domain) > (level + nb_par)))
+               (cloog_domain_dimension(end->next->domain) > level))
         end = end->next ;
         
 	next = end->next ;
@@ -1747,7 +1748,7 @@ static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
 
   domain = loop->domain ;
   
-  domain_dim = cloog_domain_dimension(domain) - nb_par ;
+  domain_dim = cloog_domain_dimension(domain);
   extended_context = cloog_domain_extend(context, domain_dim);
   inter = cloog_domain_intersection(domain,extended_context) ;
   simp = cloog_domain_simplify(inter,extended_context) ;

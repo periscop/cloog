@@ -206,8 +206,7 @@ void cloog_program_dump_cloog(FILE * foo, CloogProgram * program)
   fprintf(foo,"%c\n\n",program->language) ;
 
   /* Context. */
-  fprintf(foo,"# Context (%d parameter(s)):\n",
-           cloog_domain_dimension(program->context)) ;
+  fprintf(foo, "# Context (%d parameter(s)):\n", program->names->nb_parameters);
   cloog_domain_print_constraints(foo, program->context, 0);
   fprintf(foo,"1 # Parameter name(s)\n") ;
   for (i=0;i<program->names->nb_parameters;i++)
@@ -584,7 +583,7 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
 
   /* We then read the context data. */
   p->context = cloog_domain_read_context(file, options);
-  n->nb_parameters = cloog_domain_dimension(p->context);
+  n->nb_parameters = cloog_domain_parameter_dimension(p->context);
   
   /* First part of the CloogNames structure: reading of the parameter names. */
   n->parameters = cloog_names_read_strings(file, n->nb_parameters,
@@ -601,7 +600,7 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
     p->loop = cloog_loop_read(file, 0, n->nb_parameters, options);
     
     if (p->loop->domain != NULL)
-      n->nb_iterators = cloog_domain_dimension(p->loop->domain) - n->nb_parameters;
+      n->nb_iterators = cloog_domain_dimension(p->loop->domain);
     else
       n->nb_iterators = 0;
     
@@ -610,8 +609,8 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
     for (i=2;i<=nb_statements;i++) {
       next = cloog_loop_read(file, i-1, n->nb_parameters, options);
       if (next->domain != NULL &&
-          cloog_domain_dimension(next->domain) - n->nb_parameters > n->nb_iterators)
-        n->nb_iterators = cloog_domain_dimension(next->domain) - n->nb_parameters;
+          cloog_domain_dimension(next->domain) > n->nb_iterators)
+        n->nb_iterators = cloog_domain_dimension(next->domain);
     
       current->next = next ;
       current = current->next ;
@@ -787,7 +786,7 @@ CloogOptions * options ;
     loop = cloog_loop_generate(loop, program->context, 0, 0,
                                program->scaldims,
 			       program->nb_scattdims,
-                               cloog_domain_dimension(program->context),
+			       program->names->nb_parameters,
 			       options);
 			          
 #ifdef CLOOG_MEMORY
@@ -801,7 +800,7 @@ CloogOptions * options ;
     
     if ((!options->nosimplify) && (program->loop != NULL))
     loop = cloog_loop_simplify(loop,program->context,1,
-                               cloog_domain_dimension(program->context)) ;
+                               program->names->nb_parameters);
    
     program->loop = loop ;
   }

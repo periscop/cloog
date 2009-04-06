@@ -295,7 +295,7 @@ CloogDomain * cloog_domain_convex(CloogDomain * domain)
  */
 static CloogDomain *cloog_domain_simplified_hull(CloogDomain * domain)
 {
-  int dim = cloog_domain_dimension(domain);
+  int dim = cloog_domain_dimension(domain) + domain->nb_par;
   int i, j, k, l;
   int nb_pol = 0, nb_constraints = 0;
   Polyhedron *P;
@@ -361,7 +361,7 @@ static CloogDomain *cloog_domain_simplified_hull(CloogDomain * domain)
 CloogDomain *cloog_domain_simple_convex(CloogDomain *domain)
 {
   int i;
-  int dim = cloog_domain_dimension(domain) - domain->nb_par;
+  int dim = cloog_domain_dimension(domain);
   CloogDomain *convex = NULL;
 
   if (cloog_domain_isconvex(domain))
@@ -586,8 +586,8 @@ void cloog_domain_sort(CloogDomain **doms, unsigned nb_doms, unsigned level,
  */
 CloogDomain * cloog_domain_empty(CloogDomain *template)
 {
-  return cloog_domain_alloc(Empty_Polyhedron(cloog_domain_dimension(template)),
-			    template->nb_par);
+  unsigned dim = cloog_domain_dimension(template) + template->nb_par;
+  return cloog_domain_alloc(Empty_Polyhedron(dim), template->nb_par);
 }
 
 
@@ -1400,7 +1400,13 @@ int cloog_domain_nbconstraints(CloogDomain * domain)
  */
 
 int cloog_domain_dimension(CloogDomain * domain)
-{ return domain->polyhedron->Dimension ;
+{
+  return domain->polyhedron->Dimension - domain->nb_par;
+}
+
+int cloog_domain_parameter_dimension(CloogDomain *domain)
+{
+  return domain->nb_par;
 }
 
 int cloog_scattering_dimension(CloogScattering *scatt, CloogDomain *domain)
