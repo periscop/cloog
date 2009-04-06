@@ -372,24 +372,20 @@ CloogNames * cloog_names_malloc()
  * - September 11th 2005: addition of both scalar and scattering informations.
  * - November  21th 2005: use of cloog_names_malloc.
  */
-CloogNames * cloog_names_alloc(
-     nb_scalars, nb_scattering, nb_iterators, nb_parameters,
-        scalars,    scattering,    iterators,    parameters)
-int  nb_scalars, nb_scattering, nb_iterators, nb_parameters ;
-char ** scalars, ** scattering, ** iterators, ** parameters ;
+CloogNames * cloog_names_alloc()
 { CloogNames * names ;
 
   /* Memory allocation for the CloogNames structure. */
   names = cloog_names_malloc() ;
   
-  names->nb_scalars    = nb_scalars ;
-  names->nb_scattering = nb_scattering ;
-  names->nb_iterators  = nb_iterators ;
-  names->nb_parameters = nb_parameters ;
-  names->scalars       = scalars ;
-  names->scattering    = scattering ;
-  names->iterators     = iterators ;
-  names->parameters    = parameters ;
+  names->nb_scalars    = 0;
+  names->nb_scattering = 0;
+  names->nb_iterators  = 0;
+  names->nb_parameters = 0;
+  names->scalars       = NULL;
+  names->scattering    = NULL;
+  names->iterators     = NULL;
+  names->parameters    = NULL;
   
   return names ;
 }
