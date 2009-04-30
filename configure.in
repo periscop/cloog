@@ -41,6 +41,7 @@ dnl ***************************************************************************/
 AC_PREREQ(2.13)
 AC_INIT(source/cloog.c)
 AC_CONFIG_AUX_DIR(autoconf)
+AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE(cloog, 0.14.0)
 dnl default version
 BITS="64"
