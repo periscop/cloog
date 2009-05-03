@@ -49,7 +49,7 @@ static void insert_modulo_guard(CloogConstraint upper,
 			        struct clast_stmt ***next, CloogInfos *infos);
 static void insert_equation(CloogConstraint upper, CloogConstraint lower,
 			 int level, struct clast_stmt ***next, CloogInfos *infos);
-static void insert_for(CloogConstraintSet *constraints, int level,
+static int insert_for(CloogConstraintSet *constraints, int level,
 			struct clast_stmt ***next, CloogInfos *infos);
 static void insert_block(CloogBlock *block, int level,
 			  struct clast_stmt ***next, CloogInfos *infos);
@@ -394,6 +394,33 @@ static int clast_expr_cmp(struct clast_expr *e1, struct clast_expr *e2)
 int clast_expr_equal(struct clast_expr *e1, struct clast_expr *e2)
 {
     return clast_expr_cmp(e1, e2) == 0;
+}
+
+/**
+ * Return 1 is both expressions are constant terms and e1 is bigger than e2.
+ */
+int clast_expr_is_bigger_constant(struct clast_expr *e1, struct clast_expr *e2)
+{
+    struct clast_term *t1, *t2;
+    struct clast_reduction *r;
+
+    if (!e1 || !e2)
+	return 0;
+    if (e1->type == expr_red) {
+	r = (struct clast_reduction *)e1;
+	return r->n == 1 && clast_expr_is_bigger_constant(r->elts[0], e2);
+    }
+    if (e2->type == expr_red) {
+	r = (struct clast_reduction *)e2;
+	return r->n == 1 && clast_expr_is_bigger_constant(e1, r->elts[0]);
+    }
+    if (e1->type != expr_term || e2->type != expr_term)
+	return 0;
+    t1 = (struct clast_term *)e1;
+    t2 = (struct clast_term *)e2;
+    if (t1->var || t2->var)
+	return 0;
+    return cloog_int_gt(t1->val, t2->val);
 }
 
 static int qsort_expr_cmp(const void *p1, const void *p2)
@@ -1130,6 +1157,8 @@ static void insert_equation(CloogConstraint upper, CloogConstraint lower,
 /**
  * insert_for function:
  * This function inserts a for loop in the clast.
+ * Returns 1 if the calling function should recurse into inner loops.
+ *
  * A loop header according to an element is the conjunction of a minimum and a
  * maximum on a given element (they give the loop bounds).
  * For instance, considering these constraints and the element j:
@@ -1150,7 +1179,7 @@ static void insert_equation(CloogConstraint upper, CloogConstraint lower,
  *   the number of parameters in matrix (nb_par), and the arrays of iterator
  *   names and parameters (iters and params). 
  */
-static void insert_for(CloogConstraintSet *constraints, int level,
+static int insert_for(CloogConstraintSet *constraints, int level,
 		       struct clast_stmt ***next, CloogInfos *infos)
 {
   const char *iterator;
@@ -1167,6 +1196,12 @@ static void insert_for(CloogConstraintSet *constraints, int level,
   
   e1 = clast_minmax(constraints, level, 1, 0, infos);
   e2 = clast_minmax(constraints, level, 0, 0, infos);
+
+  if (clast_expr_is_bigger_constant(e1, e2)) {
+    free_clast_expr(e1);
+    free_clast_expr(e2);
+    return 0;
+  }
 
   /* If min and max are not equal there is a 'for' else, there is a '='.
    * In the special case e1 = e2 = NULL, this is an infinite loop
@@ -1202,7 +1237,7 @@ static void insert_for(CloogConstraintSet *constraints, int level,
     free_clast_expr(e2);
   }
 
-  return;    
+  return 1;    
 }
 
 
@@ -1279,6 +1314,7 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
     CloogConstraintSet *constraints, *temp;
     struct clast_stmt **top = *next;
     CloogConstraint i, j;
+    int empty_loop = 0;
 
     /* It can happen that loop be NULL when an input polyhedron is empty. */
     if (loop == NULL)
@@ -1312,15 +1348,17 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
 			      level, &j, infos->names->nb_parameters))) {
 	    insert_equation(i, j, level, next, infos);
 	} else
-	    insert_for(constraints, level, next, infos);
+	    empty_loop = !insert_for(constraints, level, next, infos);
     }
 
-    /* Finally, if there is an included statement block, print it. */
-    insert_block(loop->block, level+equality, next, infos);
+    if (!empty_loop) {
+	/* Finally, if there is an included statement block, print it. */
+	insert_block(loop->block, level+equality, next, infos);
 
-    /* Go to the next level. */
-    if (loop->inner != NULL)
-	insert_loop(loop->inner, level+1,scalar, next, infos);
+	/* Go to the next level. */
+	if (loop->inner != NULL)
+	    insert_loop(loop->inner, level+1,scalar, next, infos);
+    }
 
     if (level)
       cloog_equal_del(infos->equal,level);

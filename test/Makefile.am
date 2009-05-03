@@ -64,6 +64,7 @@ FINITE_CLOOGTEST_C =                   \
 	cholesky                       \
 	cholesky2                      \
 	classen                        \
+	constbound                     \
 	darte                          \
 	donotsimp                      \
 	dot                            \
