@@ -60,6 +60,7 @@ FINITE_CLOOGTEST_C =                   \
 	basic-bounds-4                 \
 	basic-bounds-5                 \
 	basic-bounds-6                 \
+	block                          \
 	byu98-1-2-3                    \
 	cholesky                       \
 	cholesky2                      \
