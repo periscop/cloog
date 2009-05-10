@@ -59,7 +59,7 @@ typedef struct cloogscattering CloogScattering;
  * this structure reprensents a node of a linked list of CloogScattering structures.
  */
 struct cloogscatteringlist {
-  CloogScattering *domain;         /**< An element of the list. */
+  CloogScattering *scatt;          /**< An element of the list. */
   struct cloogscatteringlist *next;/**< Pointer to the next element of the list.*/
 } ;
 typedef struct cloogscatteringlist CloogScatteringList;

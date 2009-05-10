@@ -301,7 +301,7 @@ void cloog_scattering_list_free(CloogScatteringList *list)
 {
 	while (list != NULL) {
 		CloogScatteringList *temp = list->next;
-		isl_map_free(list->domain);
+		isl_map_free(list->scatt);
 		free(list);
 		list = temp;
 	}
@@ -599,7 +599,7 @@ int cloog_scattering_list_lazy_same(CloogScatteringList *list)
 
 	for (one = list; one; one = one->next)
 		for (other = one->next; other; other = other->next)
-			if (isl_map_fast_is_equal(one->domain, other->domain))
+			if (isl_map_fast_is_equal(one->scatt, other->scatt))
 				return 1;
 	return 0;
 }

@@ -1460,7 +1460,8 @@ generator to represent and to process a code generation problem.
 @menu
 * CloogMatrix::
 * CloogDomain::
-* CloogDomainList::
+* CloogScattering::
+* CloogScatteringList::
 * CloogStatement::
 * CloogBlock::
 * CloogBlockList::
@@ -1599,20 +1600,37 @@ For a better understanding of the
 dual ray representation, the user may refer to the PolyLib documentation.
 
 
-@node CloogDomainList
-@subsection CloogDomainList
+@node CloogScattering
+@subsection CloogScattering
 @example
 @group
-struct cloogdomainlist
-@{ CloogDomain * domain ;
-  struct cloogdomainlist * next ;
-@} ;
-typedef struct cloogdomainlist CloogDomainList ;
+CloogScattering *cloog_scattering_read(FILE *foo,
+				    CloogDomain *domain, CloogOptions *options);
+void cloog_scattering_free(CloogScattering *);
 @end group
 @end example
 
-@noindent The CloogDomainList structure represents a @code{NULL} terminated linked list
-of domains.
+@noindent
+The @code{CloogScattering} type represents a scattering function.
+A @code{CloogScattering} for a given @code{CloogDomain} can be read
+from a file using @code{cloog_scattering_read}.
+It can be freed using @code{cloog_scattering_free}.
+
+
+@node CloogScatteringList
+@subsection CloogScatteringList
+@example
+@group
+struct cloogscatteringlist @{
+  CloogScattering *scatt;
+  struct cloogscatteringlist *next;
+@};
+typedef struct cloogscatteringlist CloogScatteringList;
+@end group
+@end example
+
+@noindent The CloogScatteringList structure represents
+a @code{NULL} terminated linked list of scattering functions.
 
 
 @node CloogStatement
@@ -2073,10 +2091,10 @@ options pointed by @code{options}.
 @subsection cloog_program_scatter
 @example
 @group
-void cloog_program_scatter
-( CloogProgram * program,       /* Input program. */
-  CloogDomainList * scattering, /* Additional scattering functions. */
-  char ** names ;               /* Additional dimension names. */
+void cloog_program_scatter(
+  CloogProgram *program,        /* Input program. */
+  CloogScatteringList *scatt,   /* Additional scattering functions. */
+  CloogOptions *options         /* Options. */
 ) ;
 @end group
 @end example
@@ -2084,8 +2102,8 @@ void cloog_program_scatter
 @noindent The function @code{cloog_program_scatter} applies scattering
 functions to the @code{CloogProgram} structure pointed by @code{program}.
 Original domains of @code{program} are freed. Scattering functions
-are inside the @code{CloogDomainList} structure pointed by @code{scattering}.
-There must be as many scattering functions in the @code{CloogDomainList}
+are inside the @code{CloogScatteringList} structure pointed by @code{scattering}.
+There must be as many scattering functions in the @code{CloogScatteringList}
 structure as loops (i.e. iteration domains) in the @code{CloogProgram}
 structure. The first scattering function of the list will be applied to the
 iteration domain of the first loop in the program, and so on.

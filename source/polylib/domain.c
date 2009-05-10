@@ -625,7 +625,7 @@ void cloog_domain_print_structure(FILE *file, CloogDomain *domain, int level,
  */
 void cloog_scattering_list_print(FILE * foo, CloogScatteringList * list)
 { while (list != NULL)
-  { cloog_domain_print(foo,list->domain) ;
+  { cloog_domain_print(foo, list->scatt);
     list = list->next ;
   }
 }
@@ -646,7 +646,7 @@ void cloog_scattering_list_free(CloogScatteringList * list)
   
   while (list != NULL)
   { temp = list->next ;
-    cloog_domain_free(list->domain) ;
+    cloog_scattering_free(list->scatt);
     free(list) ;
     list = temp ;
   }
@@ -1343,7 +1343,7 @@ int cloog_scattering_list_lazy_same(CloogScatteringList * list)
   { next = current->next ;
     /*j=i+1;*/
     while (next != NULL)
-    { if (cloog_domain_lazy_equal(current->domain,next->domain))
+    { if (cloog_domain_lazy_equal(current->scatt, next->scatt))
       { /*printf("Same domains: %d and %d\n",i,j) ;*/
         return 1 ;
       }
