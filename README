@@ -152,7 +152,7 @@ necessary to ask the author(s) !
 
 3. I need a feature that CLooG do not implement, what should I do ?
 
-There are two ways. First, CLooG is a GPL software and library. So you
+There are two ways. First, CLooG is a LGPL software and library. So you
 are welcome to improve it yourself ;-) ! Many project have been successful, it
 is -maybe- a sign that this is not too hard to put your hands inside the
 source. Second, just ask the author(s) :-) ! Maybe a lot of people would be

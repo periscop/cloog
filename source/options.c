@@ -14,19 +14,20 @@
  *                                                                            *
  * Copyright (C) 2001-2005 Cedric Bastoul                                     *
  *                                                                            *
- * This is free software; you can redistribute it and/or modify it under the  *
- * terms of the GNU General Public License as published by the Free Software  *
- * Foundation; either version 2 of the License, or (at your option) any later *
- * version.                                                                   *
+ * This library is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU Lesser General Public                 *
+ * License as published by the Free Software Foundation; either               *
+ * version 2.1 of the License, or (at your option) any later version.         *
  *                                                                            *
- * This software is distributed in the hope that it will be useful, but       *
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   *
- * for more details.                                                          *
+ * This library is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU          *
+ * Lesser General Public License for more details.                            *
  *                                                                            *
- * You should have received a copy of the GNU General Public License along    *
- * with software; if not, write to the Free Software Foundation, Inc.,        *
- * 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA                     *
+ * You should have received a copy of the GNU Lesser General Public           *
+ * License along with this library; if not, write to the Free Software        *
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor,                         *
+ * Boston, MA  02110-1301  USA                                                *
  *                                                                            *
  * CLooG, the Chunky Loop Generator                                           *
  * Written by Cedric Bastoul, Cedric.Bastoul@inria.fr                         *
@@ -224,8 +225,8 @@ void cloog_options_version()
   "This is a loop generator for scanning Z-polyhedra. It is based on the "
   "work of\nF. Quillere and C. Bastoul on high level code generation and of "
   "the PolyLib Team\non polyhedral computation. This program is distributed "
-  "under the terms of the\nGNU General Public License "
-  "(details at http://www.gnu.org/copyleft/gpl.html).\n"
+  "under the terms of the\nGNU Lesser General Public License "
+  "(details at http://www.gnu.org/licenses/lgpl-2.1.html).\n"
   "-----\n") ;
   printf(
   "It would be fair to refer the following paper in any publication "

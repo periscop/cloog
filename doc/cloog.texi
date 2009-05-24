@@ -2271,14 +2271,22 @@ publication that result from the use of the CLooG software or its library,
 manual, along with copyright notice, and in the CLooG home
 @code{http://www.CLooG.org}.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License version 2
-as published by the Free Software Foundation.
-This program is distributed in the hope that it will be useful,
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-@code{http://www.gnu.org/copyleft/gpl.html}
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+@code{http://www.gnu.org/licenses/lgpl-2.1.html}
+
+Note, though, that if you link CLooG against a GPL library such
+as the PolyLib backend, then the combination becomes GPL too.
+In particular, a CLooG library based on the PolyLib backend
+is GPL version 2 only.
+Since the isl backend is LGPL, linking against it does not affect
+the license of CLooG.
 
 
 @node Requirements
