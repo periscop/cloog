@@ -1,0 +1,26 @@
+#include <stdlib.h>
+#include "../include/cloog/cloog.h"
+
+/**
+ * Allocate state and initialize backend independent part.
+ */
+CloogState *cloog_core_state_malloc(void)
+{
+  CloogState *state;
+
+  state = (CloogState *)malloc(sizeof(CloogState));
+  if (!state) 
+    cloog_die("memory overflow.\n");
+
+  state->backend = NULL;
+
+  return state;
+}
+
+/**
+ * Free state.
+ */
+void cloog_core_state_free(CloogState *state)
+{
+  free(state);
+}

@@ -33,8 +33,9 @@ extern "C"
  * a CloogDomain will be freed, we will decrement the active reference counter
  * and actually free it if its value is zero.
  */
-struct cloogdomain
-{ Polyhedron * polyhedron ;      /**< The polyhedral domain. */
+struct cloogdomain {
+  CloogState *state;             /**< State. */
+  Polyhedron * polyhedron ;      /**< The polyhedral domain. */
   int nb_par;			 /**< Number of parameters in the domain. */
   int references ;               /**< Number of references to this structure. */
 } ;
@@ -56,7 +57,7 @@ CloogDomain * cloog_domain_addconstraints(CloogDomain *, CloogDomain *) ;
 /******************************************************************************
  *                               Reading function                             *
  ******************************************************************************/
-CloogDomain * cloog_domain_read(FILE *foo, int nb_par, CloogOptions *options);
+CloogDomain *cloog_domain_read(CloogState *state, FILE *foo, int nb_par);
 
 
 /******************************************************************************

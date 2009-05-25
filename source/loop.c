@@ -271,8 +271,8 @@ int domain, block, inner, next ;
  * - June     11th 2005: adaptation to new CloogBlock structure. 
  * - June     22nd 2005: Adaptation for GMP.
  */
-CloogLoop * cloog_loop_read(FILE * foo, int number, int nb_parameters,
-			    CloogOptions *options)
+CloogLoop *cloog_loop_read(CloogState *state,
+			    FILE * foo, int number, int nb_parameters)
 { int nb_iterators, op1, op2, op3 ;
   char s[MAX_STRING] ;
   CloogLoop * loop ;
@@ -285,7 +285,7 @@ CloogLoop * cloog_loop_read(FILE * foo, int number, int nb_parameters,
   if (loop == NULL) 
     cloog_die("memory overflow.\n");
   /* domain. */
-  loop->domain = cloog_domain_union_read(foo, nb_parameters, options);
+  loop->domain = cloog_domain_union_read(state, foo, nb_parameters);
   if (loop->domain != NULL)
     nb_iterators = cloog_domain_dimension(loop->domain);
   else

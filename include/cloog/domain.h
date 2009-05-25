@@ -100,11 +100,9 @@ void cloog_scattering_list_free(CloogScatteringList *);
 /*+****************************************************************************
  *                               Reading function                             *
  ******************************************************************************/
-CloogDomain * cloog_domain_read_context(FILE * foo, CloogOptions *options);
-CloogDomain * cloog_domain_union_read(FILE *foo, int nb_par,
-					CloogOptions *options);
-CloogScattering *cloog_scattering_read(FILE *foo,
-				    CloogDomain *domain, CloogOptions *options);
+CloogDomain * cloog_domain_read_context(CloogState *state, FILE * foo);
+CloogDomain * cloog_domain_union_read(CloogState *state, FILE *foo, int nb_par);
+CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *foo);
 
 
 /******************************************************************************
@@ -112,7 +110,7 @@ CloogScattering *cloog_scattering_read(FILE *foo,
  ******************************************************************************/
 CloogConstraintSet *cloog_domain_constraints(CloogDomain *);
 int           cloog_domain_isempty(CloogDomain *) ;
-CloogDomain * cloog_domain_universe(unsigned dim, CloogOptions *options);
+CloogDomain * cloog_domain_universe(CloogState *state, unsigned dim);
 CloogDomain * cloog_domain_project(CloogDomain *, int);
 CloogDomain * cloog_domain_extend(CloogDomain *, int);
 int           cloog_domain_never_integral(CloogDomain *) ;
@@ -135,8 +133,8 @@ int           cloog_domain_dimension(CloogDomain *) ;
 int           cloog_domain_parameter_dimension(CloogDomain *domain);
 int           cloog_scattering_dimension(CloogScattering *, CloogDomain *);
 int           cloog_domain_isconvex(CloogDomain *) ;
-CloogDomain * cloog_domain_cube(int dim, cloog_int_t min, cloog_int_t max,
-				CloogOptions *options);
+CloogDomain * cloog_domain_cube(CloogState *state,
+				int dim, cloog_int_t min, cloog_int_t max);
 CloogDomain * cloog_domain_from_context(CloogDomain *context);
 CloogDomain * cloog_domain_scatter(CloogDomain *domain, CloogScattering *scatt);
 int           cloog_scattering_fully_specified(CloogScattering *scattering,

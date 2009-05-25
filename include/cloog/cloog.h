@@ -43,6 +43,7 @@
 
 #include <cloog/version.h>
 #include <cloog/int.h>
+#include <cloog/state.h>
 #include <cloog/options.h>
 #include <cloog/names.h>
 #include <cloog/constraints.h>

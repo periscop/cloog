@@ -54,18 +54,9 @@ extern "C"
 struct cloogoptions;
 typedef struct cloogoptions CloogOptions;
 
-#if defined(CLOOG_POLYLIB)
-#include <cloog/polylib/options.h>
-#elif defined(CLOOG_ISL)
-#include <cloog/isl/options.h>
-#else
-struct cloogbackendoptions;
-#endif
-typedef struct cloogbackendoptions CloogBackendOptions;
-
 struct cloogoptions
 {
-  CloogBackendOptions	*backend;
+  CloogState *state; /* State. */
   /* OPTIONS FOR LOOP GENERATION */
   int l ;         /* Last level to optimize. */
   int f ;         /* First level to optimize. */
@@ -146,21 +137,20 @@ void cloog_options_print(FILE *, CloogOptions *) ;
 /******************************************************************************
  *                         Memory deallocation function                       *
  ******************************************************************************/
-void cloog_core_options_free(CloogOptions *backend);
 void cloog_options_free(CloogOptions *) ;
 
 
 /******************************************************************************
  *                               Reading function                             *
  ******************************************************************************/
-void cloog_options_read(int, char **, FILE **, FILE **, CloogOptions **) ;
+void cloog_options_read(CloogState *state, int argc, char **argv,
+			FILE **input, FILE **output, CloogOptions **options);
 
 
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
-CloogOptions *cloog_core_options_malloc(void);
-CloogOptions * cloog_options_malloc(void) ;
+CloogOptions *cloog_options_malloc(CloogState *state);
 
 
 #if defined(__cplusplus)

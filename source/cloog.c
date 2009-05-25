@@ -63,10 +63,13 @@ extern int cloog_int_max;
 int main(int argv, char * argc[])
 { CloogProgram * program ;
   CloogOptions * options ;
+  CloogState *state;
   FILE * input, * output ;
    
+  state = cloog_state_malloc();
+
   /* Options and input/output file setting. */
-  cloog_options_read(argv,argc,&input,&output,&options) ;
+  cloog_options_read(state, argv, argc, &input, &output, &options);
 
   /* Reading the program informations. */
   program = cloog_program_read(input,options) ;
@@ -114,6 +117,7 @@ int main(int argv, char * argc[])
   }
 
   cloog_options_free(options) ;
+  cloog_state_free(state);
   fclose(output) ;
   return 0;
 }

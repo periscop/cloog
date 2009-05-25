@@ -6,4 +6,6 @@
 #endif
 #include <cloog/cloog.h>
 
+CloogState *cloog_isl_state_malloc(struct isl_ctx *ctx);
+
 #endif /* define _H */

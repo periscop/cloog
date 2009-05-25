@@ -3,6 +3,8 @@
 
 #include <polylib/@cl_cv_polylib@.h>
 
+struct cloogbackend {
+};
 
 /******************************************************************************
  *                             CLOOG GMP MACROS                               *

@@ -691,8 +691,7 @@ void cloog_scattering_list_free(CloogScatteringList * list)
  * information. 
  * - October 18th 2001: first version.
  */
-CloogDomain * cloog_domain_read(FILE * foo, int nb_parameters,
-				CloogOptions *options)
+CloogDomain *cloog_domain_read(CloogState *state, FILE *foo, int nb_parameters)
 { CloogMatrix * matrix ;
   CloogDomain * domain ;
   
@@ -709,9 +708,9 @@ CloogDomain * cloog_domain_read(FILE * foo, int nb_parameters,
  * Read parameter domain.  For the PolyLib backend, a parameter domain
  * is indistinguishable from a parametric domain.
  */
-CloogDomain *cloog_domain_read_context(FILE * foo, CloogOptions *options)
+CloogDomain *cloog_domain_read_context(CloogState *state, FILE * foo)
 {
-  CloogDomain *context = cloog_domain_read(foo, 0, options);
+  CloogDomain *context = cloog_domain_read(state, foo, 0);
   context->nb_par = context->polyhedron->Dimension;
   return context;
 }
@@ -739,8 +738,8 @@ CloogDomain *cloog_domain_from_context(CloogDomain *context)
  * - October  29th 2005: (debug) removal of a leak counting "correction" that
  *                       was just false since ages.
  */
-CloogDomain * cloog_domain_union_read(FILE * foo, int nb_parameters,
-					CloogOptions *options)
+CloogDomain *cloog_domain_union_read(CloogState *state,
+					FILE *foo, int nb_parameters)
 { int i, nb_components ;
   char s[MAX_STRING] ;
   CloogDomain * domain, * temp, * old ;
@@ -752,11 +751,11 @@ CloogDomain * cloog_domain_union_read(FILE * foo, int nb_parameters,
   
   if (nb_components > 0)
   { /* 1. first part of the polyhedra union, */
-    domain = cloog_domain_read(foo, nb_parameters, options);
+    domain = cloog_domain_read(state, foo, nb_parameters);
     /* 2. and the nexts. */
     for (i=1;i<nb_components;i++)
     { /* Leak counting is OK since next allocated domain is freed here. */
-      temp = cloog_domain_read(foo, nb_parameters, options);
+      temp = cloog_domain_read(state, foo, nb_parameters);
       old = domain ;
       domain = cloog_domain_union(temp,old) ;
       cloog_domain_free(temp) ;
@@ -770,13 +769,12 @@ CloogDomain * cloog_domain_union_read(FILE * foo, int nb_parameters,
 
 
 /**
- * cloog_scattering_read function:
+ * cloog_domain_read_scattering function:
  * This function reads in a scattering function fro the file foo.
  */
-CloogScattering *cloog_scattering_read(FILE *foo,
-				    CloogDomain *domain, CloogOptions *options)
+CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *foo)
 {
-    return cloog_domain_read(foo, domain->nb_par, options);
+    return cloog_domain_read(domain->state, foo, domain->nb_par);
 }
 
 
@@ -851,7 +849,7 @@ int cloog_domain_isempty(CloogDomain * domain)
  * cloog_domain_universe function:
  * This function returns the complete dim-dimensional space.
  */
-CloogDomain *cloog_domain_universe(unsigned dim, CloogOptions *options)
+CloogDomain *cloog_domain_universe(CloogState *state, unsigned dim)
 {
   return cloog_domain_alloc(Universe_Polyhedron(dim), 0);
 }
@@ -1581,8 +1579,8 @@ CloogDomain *cloog_scattering_erase_dimension(CloogScattering *domain,
  * Construct and return a dim-dimensional cube, with values ranging
  * between min and max in each dimension.
  */
-CloogDomain *cloog_domain_cube(int dim, cloog_int_t min, cloog_int_t max,
-				CloogOptions *options)
+CloogDomain *cloog_domain_cube(CloogState *state,
+				int dim, cloog_int_t min, cloog_int_t max)
 {
   int i;
   Matrix *M;

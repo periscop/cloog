@@ -315,9 +315,9 @@ void cloog_scattering_list_free(CloogScatteringList *list)
  * cloog_domain_read_context function:
  * Read parameter domain.
  */
-CloogDomain *cloog_domain_read_context(FILE *input, CloogOptions *options)
+CloogDomain *cloog_domain_read_context(CloogState *state, FILE *input)
 {
-	struct isl_ctx *ctx = options->backend->ctx;
+	struct isl_ctx *ctx = state->backend->ctx;
 	struct isl_dim *param_dim;
 	struct isl_basic_set *bset;
 	struct isl_basic_set *model;
@@ -353,10 +353,10 @@ CloogDomain *cloog_domain_from_context(CloogDomain *context)
  * This function reads a union of polyhedra into a file (input) and
  * returns a pointer to a CloogDomain containing the read information. 
  */
-CloogDomain *cloog_domain_union_read(FILE *input, int nb_parameters,
-					CloogOptions *options)
+CloogDomain *cloog_domain_union_read(CloogState *state,
+					FILE *input, int nb_parameters)
 {
-	struct isl_ctx *ctx = options->backend->ctx;
+	struct isl_ctx *ctx = state->backend->ctx;
 	struct isl_set *set;
 
 	set = isl_set_read_from_file(ctx, input, nb_parameters,
@@ -366,13 +366,12 @@ CloogDomain *cloog_domain_union_read(FILE *input, int nb_parameters,
 
 
 /**
- * cloog_scattering_list_read function:
+ * cloog_domain_read_scattering function:
  * This function reads in a scattering function from the file input.
  */
-CloogScattering *cloog_scattering_read(FILE *input,
-				    CloogDomain *domain, CloogOptions *options)
+CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *input)
 {
-	struct isl_ctx *ctx = options->backend->ctx;
+	struct isl_ctx *ctx = domain->ctx;
 	struct isl_basic_set *bset;
 	struct isl_basic_map *scat;
 	struct isl_dim *dims;
@@ -410,12 +409,12 @@ int cloog_domain_isempty(CloogDomain *domain)
  * cloog_domain_universe function:
  * This function returns the complete dim-dimensional space.
  */
-CloogDomain *cloog_domain_universe(unsigned dim, CloogOptions *options)
+CloogDomain *cloog_domain_universe(CloogState *state, unsigned dim)
 {
 	struct isl_dim *dims;
 	struct isl_basic_set *bset;
 
-	dims = isl_dim_set_alloc(options->backend->ctx, 0, dim);
+	dims = isl_dim_set_alloc(state->backend->ctx, 0, dim);
 	bset = isl_basic_set_universe(dims);
 	return isl_set_from_basic_set(bset);
 }
@@ -697,8 +696,8 @@ CloogScattering *cloog_scattering_erase_dimension(CloogScattering *domain,
  * Construct and return a dim-dimensional cube, with values ranging
  * between min and max in each dimension.
  */
-CloogDomain *cloog_domain_cube(int dim, cloog_int_t min, cloog_int_t max,
-				CloogOptions *options)
+CloogDomain *cloog_domain_cube(CloogState *state,
+				int dim, cloog_int_t min, cloog_int_t max)
 {
 	int i;
 	struct isl_basic_set *cube;
@@ -706,10 +705,10 @@ CloogDomain *cloog_domain_cube(int dim, cloog_int_t min, cloog_int_t max,
 	struct isl_basic_set_list *list;
 
 	if (dim == 0)
-		return cloog_domain_universe(dim, options);
+		return cloog_domain_universe(state, dim);
 
-	interval = isl_basic_set_interval(options->backend->ctx, min, max);
-	list = isl_basic_set_list_alloc(options->backend->ctx, dim);
+	interval = isl_basic_set_interval(state->backend->ctx, min, max);
+	list = isl_basic_set_list_alloc(state->backend->ctx, dim);
 	for (i = 0; i < dim; ++i)
 		list = isl_basic_set_list_add(list, isl_basic_set_copy(interval));
 	isl_basic_set_free(interval);

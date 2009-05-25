@@ -146,7 +146,7 @@ void cloog_options_print(FILE * foo, CloogOptions * options)
  * This function frees the allocated memory for a CloogOptions structure.
  * - April 19th 2003: first version.
  */
-void cloog_core_options_free(CloogOptions * options)
+void cloog_options_free(CloogOptions *options)
 {
   free(options);
 }
@@ -282,7 +282,7 @@ void cloog_options_set(int * option, int argv, char ** argc, int * number)
  * - April    19th 2003: first version.
  * - November 21th 2005: name changed (before it was cloog_options_init).
  */
-CloogOptions * cloog_core_options_malloc(void)
+CloogOptions *cloog_options_malloc(CloogState *state)
 { CloogOptions * options ;
 
   /* Memory allocation for the CloogOptions structure. */
@@ -290,8 +290,9 @@ CloogOptions * cloog_core_options_malloc(void)
   if (options == NULL) 
     cloog_die("memory overflow.\n");
   
+  options->state = state;
+
   /* We set the various fields with default values. */
-  options->backend     = NULL;
   /* OPTIONS FOR LOOP GENERATION */
   options->l           = -1 ;  /* Last level to optimize: infinity. */
   options->f           =  1 ;  /* First level to optimize: the first. */
@@ -329,15 +330,12 @@ CloogOptions * cloog_core_options_malloc(void)
  * - August 5th 2002: first version.
  * - April 19th 2003: now in options.c and support of the CloogOptions structure.
  */
-void cloog_options_read(argc, argv, input, output, options)
-int argc ;
-char ** argv ;
-FILE ** input, ** output ;
-CloogOptions ** options ;
+void cloog_options_read(CloogState *state, int argc, char **argv,
+			FILE **input, FILE **output, CloogOptions **options)
 { int i, infos=0, input_is_set=0 ;
   
   /* CloogOptions structure allocation and initialization. */
-  *options = cloog_options_malloc() ;
+  *options = cloog_options_malloc(state);
   
   /* The default output is the standard output. */
   *output = stdout ;

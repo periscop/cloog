@@ -1458,6 +1458,7 @@ In this section, we describe the data structures used by the loop
 generator to represent and to process a code generation problem.
 
 @menu
+* CloogState::
 * CloogMatrix::
 * CloogDomain::
 * CloogScattering::
@@ -1470,6 +1471,25 @@ generator to represent and to process a code generation problem.
 * CloogProgram::
 * CloogOptions::
 @end menu
+
+
+@node CloogState
+@subsection CloogState
+@example
+@group
+CloogState *cloog_state_malloc(void);
+void cloog_state_free(CloogState *state);
+@end group
+@end example
+
+@noindent The @code{CloogState} structure is (implicitly) needed to perform
+any CLooG operation.  It should be created using @code{cloog_state_malloc}
+before any other CLooG objects are created and destroyed using
+@code{cloog_state_free} after all objects have been freed.
+It is allowed to use more than one @code{CloogState} structure at
+the same time, but an object created within the state of a one
+@code{CloogState} structure is not allowed to interact with an object
+created within the state of an other @code{CloogState} structure.
 
 
 @node CloogMatrix
@@ -1605,8 +1625,8 @@ dual ray representation, the user may refer to the PolyLib documentation.
 @subsection CloogScattering
 @example
 @group
-CloogScattering *cloog_scattering_read(FILE *foo,
-				    CloogDomain *domain, CloogOptions *options);
+CloogScattering *cloog_domain_read_scattering(CloogDomain *domain,
+                                              FILE *foo);
 void cloog_scattering_free(CloogScattering *);
 @end group
 @end example
@@ -2207,11 +2227,14 @@ CLooG distribution.
 # include <cloog/cloog.h>
 
 int main()
-@{ CloogProgram * program ;
+@{
+  CloogState *state;
+  CloogProgram *program;
   CloogOptions * options ;
   
   /* Setting options and reading program informations. */
-  options = cloog_options_malloc() ;
+  state = cloog_state_malloc();
+  options = cloog_options_malloc(state);
   program = cloog_program_read(stdin,options) ;
 
   /* Generating and printing the code. */
@@ -2220,6 +2243,7 @@ int main()
 
   cloog_options_free(options) ;
   cloog_program_free(program) ;
+  cloog_state_free(state);
   return 0;
 @}
 @end example

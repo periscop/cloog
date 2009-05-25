@@ -62,7 +62,8 @@ int main()
 	int dim;
 	int range;
 	int i, j;
-	CloogOptions *options = cloog_options_malloc();
+	CloogState *state = cloog_state_malloc();
+	CloogOptions *options = cloog_options_malloc(state);
 	CloogDomain *domain;
 	CloogDomain *cube, *tmp;
 	CloogProgram *p;
@@ -84,7 +85,7 @@ int main()
 	cloog_int_init(M);
 	cloog_int_set_si(m, 0);
 	cloog_int_set_si(M, range);
-	cube = cloog_domain_cube(dim, m, M, options);
+	cube = cloog_domain_cube(state, dim, m, M);
 	domain = cloog_domain_intersection(tmp = domain, cube);
 	cloog_domain_free(tmp);
 	cloog_domain_free(cube);
@@ -96,7 +97,7 @@ int main()
 	p->names->nb_iterators = dim;
 	p->names->iterators = cloog_names_generate_items(dim, "p", 0);
 	p->language = 'c';
-	p->context = cloog_domain_universe(0, options);
+	p->context = cloog_domain_universe(state, 0);
 	statement = cloog_statement_alloc(1);
 	p->loop = cloog_loop_malloc();
 	p->loop->domain = domain;
@@ -134,6 +135,7 @@ int main()
 	cloog_int_clear(M);
 	cloog_program_free(p);
 	cloog_options_free(options);
+	cloog_state_free(state);
 
 	return 0;
 }
