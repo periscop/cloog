@@ -329,9 +329,9 @@ CloogOptions * cloog_core_options_malloc(void)
  * - August 5th 2002: first version.
  * - April 19th 2003: now in options.c and support of the CloogOptions structure.
  */
-void cloog_options_read(argv, argc, input, output, options)
-int argv ;
-char ** argc ;
+void cloog_options_read(argc, argv, input, output, options)
+int argc ;
+char ** argv ;
 FILE ** input, ** output ;
 CloogOptions ** options ;
 { int i, infos=0, input_is_set=0 ;
@@ -342,109 +342,109 @@ CloogOptions ** options ;
   /* The default output is the standard output. */
   *output = stdout ;
 
-  for (i=1;i<argv;i++)
-  if (argc[i][0] == '-')
-  { if (strcmp(argc[i],"-l")   == 0)
-    cloog_options_set(&(*options)->l,argv,argc,&i) ;
+  for (i=1;i<argc;i++)
+  if (argv[i][0] == '-')
+  { if (strcmp(argv[i],"-l")   == 0)
+    cloog_options_set(&(*options)->l,argc,argv,&i) ;
     else
-    if (strcmp(argc[i],"-f")   == 0)
-    cloog_options_set(&(*options)->f,argv,argc,&i) ;
+    if (strcmp(argv[i],"-f")   == 0)
+    cloog_options_set(&(*options)->f,argc,argv,&i) ;
     else
-    if (strcmp(argc[i],"-stop")   == 0)
-    cloog_options_set(&(*options)->stop,argv,argc,&i) ;
+    if (strcmp(argv[i],"-stop")   == 0)
+    cloog_options_set(&(*options)->stop,argc,argv,&i) ;
     else
-    if (strcmp(argc[i],"-strides")   == 0)
-    cloog_options_set(&(*options)->strides,argv,argc,&i) ;
-    else if (strcmp(argc[i],"-sh")   == 0)
-      cloog_options_set(&(*options)->sh,argv,argc,&i) ;
+    if (strcmp(argv[i],"-strides")   == 0)
+    cloog_options_set(&(*options)->strides,argc,argv,&i) ;
+    else if (strcmp(argv[i],"-sh")   == 0)
+      cloog_options_set(&(*options)->sh,argc,argv,&i) ;
     else
-    if (strcmp(argc[i],"-otl") == 0)
-    cloog_options_set(&(*options)->otl,argv,argc,&i) ;
+    if (strcmp(argv[i],"-otl") == 0)
+    cloog_options_set(&(*options)->otl,argc,argv,&i) ;
     else
-    if (strcmp(argc[i],"-esp") == 0)
-    cloog_options_set(&(*options)->esp,argv,argc,&i) ;
+    if (strcmp(argv[i],"-esp") == 0)
+    cloog_options_set(&(*options)->esp,argc,argv,&i) ;
     else
-    if (strcmp(argc[i],"-fsp") == 0)
-    cloog_options_set(&(*options)->fsp,argv,argc,&i) ;
+    if (strcmp(argv[i],"-fsp") == 0)
+    cloog_options_set(&(*options)->fsp,argc,argv,&i) ;
     else
-    if (strcmp(argc[i],"-block") == 0)
-    cloog_options_set(&(*options)->block,argv,argc,&i) ;
+    if (strcmp(argv[i],"-block") == 0)
+    cloog_options_set(&(*options)->block,argc,argv,&i) ;
     else
-    if (strcmp(argc[i],"-compilable") == 0)
-      cloog_options_set(&(*options)->compilable, argv, argc, &i);
-    else if (strcmp(argc[i], "-callable") == 0)
-      cloog_options_set(&(*options)->callable, argv, argc, &i);
+    if (strcmp(argv[i],"-compilable") == 0)
+      cloog_options_set(&(*options)->compilable, argc, argv, &i);
+    else if (strcmp(argv[i], "-callable") == 0)
+      cloog_options_set(&(*options)->callable, argc, argv, &i);
     else
-    if (strcmp(argc[i],"-loopo") == 0) /* Special option for the LooPo team ! */
+    if (strcmp(argv[i],"-loopo") == 0) /* Special option for the LooPo team ! */
     { (*options)->esp   = 0 ;
       (*options)->block = 1 ;
     }
     else
-    if (strcmp(argc[i],"-bipbip") == 0)/* Special option for the author only !*/
+    if (strcmp(argv[i],"-bipbip") == 0)/* Special option for the author only !*/
       (*options)->nobacktrack = 1 ;
     else
-    if (strcmp(argc[i],"-leaks") == 0)
+    if (strcmp(argv[i],"-leaks") == 0)
     (*options)->leaks = 1 ;
     else
-    if (strcmp(argc[i],"-nobacktrack") == 0)
+    if (strcmp(argv[i],"-nobacktrack") == 0)
     (*options)->nobacktrack = 1 ;
     else
-    if (strcmp(argc[i],"-override") == 0)
+    if (strcmp(argv[i],"-override") == 0)
     (*options)->override = 1 ;
     else
-    if (strcmp(argc[i],"-noblocks") == 0)
+    if (strcmp(argv[i],"-noblocks") == 0)
     (*options)->noblocks = 1 ;
     else
-    if (strcmp(argc[i],"-noscalars") == 0)
+    if (strcmp(argv[i],"-noscalars") == 0)
     (*options)->noscalars = 1 ;
     else
-    if (strcmp(argc[i],"-nosimplify") == 0)
+    if (strcmp(argv[i],"-nosimplify") == 0)
     (*options)->nosimplify = 1 ;
     else
-    if ((strcmp(argc[i],"-struct") == 0) || (strcmp(argc[i],"-structure") == 0))
+    if ((strcmp(argv[i],"-struct") == 0) || (strcmp(argv[i],"-structure") == 0))
     (*options)->structure = 1 ;
     else
-    if ((strcmp(argc[i],"--help") == 0) || (strcmp(argc[i],"-h") == 0))
+    if ((strcmp(argv[i],"--help") == 0) || (strcmp(argv[i],"-h") == 0))
     { cloog_options_help() ;
       infos = 1 ;
     }
     else
-    if ((strcmp(argc[i],"--version") == 0) || (strcmp(argc[i],"-v") == 0))
+    if ((strcmp(argv[i],"--version") == 0) || (strcmp(argv[i],"-v") == 0))
     { cloog_options_version() ;
       infos = 1 ;
-    } else if ((strcmp(argc[i],"--quiet") == 0) || (strcmp(argc[i],"-q") == 0))
+    } else if ((strcmp(argv[i],"--quiet") == 0) || (strcmp(argv[i],"-q") == 0))
       (*options)->quiet = 1;
     else
-    if (strcmp(argc[i],"-o") == 0)
-    { if (i+1 >= argv)
+    if (strcmp(argv[i],"-o") == 0)
+    { if (i+1 >= argc)
         cloog_die("no output name for -o option.\n");
 
       /* stdout is a special value, when used, we set output to standard
        * output.
        */
-      if (strcmp(argc[i+1],"stdout") == 0)
+      if (strcmp(argv[i+1],"stdout") == 0)
       *output = stdout ;
       else
-      { *output = fopen(argc[i+1],"w") ;
+      { *output = fopen(argv[i+1],"w") ;
         if (*output == NULL)
-          cloog_die("can't create output file %s.\n", argc[i+1]);
+          cloog_die("can't create output file %s.\n", argv[i+1]);
       }
       i ++ ;    
     }
     else
-      cloog_msg(*options, CLOOG_WARNING, "unknown %s option.\n", argc[i]);
+      cloog_msg(*options, CLOOG_WARNING, "unknown %s option.\n", argv[i]);
   }
   else
   { if (!input_is_set)
     { input_is_set = 1 ;
-      (*options)->name = argc[i] ;
+      (*options)->name = argv[i] ;
       /* stdin is a special value, when used, we set input to standard input. */
-      if (strcmp(argc[i],"stdin") == 0)
+      if (strcmp(argv[i],"stdin") == 0)
       *input = stdin ;
       else
-      { *input = fopen(argc[i],"r") ;
+      { *input = fopen(argv[i],"r") ;
         if (*input == NULL)
-          cloog_die("%s file does not exist.\n", argc[i]);
+          cloog_die("%s file does not exist.\n", argv[i]);
       }
     } 
     else
