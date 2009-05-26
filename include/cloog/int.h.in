@@ -41,14 +41,8 @@ typedef mpz_t		cloog_int_t;
 
 #if defined(CLOOG_INT_GMP)
 
-#define cloog_int_init(i)	do {					\
-					mpz_init(i);			\
-					cloog_int_leak_up();		\
-				} while (0)
-#define cloog_int_clear(i)	do {					\
-					mpz_clear(i);			\
-					cloog_int_leak_down();		\
-				} while (0)
+#define cloog_int_init(i)	mpz_init(i)
+#define cloog_int_clear(i)	mpz_clear(i);
 
 #define cloog_int_set(r,i)	mpz_set(r,i)
 #define cloog_int_set_si(r,i)	mpz_set_si(r,i)

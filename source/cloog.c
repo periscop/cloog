@@ -39,26 +39,6 @@
 # include <stdio.h>
 # include "../include/cloog/cloog.h"
 
-/** Extern global variables for memory leak hunt. */
-extern int cloog_domain_allocated ;
-extern int cloog_domain_freed ;
-extern int cloog_domain_max ;
-extern int cloog_loop_allocated ;
-extern int cloog_loop_freed ;
-extern int cloog_loop_max ;
-extern int cloog_statement_allocated ;
-extern int cloog_statement_freed ;
-extern int cloog_statement_max ;
-extern int cloog_matrix_allocated ;
-extern int cloog_matrix_freed ;
-extern int cloog_matrix_max ;
-extern int cloog_block_allocated ;
-extern int cloog_block_freed ;
-extern int cloog_block_max ;
-extern int cloog_int_allocated;
-extern int cloog_int_freed;
-extern int cloog_int_max;
-
 
 int main(int argv, char * argc[])
 { CloogProgram * program ;
@@ -83,28 +63,22 @@ int main(int argv, char * argc[])
   cloog_program_free(program) ;
 
   /* Printing the allocation statistics if asked. */
-  if (options->leaks)
-  { fprintf(output,"/* Matrices   : allocated=%5d, freed=%5d, max=%5d. */\n",
-           cloog_matrix_allocated,cloog_matrix_freed,cloog_matrix_max) ;
+  if (options->leaks) {
     fprintf(output,"/* Domains    : allocated=%5d, freed=%5d, max=%5d. */\n",
-           cloog_domain_allocated,cloog_domain_freed,cloog_domain_max);
+           state->domain_allocated, state->domain_freed, state->domain_max);
     fprintf(output,"/* Loops      : allocated=%5d, freed=%5d, max=%5d. */\n",
-           cloog_loop_allocated,cloog_loop_freed,cloog_loop_max) ;
+           state->loop_allocated, state->loop_freed, state->loop_max);
     fprintf(output,"/* Statements : allocated=%5d, freed=%5d, max=%5d. */\n",
-           cloog_statement_allocated,cloog_statement_freed,cloog_statement_max);
+           state->statement_allocated, state->statement_freed, state->statement_max);
     fprintf(output,"/* Blocks     : allocated=%5d, freed=%5d, max=%5d. */\n",
-           cloog_block_allocated,cloog_block_freed,cloog_block_max) ;
-    fprintf(output,"/* Int (GMP)  : allocated=%5d, freed=%5d, max=%5d. */\n",
-           cloog_int_allocated, cloog_int_freed, cloog_int_max);
+           state->block_allocated, state->block_freed, state->block_max);
   }
 
   /* Inform the user in case of a problem with the allocation statistics. */
-  if ((cloog_matrix_allocated    != cloog_matrix_freed)    ||
-      (cloog_domain_allocated    != cloog_domain_freed)    ||
-      (cloog_loop_allocated      != cloog_loop_freed)      ||
-      (cloog_statement_allocated != cloog_statement_freed) ||
-      (cloog_block_allocated     != cloog_block_freed)     ||
-      (cloog_int_allocated       != cloog_int_freed))
+  if ((state->domain_allocated    != state->domain_freed)    ||
+      (state->loop_allocated      != state->loop_freed)      ||
+      (state->statement_allocated != state->statement_freed) ||
+      (state->block_allocated     != state->block_freed))
   {
     cloog_msg(options, CLOOG_INFO,
             "an internal problem has been detected (it should have"

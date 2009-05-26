@@ -9,21 +9,6 @@
 #include <isl_list.h>
 
 
-/******************************************************************************
- *                             Memory leaks hunting                           *
- ******************************************************************************/
-
-
-/**
- * These global variables are devoted to memory leaks hunting in the PolyLib
- * backend.  The isl backend has its own memory leak detection facilities.
- */
-int cloog_domain_allocated = 0;
-int cloog_domain_freed = 0;
-int cloog_domain_max = 0;
-
-
-
 /**
  * Returns true if each scattering dimension is defined in terms
  * of the original iterators.

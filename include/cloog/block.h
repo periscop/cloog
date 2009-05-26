@@ -58,7 +58,9 @@ extern "C"
  * the active reference counter and actually free it if its value is zero.
  */
 struct cloogblock
-{ CloogStatement * statement ;  /**< The list of statements in the block. */
+{
+  CloogState *state;            /**< State. */
+  CloogStatement * statement ;  /**< The list of statements in the block. */
   int  nb_scaldims ;            /**< Number of scalar dimensions. */
   cloog_int_t *scaldims;        /**< Scalar dimension values. */
   int depth ;                   /**< Original block depth (outer loop number).*/
@@ -100,7 +102,7 @@ void cloog_block_list_free(CloogBlockList *) ;
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
-CloogBlock     * cloog_block_malloc(void);
+CloogBlock     * cloog_block_malloc(CloogState *state);
 CloogBlock     * cloog_block_alloc(CloogStatement *statement, int nb_scaldims,
 				    cloog_int_t *scaldims, int depth);
 CloogBlockList * cloog_block_list_malloc(void);

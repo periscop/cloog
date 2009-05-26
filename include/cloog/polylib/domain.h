@@ -45,8 +45,9 @@ typedef struct cloogdomain CloogScattering;
 /******************************************************************************
  *                              PolyLib interface                             *
  ******************************************************************************/
-CloogDomain * cloog_domain_alloc(Polyhedron *, int nb_par);
-CloogDomain * cloog_domain_matrix2domain(Matrix *, int nb_par);
+CloogDomain * cloog_domain_alloc(CloogState *state, Polyhedron *, int nb_par);
+CloogDomain * cloog_domain_matrix2domain(CloogState *state,
+					 Matrix *, int nb_par);
 Matrix      * cloog_domain_domain2matrix(CloogDomain *) ;
 CloogDomain * cloog_domain_image(CloogDomain *, Matrix *) ;
 CloogDomain * cloog_domain_preimage(CloogDomain *, Matrix *) ;
@@ -63,7 +64,7 @@ CloogDomain *cloog_domain_read(CloogState *state, FILE *foo, int nb_par);
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
-CloogDomain * cloog_domain_malloc(void);
+CloogDomain * cloog_domain_malloc(CloogState *state);
 CloogDomain * cloog_domain_bounds(CloogDomain * domain, int dim);
 
 #define cloog_domain_polyhedron(x)    (x)->polyhedron

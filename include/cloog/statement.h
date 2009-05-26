@@ -44,7 +44,9 @@ extern "C"
 
 
 struct cloogstatement
-{ int number ;                   /* The statement unique number. */
+{
+  CloogState *state;             /* State. */
+  int number;                    /* The statement unique number. */
   void * usr ;                   /* A pointer for library users convenience. */
   struct cloogstatement * next ; /* Pointer to the next statement with the
                                   * same original domain and the same
@@ -70,8 +72,8 @@ void cloog_statement_free(CloogStatement *) ;
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
-CloogStatement * cloog_statement_malloc(void);
-CloogStatement * cloog_statement_alloc(int) ;
+CloogStatement * cloog_statement_malloc(CloogState *state);
+CloogStatement * cloog_statement_alloc(CloogState *state, int);
 CloogStatement * cloog_statement_copy(CloogStatement *) ;
 void cloog_statement_add(CloogStatement**, CloogStatement**, CloogStatement*) ;
 

@@ -48,41 +48,6 @@
 
 
 /******************************************************************************
- *                             Memory leaks hunting                           *
- ******************************************************************************/
-
-
-/**
- * These functions and global variables are devoted to memory leaks hunting: we
- * want to know at each moment how many CloogMatrix structures are allocated
- * (cloog_matrix_allocated) and how many had been freed (cloog_matrix_freed).
- * Each time a CloogMatrix structure is allocated, a call to the function
- * cloog_matrix_leak_up() must be carried out, and respectively
- * cloog_matrix_leak_down() when a CloogMatrix structure is freed. The special
- * variable cloog_matrix_max gives the maximal number of CloogMatrix structures
- * simultaneously alive (i.e. allocated and non-freed) in memory.
- * - April 17th 2005: first version.
- */
-
-
-int cloog_matrix_allocated = 0 ;
-int cloog_matrix_freed = 0 ;
-int cloog_matrix_max = 0 ;
-
-
-static void cloog_matrix_leak_up()
-{ cloog_matrix_allocated ++ ;
-  if ((cloog_matrix_allocated-cloog_matrix_freed) > cloog_matrix_max)
-  cloog_matrix_max = cloog_matrix_allocated - cloog_matrix_freed ;
-}
-
-
-static void cloog_matrix_leak_down()
-{ cloog_matrix_freed ++ ;
-}
-
-
-/******************************************************************************
  *                              PolyLib interface                             *
  ******************************************************************************/
 
@@ -111,7 +76,7 @@ void cloog_matrix_print(FILE * foo, CloogMatrix * matrix)
  * (matrix).
  */
 void cloog_matrix_free(CloogMatrix * matrix)
-{ cloog_matrix_leak_down() ;
+{
   Matrix_Free(matrix) ;
 }
 
@@ -270,7 +235,7 @@ int cloog_constraint_total_dimension(CloogConstraint constraint)
  * nb_rows rows and nb_columns columns, it set its elements to 0.
  */
 CloogMatrix * cloog_matrix_alloc(unsigned nb_rows, unsigned nb_columns)
-{ cloog_matrix_leak_up() ;
+{
   return Matrix_Alloc(nb_rows,nb_columns) ;
 }
 
@@ -281,7 +246,6 @@ CloogMatrix * cloog_matrix_alloc(unsigned nb_rows, unsigned nb_columns)
  */
 CloogMatrix * cloog_matrix_matrix(Matrix *matrix)
 {
-  cloog_matrix_leak_up();
   return matrix;
 }
 
@@ -503,11 +467,11 @@ static void cloog_equal_update(CloogEqualities *equal, int level, int nb_par)
 { int i, j ;
   Value gcd, factor_level, factor_outer, temp_level, temp_outer ;
   
-  value_init_c(gcd) ;
-  value_init_c(temp_level) ;
-  value_init_c(temp_outer) ;
-  value_init_c(factor_level) ;
-  value_init_c(factor_outer) ;
+  value_init(gcd);
+  value_init(temp_level);
+  value_init(temp_outer);
+  value_init(factor_level);
+  value_init(factor_outer);
   
   /* For each previous level, */
   for (i=level-2;i>=0;i--)
@@ -552,11 +516,11 @@ static void cloog_equal_update(CloogEqualities *equal, int level, int nb_par)
   Vector_Normalize(&(equal->constraints->p[level-1][1]),
 			equal->constraints->NbColumns-1);
 
-  value_clear_c(gcd) ;
-  value_clear_c(temp_level) ;
-  value_clear_c(temp_outer) ;
-  value_clear_c(factor_level) ;
-  value_clear_c(factor_outer) ;
+  value_clear(gcd);
+  value_clear(temp_level);
+  value_clear(temp_outer);
+  value_clear(factor_level);
+  value_clear(factor_outer);
 }
 
 
@@ -599,11 +563,11 @@ void cloog_equal_add(CloogEqualities *equal, CloogConstraintSet *matrix,
        */
       if (value_ne_si(i.line[0][level],1) &&
           value_ne_si(i.line[0][level],-1) &&
-	  value_notzero_p(i.line[0][matrix->NbColumns-1]))
-      { value_init_c(numerator) ;
-        value_init_c(denominator) ;
-        value_init_c(division) ;
-        value_init_c(modulo) ;
+	  value_notzero_p(i.line[0][matrix->NbColumns-1])) {
+        value_init(numerator);
+        value_init(denominator);
+        value_init(division);
+        value_init(modulo);
         
 	value_assign(denominator,i.line[0][level]) ;
 	value_absolute(denominator,denominator) ; 
@@ -635,10 +599,10 @@ void cloog_equal_add(CloogEqualities *equal, CloogConstraintSet *matrix,
 	else
 	value_set_si(i.line[0][level],-1) ;
 	
-	value_clear_c(numerator) ;
-        value_clear_c(denominator) ;
-        value_clear_c(division) ;
-        value_clear_c(modulo) ;
+	value_clear(numerator);
+        value_clear(denominator);
+        value_clear(division);
+        value_clear(modulo);
       }
             
       break ;
@@ -714,11 +678,11 @@ void cloog_constraint_set_normalize(CloogConstraintSet *matrix, int level)
   /* Let us find an equality for the current level that can be propagated. */
   for (ref=0;ref<matrix->NbRows;ref++)
   if (value_zero_p(matrix->p[ref][0]) && value_notzero_p(matrix->p[ref][level]))
-  { value_init_c(gcd) ;
-    value_init_c(temp_i) ;
-    value_init_c(temp_ref) ;
-    value_init_c(factor_i) ;
-    value_init_c(factor_ref) ;
+  { value_init(gcd);
+    value_init(temp_i);
+    value_init(temp_ref);
+    value_init(factor_i);
+    value_init(factor_ref);
   
     /* Row "ref" is the reference equality, now let us find a row to simplify.*/
     for (i=ref+1;i<matrix->NbRows;i++)
@@ -747,11 +711,11 @@ void cloog_constraint_set_normalize(CloogConstraintSet *matrix, int level)
       Vector_Normalize(&(matrix->p[i][1]),matrix->NbColumns-1) ;
     }
     
-    value_clear_c(gcd) ;
-    value_clear_c(temp_i) ;
-    value_clear_c(temp_ref) ;
-    value_clear_c(factor_i) ;
-    value_clear_c(factor_ref) ;
+    value_clear(gcd);
+    value_clear(temp_i);
+    value_clear(temp_ref);
+    value_clear(factor_i);
+    value_clear(factor_ref);
     break ;
   }
 }
@@ -792,9 +756,9 @@ static Value *cloog_matrix_vector_copy(Value *vector, int length)
    * the original coefficients.
    */
   copy = (Value *)malloc(length * sizeof(Value)) ;
-  for (i=0;i<length;i++)
-  { value_init_c(copy[i]) ;
-    value_assign(copy[i],vector[i]) ;
+  for (i=0;i<length;i++) {
+    value_init(copy[i]);
+    value_assign(copy[i],vector[i]);
   }
   
   return copy ;
@@ -812,7 +776,7 @@ static void cloog_matrix_vector_free(Value * vector, int length)
 { int i ;
   
   for (i=0;i<length;i++)
-  value_clear_c(vector[i]) ;
+    value_clear(vector[i]);
   free(vector) ;
 }
 
@@ -844,11 +808,11 @@ Value *cloog_equal_vector_simplify(CloogEqualities *equal, Value *vector,
   
   simplified = cloog_matrix_vector_copy(vector,length) ;
   
-  value_init_c(gcd) ;
-  value_init_c(temp_vector) ;
-  value_init_c(temp_equal) ;
-  value_init_c(factor_vector) ;
-  value_init_c(factor_equal) ;
+  value_init(gcd);
+  value_init(temp_vector);
+  value_init(temp_equal);
+  value_init(factor_vector);
+  value_init(factor_equal);
     
   /* For each non-null coefficient in the vector, */
   for (i=length-nb_par-2;i>0;i--)
@@ -891,11 +855,11 @@ Value *cloog_equal_vector_simplify(CloogEqualities *equal, Value *vector,
   /* Normalize (divide by GCD of all elements) the updated vector. */
   Vector_Normalize(&(simplified[1]),length-1) ;
 
-  value_clear_c(gcd) ;
-  value_clear_c(temp_vector) ;
-  value_clear_c(temp_equal) ;
-  value_clear_c(factor_vector) ;
-  value_clear_c(factor_equal) ;
+  value_clear(gcd);
+  value_clear(temp_vector);
+  value_clear(temp_equal);
+  value_clear(factor_vector);
+  value_clear(factor_equal);
   
   return simplified ;
 }

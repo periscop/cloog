@@ -3,19 +3,22 @@
 
 #include <polylib/@cl_cv_polylib@.h>
 
+/**
+ * The maximal number of rays allowed to be allocated by PolyLib. In fact since
+ * version 5.20, PolyLib automatically tune the number of rays by multiplying
+ * by 2 this number each time the maximum is reached. For unknown reasons
+ * PolyLib makes a segmentation fault if this number is too small. If this
+ * number is too small, performances will be reduced, if it is too high, memory
+ * will be saturated. Note that the option "-rays X" set this number to X.
+ */
 struct cloogbackend {
+  int MAX_RAYS;
 };
 
 /******************************************************************************
  *                             CLOOG GMP MACROS                               *
  ******************************************************************************/
 #ifdef GNUMP
-#define value_init_c(val)              { mpz_init((val)) ; \
-                                         cloog_int_leak_up() ; \
-                                       }
-#define value_clear_c(val)             { mpz_clear((val)) ; \
-                                         cloog_int_leak_down() ; \
-                                       }
 #define value_sprint(Dst,fmt,val)      { char * str ; \
                                          str = mpz_get_str(0,10,(val)) ; \
                                          sprintf((Dst),(fmt),str) ; \

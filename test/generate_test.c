@@ -98,8 +98,8 @@ int main()
 	p->names->iterators = cloog_names_generate_items(dim, "p", 0);
 	p->language = 'c';
 	p->context = cloog_domain_universe(state, 0);
-	statement = cloog_statement_alloc(1);
-	p->loop = cloog_loop_malloc();
+	statement = cloog_statement_alloc(state, 1);
+	p->loop = cloog_loop_malloc(state);
 	p->loop->domain = domain;
 	p->loop->block = cloog_block_alloc(statement, 0, NULL, dim);
 	p->blocklist = cloog_block_list_alloc(p->loop->block);

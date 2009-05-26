@@ -62,20 +62,17 @@
  */
 
 
-int cloog_statement_allocated = 0 ;
-int cloog_statement_freed = 0 ;
-int cloog_statement_max = 0 ;
-
-
-static void cloog_statement_leak_up()
-{ cloog_statement_allocated ++ ;
-  if ((cloog_statement_allocated-cloog_statement_freed) > cloog_statement_max)
-  cloog_statement_max = cloog_statement_allocated - cloog_statement_freed ;
+static void cloog_statement_leak_up(CloogState *state)
+{
+  state->statement_allocated++;
+  if ((state->statement_allocated - state->statement_freed) > state->statement_max)
+  state->statement_max = state->statement_allocated - state->statement_freed ;
 }
 
 
-static void cloog_statement_leak_down()
-{ cloog_statement_freed ++ ;
+static void cloog_statement_leak_down(CloogState *state)
+{ 
+  state->statement_freed++;
 }
 
 
@@ -150,8 +147,8 @@ void cloog_statement_print(FILE * file, CloogStatement * statement)
 void cloog_statement_free(CloogStatement * statement)
 { CloogStatement * next ;
 
-  while (statement != NULL)
-  { cloog_statement_leak_down() ;
+  while (statement != NULL) {
+    cloog_statement_leak_down(statement->state);
     
     next = statement->next ;
     /* free(statement->usr) ; Actually, this is user's job ! */
@@ -173,16 +170,17 @@ void cloog_statement_free(CloogStatement * statement)
  * allocated space.
  * - November 21th 2005: first version.
  */
-CloogStatement * cloog_statement_malloc()
+CloogStatement *cloog_statement_malloc(CloogState *state)
 { CloogStatement * statement ;
   
   /* Memory allocation for the CloogStatement structure. */
   statement = (CloogStatement *)malloc(sizeof(CloogStatement)) ;
   if (statement == NULL) 
     cloog_die("memory overflow.\n");
-  cloog_statement_leak_up() ;
+  cloog_statement_leak_up(state);
   
   /* We set the various fields with default values. */
+  statement->state = state;
   statement->number = 0;
   statement->usr  = NULL ; /* To fill it is actually user's job ! */
   statement->next = NULL ;
@@ -206,11 +204,11 @@ CloogStatement * cloog_statement_malloc()
  *                       read on a file.
  * - November 21th 2005: use of cloog_statement_malloc.
  */
-CloogStatement * cloog_statement_alloc(int number)
+CloogStatement *cloog_statement_alloc(CloogState *state, int number)
 { CloogStatement * statement ;
     
   /* Memory allocation and initialization of the structure. */
-  statement = cloog_statement_malloc() ;
+  statement = cloog_statement_malloc(state);
 
   statement->number = number ;
   
@@ -230,8 +228,8 @@ CloogStatement * cloog_statement_copy(CloogStatement * source)
   
   statement = NULL ;
 
-  while (source != NULL)
-  { cloog_statement_leak_up() ;
+  while (source != NULL) {
+    cloog_statement_leak_up(source->state);
 
     temp = (CloogStatement *)malloc(sizeof(CloogStatement)) ;
     if (temp == NULL)

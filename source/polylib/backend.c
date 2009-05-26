@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <cloog/polylib/cloog.h>
 
 /**
@@ -5,7 +6,12 @@
  */
 CloogState *cloog_state_malloc(void)
 {
-	return cloog_core_state_malloc();
+	CloogState *state = cloog_core_state_malloc();
+	state->backend = (CloogBackend *)malloc(sizeof(CloogBackend));
+	if (!state->backend) 
+		cloog_die("memory overflow.\n");
+	state->backend->MAX_RAYS = 50;
+	return state;
 }
 
 /**
@@ -13,5 +19,6 @@ CloogState *cloog_state_malloc(void)
  */
 void cloog_state_free(CloogState *state)
 {
+	free(state->backend);
 	cloog_core_state_free(state);
 }

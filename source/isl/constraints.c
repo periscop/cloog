@@ -15,14 +15,6 @@
  ******************************************************************************/
 
 
-/**
- * These global variables are devoted to memory leaks hunting in the PolyLib
- * backend.  The isl backend has its own memory leak detection facilities.
- */
-int cloog_matrix_allocated = 0;
-int cloog_matrix_freed = 0;
-int cloog_matrix_max = 0;
-
 
 void cloog_constraint_set_free(CloogConstraintSet *constraints)
 {

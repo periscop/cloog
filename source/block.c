@@ -60,20 +60,17 @@
  */
 
 
-int cloog_block_allocated = 0 ;
-int cloog_block_freed = 0 ;
-int cloog_block_max = 0 ;
-
-
-static void cloog_block_leak_up()
-{ cloog_block_allocated ++ ;
-  if ((cloog_block_allocated - cloog_block_freed) > cloog_block_max)
-  cloog_block_max = cloog_block_allocated - cloog_block_freed ;
+static void cloog_block_leak_up(CloogState *state)
+{ 
+  state->block_allocated++;
+  if ((state->block_allocated - state->block_freed) > state->block_max)
+    state->block_max = state->block_allocated - state->block_freed;
 }
 
 
-static void cloog_block_leak_down()
-{ cloog_block_freed ++ ;
+static void cloog_block_leak_down(CloogState *state)
+{
+  state->block_freed++;
 }
 
 
@@ -205,11 +202,11 @@ void cloog_block_free(CloogBlock * block)
   if (block != NULL)
   { block->references -- ;
     
-    if (block->references == 0)
-    { cloog_block_leak_down() ;
+    if (block->references == 0) {
+      cloog_block_leak_down(block->state);
       if (block->scaldims != NULL)
       { for (i=0;i<block->nb_scaldims;i++)
-        cloog_int_clear(block->scaldims[i]);
+	  cloog_int_clear(block->scaldims[i]);
       
         free(block->scaldims) ;
       }
@@ -249,16 +246,17 @@ void cloog_block_list_free(CloogBlockList * blocklist)
  * allocated space.
  * - November 21th 2005: first version.
  */
-CloogBlock * cloog_block_malloc()
+CloogBlock *cloog_block_malloc(CloogState *state)
 { CloogBlock * block ;
   
   /* Memory allocation for the CloogBlock structure. */
   block = (CloogBlock *)malloc(sizeof(CloogBlock)) ;
   if (block == NULL) 
     cloog_die("memory overflow.\n");
-  cloog_block_leak_up() ;
+  cloog_block_leak_up(state);
   
   /* We set the various fields with default values. */
+  block->state = state;
   block->statement = NULL ;
   block->nb_scaldims = 0 ;
   block->scaldims = NULL ;
@@ -292,7 +290,7 @@ CloogBlock *cloog_block_alloc(CloogStatement *statement, int nb_scaldims,
 { CloogBlock * block ;
     
   /* Block allocation. */
-  block = cloog_block_malloc() ;
+  block = cloog_block_malloc(statement->state);
 
   block->statement = statement ;
   block->nb_scaldims = nb_scaldims ;

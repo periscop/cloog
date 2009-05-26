@@ -16,6 +16,22 @@ extern "C" {
 
 struct cloogstate {
   CloogBackend *backend;
+
+  int block_allocated;
+  int block_freed;
+  int block_max;
+
+  int domain_allocated;
+  int domain_freed;
+  int domain_max;
+
+  int loop_allocated;
+  int loop_freed;
+  int loop_max;
+
+  int statement_allocated;
+  int statement_freed;
+  int statement_max;
 };
 typedef struct cloogstate CloogState;
 

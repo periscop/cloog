@@ -60,7 +60,9 @@ extern "C"
  *   the loop.
  */
 struct cloogloop
-{ CloogDomain * domain ;      /**< The iteration domain. */
+{
+  CloogState *state;          /**< State. */
+  CloogDomain * domain ;      /**< The iteration domain. */
   cloog_int_t stride;         /**< The stride for the corresponding iterator
                                *   (filled only after loop generation).
                                */
@@ -99,7 +101,7 @@ CloogLoop * cloog_loop_read(CloogState *state,
  *                            Processing functions                            *
  ******************************************************************************/
 CloogLoop * cloog_loop_block(CloogLoop *loop, int *scaldims, int nb_scattdims);
-CloogLoop * cloog_loop_malloc(void);
+CloogLoop * cloog_loop_malloc(CloogState *state);
 CloogLoop * cloog_loop_generate(CloogLoop *, CloogDomain *, int, int,
                                 int *, int, int, CloogOptions *) ;
 CloogLoop * cloog_loop_simplify(CloogLoop *, CloogDomain *, int, int) ;
