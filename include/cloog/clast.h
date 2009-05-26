@@ -49,15 +49,15 @@ struct clast_stmt_op {
 
 #define CLAST_STMT_IS_A(stmt, type) ((stmt)->op == &(type))
 
-extern struct clast_stmt_op stmt_root;
-extern struct clast_stmt_op stmt_ass;
-extern struct clast_stmt_op stmt_user;
-extern struct clast_stmt_op stmt_block;
-extern struct clast_stmt_op stmt_for;
-extern struct clast_stmt_op stmt_guard;
+extern const struct clast_stmt_op stmt_root;
+extern const struct clast_stmt_op stmt_ass;
+extern const struct clast_stmt_op stmt_user;
+extern const struct clast_stmt_op stmt_block;
+extern const struct clast_stmt_op stmt_for;
+extern const struct clast_stmt_op stmt_guard;
 
 struct clast_stmt {
-    struct clast_stmt_op    *op;
+    const struct clast_stmt_op    *op;
     struct clast_stmt	*next;
 };
 

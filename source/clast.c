@@ -102,7 +102,7 @@ struct clast_reduction *new_clast_reduction(enum clast_red_type t, int n)
 
 static void free_clast_root(struct clast_stmt *s);
 
-struct clast_stmt_op stmt_root = { free_clast_root };
+const struct clast_stmt_op stmt_root = { free_clast_root };
 
 static void free_clast_root(struct clast_stmt *s)
 {
@@ -123,7 +123,7 @@ struct clast_root *new_clast_root(CloogNames *names)
 
 static void free_clast_assignment(struct clast_stmt *s);
 
-struct clast_stmt_op stmt_ass = { free_clast_assignment };
+const struct clast_stmt_op stmt_ass = { free_clast_assignment };
 
 static void free_clast_assignment(struct clast_stmt *s)
 {
@@ -146,7 +146,7 @@ struct clast_assignment *new_clast_assignment(const char *lhs,
 
 static void free_clast_user_stmt(struct clast_stmt *s);
 
-struct clast_stmt_op stmt_user = { free_clast_user_stmt };
+const struct clast_stmt_op stmt_user = { free_clast_user_stmt };
 
 static void free_clast_user_stmt(struct clast_stmt *s)
 {
@@ -169,7 +169,7 @@ struct clast_user_stmt *new_clast_user_stmt(CloogStatement *stmt,
 
 static void free_clast_block(struct clast_stmt *b);
 
-struct clast_stmt_op stmt_block = { free_clast_block };
+const struct clast_stmt_op stmt_block = { free_clast_block };
 
 static void free_clast_block(struct clast_stmt *s)
 {
@@ -190,7 +190,7 @@ struct clast_block *new_clast_block()
 
 static void free_clast_for(struct clast_stmt *s);
 
-struct clast_stmt_op stmt_for = { free_clast_for };
+const struct clast_stmt_op stmt_for = { free_clast_for };
 
 static void free_clast_for(struct clast_stmt *s)
 {
@@ -220,7 +220,7 @@ struct clast_for *new_clast_for(const char *it, struct clast_expr *LB,
 
 static void free_clast_guard(struct clast_stmt *s);
 
-struct clast_stmt_op stmt_guard = { free_clast_guard };
+const struct clast_stmt_op stmt_guard = { free_clast_guard };
 
 static void free_clast_guard(struct clast_stmt *s)
 {
