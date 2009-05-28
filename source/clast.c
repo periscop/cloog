@@ -15,6 +15,7 @@
  * since most pprint.c functions need most of its field.
  */
 struct clooginfos {
+  CloogState *state;         /**< State. */
   cloog_int_t *stride;       /**< The stride for each iterator. */
   int  nb_scattdims ;        /**< Scattering dimension number. */
   int * scaldims ;           /**< Boolean array saying whether a given
@@ -530,29 +531,24 @@ static int clast_equal_add(CloogEqualities *equal,
 static struct clast_stmt *clast_equal(int level, CloogInfos *infos)
 { 
   int i ;
-  cloog_int_t one;
   struct clast_expr *e;
   struct clast_stmt *a = NULL;
   struct clast_stmt **next = &a;
   CloogEqualities *equal = infos->equal;
   CloogConstraint equal_constraint;
 
-  cloog_int_init(one);
-  
   for (i=infos->names->nb_scattering;i<level-1;i++)
   { if (cloog_equal_type(equal, i+1)) {
       equal_constraint = cloog_equal_constraint(equal, i);
       e = clast_bound_from_constraint(equal_constraint, i+1, infos->names);
       cloog_constraint_release(equal_constraint);
     } else {
-      cloog_int_set_si(one, 1);
-      e = &new_clast_term(one, &new_clast_name(
+      e = &new_clast_term(infos->state->one, &new_clast_name(
 		 cloog_names_name_at_level(infos->names, i+1))->expr)->expr;
     }
     *next = &new_clast_assignment(NULL, e)->stmt;
     next = &(*next)->next;
   }
-  cloog_int_clear(one);
 
   return a;
 }
@@ -842,7 +838,6 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
   CloogConstraintSet *copy;
   CloogConstraint j, l;
   struct clast_guard *g;
-  cloog_int_t one;
 
   if (constraints == NULL)
     return;
@@ -850,9 +845,6 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
     copy = cloog_constraint_set_copy(constraints);
 
     insert_extra_modulo_guards(copy, level, next, infos);
-    
-    cloog_int_init(one);
-    cloog_int_set_si(one, 1);
   
     total_dim = cloog_constraint_set_total_dimension(constraints);
     g = new_clast_guard(2 * total_dim);
@@ -875,16 +867,14 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 	  struct clast_term *t;
 
 	  v = cloog_constraint_variable_expr(j, i, infos->names);
-	  g->eq[nb_and].LHS = &(t = new_clast_term(one, v))->expr;
+	  g->eq[nb_and].LHS = &(t = new_clast_term(infos->state->one, v))->expr;
 	  if (!level || cloog_constraint_is_equality(j)) {
 	    /* put the "denominator" in the LHS */
 	    cloog_constraint_coefficient_get(j, i-1, &t->val);
-	    cloog_constraint_coefficient_set(j, i-1, one);
+	    cloog_constraint_coefficient_set(j, i-1, infos->state->one);
 	    if (cloog_int_is_neg(t->val)) {
 	      cloog_int_neg(t->val, t->val);
-	      cloog_int_neg(one, one);
-	      cloog_constraint_coefficient_set(j, i-1, one);
-	      cloog_int_neg(one, one);
+	      cloog_constraint_coefficient_set(j, i-1, infos->state->negone);
 	    }
 	    if (level || cloog_constraint_is_equality(j))
 	      g->eq[nb_and].sign = 0;
@@ -932,7 +922,6 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
   } else
     free_clast_stmt(&g->stmt);
   
-  cloog_int_clear(one);
   return;
 }
  
@@ -1380,6 +1369,7 @@ struct clast_stmt *cloog_clast_create(CloogProgram *program,
     struct clast_stmt *root = &new_clast_root(program->names)->stmt;
     struct clast_stmt **next = &root->next;
 
+    infos->state      = options->state;
     infos->names    = program->names;
     infos->options  = options;
     infos->scaldims = program->scaldims;

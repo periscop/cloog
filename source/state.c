@@ -14,6 +14,11 @@ CloogState *cloog_core_state_malloc(void)
 
   state->backend = NULL;
 
+  cloog_int_init(state->one);
+  cloog_int_set_si(state->one, 1);
+  cloog_int_init(state->negone);
+  cloog_int_set_si(state->negone, -1);
+
   state->block_allocated = 0;
   state->block_freed = 0;
   state->block_max = 0;
@@ -38,5 +43,7 @@ CloogState *cloog_core_state_malloc(void)
  */
 void cloog_core_state_free(CloogState *state)
 {
+  cloog_int_clear(state->one);
+  cloog_int_clear(state->negone);
   free(state);
 }
