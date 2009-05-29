@@ -160,7 +160,7 @@ interessed by such feature, maybe many people asked for it before, maybe it's
 trivial to implement (and even)... Please just never hesitate to ask the
 author(s) !
 
-4. I implemented a cool feature, can I commit it ?
+4. I implemented a cool feature, can I submit it ?
 
 Obviously you are welcome to send the author(s) any improvement. But obviously
 we are quite careful with readability, correctness and stability, and the
@@ -170,8 +170,9 @@ Thus, it can take time... There are few basic rules to write contributions:
 - (2) Do never send codes that use more than 80 columns.
 - (3) Do never send codes without a lot of comments in (bad or good) english.
 - (4) Do never send codes with obscure and/or non-english variable names.
-- (5) Use C, just C, only C (note: "//" comments are not C, variable declaration
-  elsewhere than at the beginning of a block -better: a function-, is not C).
+- (5) Use C89, just C, only C (note: "//" comments are not C89,
+  variable declaration elsewhere than at the beginning of a block, is not C89).
+- (6) Read doc/SubmittingPatches
 Please understand that in order to live for a long time, and to be used in many
 projects the very first priority for CLooG is to be readable and documented.
 
@@ -187,8 +188,6 @@ If you find a result that looks strange, inadequate or incorrect, please send:
 - (4) All your command line options to achieve the result.
 We will try to explain the result or to fix the problem as soon as possible.
 
-6. How can I ask the author(s) ?
+6. How can I contact the author(s) ?
 
-Just send a mail to cedric.bastoul@inria.fr ! Or better, leave a message in the
-forum of http://www.CLooG.org
-
+Just send a mail to cloog-development@googlegroups.com
