@@ -73,7 +73,7 @@ void pprint_name(FILE *dst, struct clast_name *n)
 void pprint_term(struct cloogoptions *i, FILE *dst, struct clast_term *t)
 {
     if (t->var) {
-	int group = t->var->type == expr_red && 
+	int group = t->var->type == clast_expr_red &&
 		    ((struct clast_reduction*) t->var)->n > 1;
 	if (cloog_int_is_one(t->val))
 	    ;
@@ -98,12 +98,12 @@ void pprint_sum(struct cloogoptions *opt, FILE *dst, struct clast_reduction *r)
     struct clast_term *t;
 
     assert(r->n >= 1);
-    assert(r->elts[0]->type == expr_term);
+    assert(r->elts[0]->type == clast_expr_term);
     t = (struct clast_term *) r->elts[0];
     pprint_term(opt, dst, t);
 
     for (i = 1; i < r->n; ++i) {
-	assert(r->elts[i]->type == expr_term);
+	assert(r->elts[i]->type == clast_expr_term);
 	t = (struct clast_term *) r->elts[i];
 	if (cloog_int_is_pos(t->val))
 	    fprintf(dst, "+");
@@ -114,7 +114,7 @@ void pprint_sum(struct cloogoptions *opt, FILE *dst, struct clast_reduction *r)
 void pprint_binary(struct cloogoptions *i, FILE *dst, struct clast_binary *b)
 {
     const char *s1 = NULL, *s2 = NULL, *s3 = NULL;
-    int group = b->LHS->type == expr_red && 
+    int group = b->LHS->type == clast_expr_red &&
 		((struct clast_reduction*) b->LHS)->n > 1;
     if (i->language == LANGUAGE_FORTRAN) {
 	switch (b->type) {
@@ -218,16 +218,16 @@ void pprint_expr(struct cloogoptions *i, FILE *dst, struct clast_expr *e)
     if (!e)
 	return;
     switch (e->type) {
-    case expr_name:
+    case clast_expr_name:
 	pprint_name(dst, (struct clast_name*) e);
 	break;
-    case expr_term:
+    case clast_expr_term:
 	pprint_term(i, dst, (struct clast_term*) e);
 	break;
-    case expr_red:
+    case clast_expr_red:
 	pprint_reduction(i, dst, (struct clast_reduction*) e);
 	break;
-    case expr_bin:
+    case clast_expr_bin:
 	pprint_binary(i, dst, (struct clast_binary*) e);
 	break;
     default:

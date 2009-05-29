@@ -61,7 +61,7 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
 struct clast_name *new_clast_name(const char *name)
 {
     struct clast_name *n = malloc(sizeof(struct clast_name));
-    n->expr.type = expr_name;
+    n->expr.type = clast_expr_name;
     n->name = name;
     return n;
 }
@@ -69,7 +69,7 @@ struct clast_name *new_clast_name(const char *name)
 struct clast_term *new_clast_term(cloog_int_t c, struct clast_expr *v)
 {
     struct clast_term *t = malloc(sizeof(struct clast_term));
-    t->expr.type = expr_term;
+    t->expr.type = clast_expr_term;
     cloog_int_init(t->val);
     cloog_int_set(t->val, c);
     t->var = v;
@@ -80,7 +80,7 @@ struct clast_binary *new_clast_binary(enum clast_bin_type t,
 				      struct clast_expr *lhs, cloog_int_t rhs)
 {
     struct clast_binary *b = malloc(sizeof(struct clast_binary));
-    b->expr.type = expr_bin;
+    b->expr.type = clast_expr_bin;
     b->type = t;
     b->LHS = lhs;
     cloog_int_init(b->RHS);
@@ -93,7 +93,7 @@ struct clast_reduction *new_clast_reduction(enum clast_red_type t, int n)
     int i;
     struct clast_reduction *r;
     r = malloc(sizeof(struct clast_reduction)+(n-1)*sizeof(struct clast_expr *));
-    r->expr.type = expr_red;
+    r->expr.type = clast_expr_red;
     r->type = t;
     r->n = n;
     for (i = 0; i < n; ++i)
@@ -284,16 +284,16 @@ void free_clast_expr(struct clast_expr *e)
     if (!e)
 	return;
     switch (e->type) {
-    case expr_name:
+    case clast_expr_name:
 	free_clast_name((struct clast_name*) e);
 	break;
-    case expr_term:
+    case clast_expr_term:
 	free_clast_term((struct clast_term*) e);
 	break;
-    case expr_red:
+    case clast_expr_red:
 	free_clast_reduction((struct clast_reduction*) e);
 	break;
-    case expr_bin:
+    case clast_expr_bin:
 	free_clast_binary((struct clast_binary*) e);
 	break;
     default:
@@ -375,16 +375,16 @@ static int clast_expr_cmp(struct clast_expr *e1, struct clast_expr *e2)
     if (e1->type != e2->type)
 	return e1->type - e2->type;
     switch (e1->type) {
-    case expr_name:
+    case clast_expr_name:
 	return clast_name_cmp((struct clast_name*) e1, 
 				(struct clast_name*) e2);
-    case expr_term:
+    case clast_expr_term:
 	return clast_term_cmp((struct clast_term*) e1, 
 				(struct clast_term*) e2);
-    case expr_bin:
+    case clast_expr_bin:
 	return clast_binary_cmp((struct clast_binary*) e1, 
 				(struct clast_binary*) e2);
-    case expr_red:
+    case clast_expr_red:
 	return clast_reduction_cmp((struct clast_reduction*) e1, 
 				   (struct clast_reduction*) e2);
     default:
@@ -407,15 +407,15 @@ int clast_expr_is_bigger_constant(struct clast_expr *e1, struct clast_expr *e2)
 
     if (!e1 || !e2)
 	return 0;
-    if (e1->type == expr_red) {
+    if (e1->type == clast_expr_red) {
 	r = (struct clast_reduction *)e1;
 	return r->n == 1 && clast_expr_is_bigger_constant(r->elts[0], e2);
     }
-    if (e2->type == expr_red) {
+    if (e2->type == clast_expr_red) {
 	r = (struct clast_reduction *)e2;
 	return r->n == 1 && clast_expr_is_bigger_constant(e1, r->elts[0]);
     }
-    if (e1->type != expr_term || e2->type != expr_term)
+    if (e1->type != clast_expr_term || e2->type != clast_expr_term)
 	return 0;
     t1 = (struct clast_term *)e1;
     t2 = (struct clast_term *)e2;
