@@ -39,16 +39,17 @@ struct cloogdomain {
   int nb_par;			 /**< Number of parameters in the domain. */
   int references ;               /**< Number of references to this structure. */
 } ;
-typedef struct cloogdomain CloogDomain ;
-typedef struct cloogdomain CloogScattering;
+struct cloogscattering {
+  struct cloogdomain dom;
+};
 
 /******************************************************************************
  *                              PolyLib interface                             *
  ******************************************************************************/
-CloogDomain * cloog_domain_alloc(CloogState *state, Polyhedron *, int nb_par);
-CloogDomain * cloog_domain_matrix2domain(CloogState *state,
-					 Matrix *, int nb_par);
-Matrix      * cloog_domain_domain2matrix(CloogDomain *) ;
+CloogDomain * cloog_domain_from_polylib_polyhedron(CloogState *state,
+					Polyhedron *, int nb_par);
+CloogScattering *cloog_scattering_from_polylib_polyhedron(CloogState *state,
+					Polyhedron *polyhedron, int nb_par);
 CloogDomain * cloog_domain_image(CloogDomain *, Matrix *) ;
 CloogDomain * cloog_domain_preimage(CloogDomain *, Matrix *) ;
 void          cloog_polyhedron_print(FILE *, Polyhedron *) ;

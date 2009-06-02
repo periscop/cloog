@@ -42,17 +42,10 @@ extern "C"
   {
 #endif 
 
-
-#ifdef CLOOG_POLYLIB
-#include <cloog/polylib/domain.h>
-#elif defined(CLOOG_ISL)
-#include <cloog/isl/domain.h>
-#else
 struct cloogdomain;
 typedef struct cloogdomain CloogDomain ;
 struct cloogscattering;
 typedef struct cloogscattering CloogScattering;
-#endif
 
 
 /**

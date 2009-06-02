@@ -1576,49 +1576,51 @@ initialized it yourself and if you are using the multiple precision version.
 @subsection CloogDomain
 @example
 @group
-struct cloogdomain @{
-  Polyhedron *polyhedron;    /* The polyhedral domain. */
-  int nb_par;                /* The number of parameters. */
-@} ;
-typedef struct cloogdomain CloogDomain ;
+CloogDomain *cloog_domain_union_read(CloogState *state,
+                                     FILE *input, int nb_parameters);
+void cloog_domain_free(CloogDomain *domain);
 @end group
 @end example
 
-@noindent The @code{CloogDomain} structure contains a PolyLib
-@code{Polyhedron} data structure which represents a polyhedral domain
-(a union of polyhedra) in both constraint representation and its dual
-ray representation (@pxref{Wil93}).
-It is defined in @code{polylib/types.h} as the following:
+@noindent @code{CloogDomain} is an opaque type representing a polyhedral
+domain (a union of polyhedra).
+A @code{CloogDomain} can be read
+from a file using @code{cloog_domain_union_read}.
+The input format is that of @ref{Domain Representation}.
+The @code{CloogDomain} can be freed using @code{cloog_domain_free}.
+There are also some backend dependent functions for creating
+@code{CloogDomain}s.
+
+@menu
+* CloogDomain/PolyLib::
+* CloogDomain/isl::
+@end menu
+
+@node CloogDomain/PolyLib
+@subsubsection PolyLib
 
 @example
-@group
-struct polyhedron
-@{ unsigned Dimension,        /* Number of dimensions. */
-           NbConstraints,    /* Number of constraints. */
-           NbRays,           /* Number of rays. */
-           NbEq,             /* Number of vertices (?). */
-           NbBid ;           /* Number of extremal rays (?). */
-  Value ** Constraint ;      /* Pointers to constraints. */
-  Value ** Ray ;             /* Pointers to rays. */
-  Value * p_Init ;           /* Constraints and rays contiguously. */
-  int p_Init_size ;          /* For internal use. */
-  struct polyhedron * next ; /* Next component of the union. */
-@}
-typedef struct polyhedron Polyhedron;
-@end group
+#include <cloog/polylib/cloog.h>
+CloogDomain *cloog_domain_from_polylib_polyhedron(CloogState *state,
+                                        Polyhedron *, int nb_par);
 @end example
+@noindent
+The function @code{cloog_domain_from_polylib_polyhedron} takes a PolyLib
+@code{Polyhedron} as input and returns a pointer to a @code{CloogDomain}.
+The @code{nb_par} parameter indicates the number of parameters
+in the domain.  The input data structure if neither modified nor freed.
 
-@noindent The constraint representation is quite the same as in
-the @code{Matrix} data structure (@pxref{CloogMatrix}). The number of
-rows is @code{NbConstraints} and the
-number of columns in the @code{Polyhedron} structure is
-@code{Dimension+2} (the @math{+2} comes from the equality/inequality
-tag and the scalar coefficient). As in the @code{Matrix} structure,
-The data are stored in memory contiguously at the
-@code{p_Init} address and the @code{p_Init_size} field is used for
-memory deallocation in the multiple precision case (@pxref{CloogMatrix}).
-For a better understanding of the
-dual ray representation, the user may refer to the PolyLib documentation.
+@node CloogDomain/isl
+@subsubsection isl
+
+@example
+#include <cloog/isl/cloog.h>
+CloogDomain *cloog_domain_from_isl_set(struct isl_set *set);
+@end example
+@noindent
+The function @code{cloog_domain_from_isl_set} takes a
+@code{struct isl_set} as input and returns a pointer to a @code{CloogDomain}.
+The function consumes a reference to the given @code{struct isl_set}.
 
 
 @node CloogScattering
@@ -1636,6 +1638,43 @@ The @code{CloogScattering} type represents a scattering function.
 A @code{CloogScattering} for a given @code{CloogDomain} can be read
 from a file using @code{cloog_scattering_read}.
 It can be freed using @code{cloog_scattering_free}.
+There are also some backend dependent functions for creating
+@code{CloogScattering}s.
+
+@menu
+* CloogScattering/PolyLib::
+* CloogScattering/isl::
+@end menu
+
+
+@node CloogScattering/PolyLib
+@subsubsection PolyLib
+
+@example
+#include <cloog/polylib/cloog.h>
+CloogScattering *cloog_scattering_from_polylib_polyhedron(
+        CloogState *state, Polyhedron *polyhedron, int nb_par);
+@end example
+@noindent
+The function @code{cloog_scattering_from_polylib_polyhedron} takes a PolyLib
+@code{Polyhedron} as input and returns a pointer to a @code{CloogScattering}.
+The @code{nb_par} parameter indicates the number of parameters
+in the domain.  The input data structure if neither modified nor freed.
+
+@node CloogScattering/isl
+@subsubsection isl
+
+@example
+#include <cloog/isl/cloog.h>
+CloogScattering *cloog_scattering_from_isl_map(struct isl_map *map);
+@end example
+@noindent
+The function @code{cloog_scattering_from_isl_map} takes a
+@code{struct isl_map} as input and returns a pointer to a @code{CloogScattering}.
+The input dimensions of the @code{struct isl_map} correspond to the
+scattering dimensions, while the output dimensions correspond to the
+domain dimensions.
+The function consumes a reference to the given @code{struct isl_map}.
 
 
 @node CloogScatteringList
@@ -1984,7 +2023,6 @@ As a reminder, the default values are:
 * cloog_program_scatter::
 * cloog_program_pprint::
 * cloog_program_read::
-* From Matrices to Domains and Conversely::
 * Allocation and Initialization Functions::
 * Memory Deallocation Functions::
 * Printing Functions::
@@ -2143,23 +2181,6 @@ reads the program data from a CLooG input file
 (@pxref{Writing The Input File}). It takes
 as input a pointer to the file it has to read (possibly @code{stdin}), and
 return a pointer to the read @code{CloogProgram} structure.
-
-
-@node From Matrices to Domains and Conversely
-@subsection From Matrices to Domains and Conversely
-@example
-CloogMatrix * cloog_domain_domain2matrix(CloogDomain *) ;
-CloogDomain * cloog_domain_matrix2domain(CloogMatrix *, int nb_par);
-@end example
-@noindent Two functions are provided to translate a @code{CloogDomain}
-data structure to a @code{CloogMatrix} data structure and conversely.
-Each function takes as input a pointer to the data structure to translate
-and returns as output a pointer to the translated data structure.
-The @code{nb_par} parameter indicates the number of parameters
-in the domain.  The
-input data structure if neither modified nor freed. They
-may be quite useful for e.g. pretty printing since it is more convenient
-in constraint (matrix) representation.
 
 
 @node Allocation and Initialization Functions

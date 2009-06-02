@@ -5,6 +5,7 @@
 #define CLOOG_ISL
 #endif
 #include <cloog/cloog.h>
+#include <cloog/isl/domain.h>
 
 CloogState *cloog_isl_state_malloc(struct isl_ctx *ctx);
 

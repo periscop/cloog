@@ -42,6 +42,9 @@
 # include <ctype.h>
 #include <cloog/polylib/cloog.h>
 
+static CloogDomain * cloog_domain_matrix2domain(CloogState *state,
+					 Matrix *, int nb_par);
+static Matrix      * cloog_domain_domain2matrix(CloogDomain *);
 
 
 /******************************************************************************
@@ -52,7 +55,7 @@
 /**
  * These functions and global variables are devoted to memory leaks hunting: we
  * want to know at each moment how many Polyhedron structures had been allocated
- * (cloog_domain_allocated) and how many had been freed (cloog_domain_freed).
+ * (cloog_domain_from_polylib_polyhedronated) and how many had been freed (cloog_domain_freed).
  * Each time a Polyhedron structure is allocated, a call to the function
  * cloog_domain_leak_up() must be carried out, and respectively
  * cloog_domain_leak_down() when a Polyhedron structure is freed. The special
@@ -104,9 +107,9 @@ static void cloog_domain_leak_down(CloogState *state)
 int cloog_scattering_fully_specified(CloogScattering *scattering,
 				      CloogDomain *domain)
 {
-	int scattering_dim = cloog_domain_dimension(scattering) -
+	int scattering_dim = cloog_domain_dimension(&scattering->dom) -
 				cloog_domain_dimension(domain);
-	return scattering->polyhedron->NbEq >= scattering_dim;
+	return scattering->dom.polyhedron->NbEq >= scattering_dim;
 }
 
 /**
@@ -120,7 +123,7 @@ CloogDomain *cloog_domain_matrix2domain(CloogState *state,
 					CloogMatrix *matrix, int nb_par)
 {
   Polyhedron *P = Constraints2Polyhedron(matrix, state->backend->MAX_RAYS);
-  return cloog_domain_alloc(state, P, nb_par);
+  return cloog_domain_from_polylib_polyhedron(state, P, nb_par);
 }
 
 
@@ -146,7 +149,7 @@ CloogConstraintSet *cloog_domain_constraints(CloogDomain *domain)
 CloogDomain *cloog_domain_duplicate(CloogDomain *domain)
 {
   Polyhedron *P = Polyhedron_Copy(domain->polyhedron);
-  return cloog_domain_alloc(domain->state, P, domain->nb_par);
+  return cloog_domain_from_polylib_polyhedron(domain->state, P, domain->nb_par);
 }
 
 
@@ -215,9 +218,9 @@ void cloog_domain_free(CloogDomain * domain)
   }
 }
 
-void cloog_scattering_free(CloogDomain * domain)
+void cloog_scattering_free(CloogScattering *scatt)
 {
-    cloog_domain_free(domain);
+    cloog_domain_free(&scatt->dom);
 }
 
 
@@ -243,7 +246,7 @@ CloogDomain * cloog_domain_image(CloogDomain * domain, CloogMatrix * mapping)
 {
   Polyhedron *I;
   I = DomainImage(domain->polyhedron, mapping, domain->state->backend->MAX_RAYS);
-  return cloog_domain_alloc(domain->state, I, domain->nb_par);
+  return cloog_domain_from_polylib_polyhedron(domain->state, I, domain->nb_par);
 }
 
 
@@ -258,7 +261,7 @@ CloogDomain * cloog_domain_preimage(CloogDomain * domain, CloogMatrix * mapping)
 {
   Polyhedron *I;
   I = DomainPreimage(domain->polyhedron, mapping, domain->state->backend->MAX_RAYS);
-  return cloog_domain_alloc(domain->state, I, domain->nb_par);
+  return cloog_domain_from_polylib_polyhedron(domain->state, I, domain->nb_par);
 }
 
 
@@ -273,7 +276,7 @@ CloogDomain * cloog_domain_convex(CloogDomain * domain)
 {
   Polyhedron *C;
   C = DomainConvex(domain->polyhedron, domain->state->backend->MAX_RAYS);
-  return cloog_domain_alloc(domain->state, C, domain->nb_par);
+  return cloog_domain_from_polylib_polyhedron(domain->state, C, domain->nb_par);
 }
 
 
@@ -434,7 +437,7 @@ CloogDomain * cloog_domain_simplify(CloogDomain * dom1, CloogDomain * dom2)
     cloog_matrix_free(M2);
     cloog_matrix_free(M);
   }
-  dom = cloog_domain_alloc(dom1->state,
+  dom = cloog_domain_from_polylib_polyhedron(dom1->state,
 			    DomainSimplify(P, dom2->polyhedron, MAX_RAYS),
 			    dom1->nb_par);
   if (P != dom1->polyhedron)
@@ -452,7 +455,7 @@ CloogDomain * cloog_domain_simplify(CloogDomain * dom1, CloogDomain * dom2)
 CloogDomain * cloog_domain_union(CloogDomain * dom1, CloogDomain * dom2)
 {
   int MAX_RAYS = dom1->state->backend->MAX_RAYS;
-  return cloog_domain_alloc(dom1->state, DomainUnion(dom1->polyhedron,
+  return cloog_domain_from_polylib_polyhedron(dom1->state, DomainUnion(dom1->polyhedron,
 					           dom2->polyhedron, MAX_RAYS),
 			    dom1->nb_par);
 }
@@ -467,7 +470,7 @@ CloogDomain * cloog_domain_union(CloogDomain * dom1, CloogDomain * dom2)
 CloogDomain * cloog_domain_intersection(CloogDomain * dom1, CloogDomain * dom2)
 {
   int MAX_RAYS = dom1->state->backend->MAX_RAYS;
-  return cloog_domain_alloc(dom1->state, DomainIntersection(dom1->polyhedron,
+  return cloog_domain_from_polylib_polyhedron(dom1->state, DomainIntersection(dom1->polyhedron,
 						  dom2->polyhedron, MAX_RAYS),
 			    dom1->nb_par);
 }
@@ -486,7 +489,7 @@ CloogDomain * cloog_domain_difference(CloogDomain * domain, CloogDomain * minus)
   if (cloog_domain_isempty(minus))
   return(cloog_domain_copy(domain)) ;
   else
-    return cloog_domain_alloc(domain->state, DomainDifference(domain->polyhedron,
+    return cloog_domain_from_polylib_polyhedron(domain->state, DomainDifference(domain->polyhedron,
 						minus->polyhedron,MAX_RAYS),
 			      domain->nb_par);
 }
@@ -536,7 +539,7 @@ CloogDomain * domain_source, * domain_target ;
     next = next->next ;
   }
 
-  return cloog_domain_alloc(domain_source->state, new, domain_source->nb_par);
+  return cloog_domain_from_polylib_polyhedron(domain_source->state, new, domain_source->nb_par);
 }
 
 
@@ -591,7 +594,7 @@ void cloog_domain_sort(CloogDomain **doms, unsigned nb_doms, unsigned level,
 CloogDomain * cloog_domain_empty(CloogDomain *template)
 {
   unsigned dim = cloog_domain_dimension(template) + template->nb_par;
-  return cloog_domain_alloc(template->state,
+  return cloog_domain_from_polylib_polyhedron(template->state,
 			    Empty_Polyhedron(dim), template->nb_par);
 }
 
@@ -656,7 +659,7 @@ void cloog_domain_print_structure(FILE *file, CloogDomain *domain, int level,
  */
 void cloog_scattering_list_print(FILE * foo, CloogScatteringList * list)
 { while (list != NULL)
-  { cloog_domain_print(foo, list->scatt);
+  { cloog_domain_print(foo, &list->scatt->dom);
     list = list->next ;
   }
 }
@@ -779,7 +782,8 @@ CloogDomain *cloog_domain_union_read(CloogState *state,
  */
 CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *foo)
 {
-    return cloog_domain_read(domain->state, foo, domain->nb_par);
+    return (CloogScattering *)
+			cloog_domain_read(domain->state, foo, domain->nb_par);
 }
 
 
@@ -813,14 +817,14 @@ CloogDomain *cloog_domain_malloc(CloogState *state)
 
 
 /**
- * cloog_domain_alloc function:
+ * cloog_domain_from_polylib_polyhedron function:
  * This function allocates the memory space for a CloogDomain structure and
  * sets its fields with those given as input. Then it returns a pointer to the
  * allocated space.
  * - April    19th 2005: first version.
  * - November 21th 2005: cloog_domain_malloc use.
  */
-CloogDomain *cloog_domain_alloc(CloogState *state,
+CloogDomain *cloog_domain_from_polylib_polyhedron(CloogState *state,
 	Polyhedron *polyhedron, int nb_par)
 { CloogDomain * domain ;
   
@@ -833,6 +837,22 @@ CloogDomain *cloog_domain_alloc(CloogState *state,
     
     return domain ;
   }
+}
+
+
+/**
+ * cloog_scattering_from_polylib_polyhedron function:
+ * This function allocates the memory space for a CloogDomain structure and
+ * sets its fields with those given as input. Then it returns a pointer to the
+ * allocated space.
+ * - April    19th 2005: first version.
+ * - November 21th 2005: cloog_domain_malloc use.
+ */
+CloogScattering *cloog_scattering_from_polylib_polyhedron(CloogState *state,
+	Polyhedron *polyhedron, int nb_par)
+{
+  return (CloogScattering *)
+	cloog_domain_from_polylib_polyhedron(state, polyhedron, nb_par);
 }
 
 
@@ -858,7 +878,7 @@ int cloog_domain_isempty(CloogDomain * domain)
  */
 CloogDomain *cloog_domain_universe(CloogState *state, unsigned dim)
 {
-  return cloog_domain_alloc(state, Universe_Polyhedron(dim), 0);
+  return cloog_domain_from_polylib_polyhedron(state, Universe_Polyhedron(dim), 0);
 }
 
 
@@ -1372,8 +1392,8 @@ int cloog_scattering_list_lazy_same(CloogScatteringList * list)
   while (current != NULL)
   { next = current->next ;
     /*j=i+1;*/
-    while (next != NULL)
-    { if (cloog_domain_lazy_equal(current->scatt, next->scatt))
+    while (next != NULL) {
+      if (cloog_domain_lazy_equal(&current->scatt->dom, &next->scatt->dom))
       { /*printf("Same domains: %d and %d\n",i,j) ;*/
         return 1 ;
       }
@@ -1416,7 +1436,7 @@ int cloog_domain_parameter_dimension(CloogDomain *domain)
 
 int cloog_scattering_dimension(CloogScattering *scatt, CloogDomain *domain)
 {
-    return cloog_domain_dimension(scatt) - cloog_domain_dimension(domain);
+    return cloog_domain_dimension(&scatt->dom) - cloog_domain_dimension(domain);
 }
 
 int cloog_domain_isconvex(CloogDomain * domain)
@@ -1439,16 +1459,16 @@ CloogDomain *cloog_domain_cut_first(CloogDomain *domain, CloogDomain **rest)
   }
 
   if (domain->references == 1) {
-    *rest = cloog_domain_alloc(domain->state,
+    *rest = cloog_domain_from_polylib_polyhedron(domain->state,
 			       domain->polyhedron->next, domain->nb_par);
     domain->polyhedron->next = NULL ;
     return domain;
   }
 
   cloog_domain_free(domain);
-  *rest = cloog_domain_alloc(domain->state, Domain_Copy(domain->polyhedron->next),
+  *rest = cloog_domain_from_polylib_polyhedron(domain->state, Domain_Copy(domain->polyhedron->next),
 			     domain->nb_par);
-  return cloog_domain_alloc(domain->state,
+  return cloog_domain_from_polylib_polyhedron(domain->state,
 			    Polyhedron_Copy(domain->polyhedron), domain->nb_par);
 }
 
@@ -1525,7 +1545,7 @@ static int polyhedron_lazy_isconstant(Polyhedron *polyhedron, int dimension,
 int cloog_scattering_lazy_isscalar(CloogScattering *domain, int dimension,
 					cloog_int_t *value)
 {
-  return polyhedron_lazy_isconstant(domain->polyhedron, dimension, value);
+  return polyhedron_lazy_isconstant(domain->dom.polyhedron, dimension, value);
 }
 
 
@@ -1550,14 +1570,16 @@ int cloog_domain_lazy_isconstant(CloogDomain *domain, int dimension)
  * - June 14th 2005: first version.
  * - June 21rd 2005: Adaptation for GMP.
  */
-CloogDomain *cloog_scattering_erase_dimension(CloogScattering *domain,
+CloogScattering *cloog_scattering_erase_dimension(CloogScattering *scatt,
 						int dimension)
 { int i, j, mi, nb_dim ;
   CloogMatrix * matrix ;
   CloogDomain * erased ;
   Polyhedron * polyhedron ;
+  CloogDomain *domain;
  
-  polyhedron = domain->polyhedron ;
+  domain = &scatt->dom;
+  polyhedron = domain->polyhedron;
   nb_dim = polyhedron->Dimension ;
   
   /* The matrix is one column less and at least one constraint less. */
@@ -1579,7 +1601,7 @@ CloogDomain *cloog_scattering_erase_dimension(CloogScattering *domain,
   erased = cloog_domain_matrix2domain(domain->state, matrix, domain->nb_par);
   cloog_matrix_free(matrix) ;
 
-  return erased ;
+  return (CloogScattering *)erased;
 }
 
 
@@ -1606,7 +1628,7 @@ CloogDomain *cloog_domain_cube(CloogState *state,
   }
   P = Constraints2Polyhedron(M, state->backend->MAX_RAYS);
   Matrix_Free(M);
-  return cloog_domain_alloc(state, P, 0);
+  return cloog_domain_from_polylib_polyhedron(state, P, 0);
 }
 
 /**
@@ -1627,9 +1649,9 @@ CloogDomain *cloog_domain_scatter(CloogDomain *domain, CloogScattering *scatt)
      */
     domain->nb_par = domain->polyhedron->Dimension;
     ext = cloog_domain_extend(domain, scatt_dim);
-    ext->nb_par = domain->nb_par = scatt->nb_par;
+    ext->nb_par = domain->nb_par = scatt->dom.nb_par;
     /* Then add the scattering constraints. */
-    newpart = cloog_domain_addconstraints(scatt,ext) ;
+    newpart = cloog_domain_addconstraints(&scatt->dom, ext);
     cloog_domain_free(ext) ;
 
     if (newdom != NULL)
