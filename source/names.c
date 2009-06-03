@@ -364,7 +364,7 @@ CloogNames * cloog_names_malloc()
 
 
 /**
- * cloog_domain_alloc function:
+ * cloog_names_alloc function:
  * This function allocates the memory space for a CloogNames structure and
  * sets its fields with those given as input. Then it returns a pointer to the
  * allocated space.
