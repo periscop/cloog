@@ -433,7 +433,7 @@ CloogOptions * options ;
   }
   
   root = cloog_clast_create(program, options);
-  pprint(file, root, indentation, options);
+  clast_pprint(file, root, indentation, options);
   cloog_clast_free(root);
   
   /* The end of the compilable code in case of 'compilable' option. */

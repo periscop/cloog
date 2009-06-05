@@ -58,7 +58,7 @@ extern "C"
 /******************************************************************************
  *                          Structure display function                        *
  ******************************************************************************/
-void pprint(FILE *foo, struct clast_stmt *root, int indent, 
+void clast_pprint(FILE *foo, struct clast_stmt *root, int indent, 
 	    CloogOptions *options);
 
 

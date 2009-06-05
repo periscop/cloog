@@ -51,13 +51,32 @@
 # include "../include/cloog/cloog.h"
 
 
-/******************************************************************************
- *                             Types                                          *
- ******************************************************************************/
+static void pprint_name(FILE *dst, struct clast_name *n);
+static void pprint_term(struct cloogoptions *i, FILE *dst, struct clast_term *t);
+static void pprint_sum(struct cloogoptions *opt,
+			FILE *dst, struct clast_reduction *r);
+static void pprint_binary(struct cloogoptions *i,
+			FILE *dst, struct clast_binary *b);
+static void pprint_minmax_f(struct cloogoptions *info,
+			FILE *dst, struct clast_reduction *r);
+static void pprint_minmax_c(struct cloogoptions *info,
+			FILE *dst, struct clast_reduction *r);
+static void pprint_reduction(struct cloogoptions *i,
+			FILE *dst, struct clast_reduction *r);
+static void pprint_expr(struct cloogoptions *i, FILE *dst, struct clast_expr *e);
+static void pprint_equation(struct cloogoptions *i,
+			FILE *dst, struct clast_equation *eq);
+static void pprint_assignment(struct cloogoptions *i, FILE *dst, 
+			struct clast_assignment *a);
+static void pprint_user_stmt(struct cloogoptions *options, FILE *dst,
+		       struct clast_user_stmt *u);
+static void pprint_guard(struct cloogoptions *options, FILE *dst, int indent,
+		   struct clast_guard *g);
+static void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
+		 struct clast_for *f);
+static void pprint_stmt_list(struct cloogoptions *options, FILE *dst, int indent,
+		       struct clast_stmt *s);
 
-
-
-void pprint_expr(struct cloogoptions *i, FILE *dst, struct clast_expr *e);
 
 void pprint_name(FILE *dst, struct clast_name *n)
 {
@@ -273,9 +292,6 @@ void pprint_user_stmt(struct cloogoptions *options, FILE *dst,
     fprintf(dst, "\n");
 }
 
-void pprint_stmt_list(struct cloogoptions *options, FILE *dst, int indent,
-		       struct clast_stmt *s);
-
 void pprint_guard(struct cloogoptions *options, FILE *dst, int indent,
 		   struct clast_guard *g)
 {
@@ -397,7 +413,8 @@ void pprint_stmt_list(struct cloogoptions *options, FILE *dst, int indent,
  *                       Pretty Printing (dirty) functions                    *
  ******************************************************************************/
 
-void pprint(FILE *foo, struct clast_stmt *root, int indent, CloogOptions *options)
+void clast_pprint(FILE *foo, struct clast_stmt *root,
+		  int indent, CloogOptions *options)
 {
     pprint_stmt_list(options, foo, indent, root);
 }
