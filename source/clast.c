@@ -153,6 +153,7 @@ static void free_clast_user_stmt(struct clast_stmt *s)
 {
     struct clast_user_stmt *u = (struct clast_user_stmt *)s;
     assert(CLAST_STMT_IS_A(s, stmt_user));
+    cloog_statement_free(u->statement);
     cloog_clast_free(u->substitutions);
     free(u);
 }
@@ -163,7 +164,7 @@ struct clast_user_stmt *new_clast_user_stmt(CloogStatement *stmt,
     struct clast_user_stmt *u = malloc(sizeof(struct clast_user_stmt));
     u->stmt.op = &stmt_user;
     u->stmt.next = NULL;
-    u->statement = stmt;
+    u->statement = cloog_statement_copy(stmt);
     u->substitutions = subs;
     return u;
 }
@@ -1251,9 +1252,13 @@ static void insert_block(CloogBlock *block, int level,
 	return;
 
     for (statement = block->statement; statement; statement = statement->next) {
+	CloogStatement *s_next = statement->next;
+
 	subs = clast_equal(level,infos);
 
+	statement->next = NULL;
 	**next = &new_clast_user_stmt(statement, subs)->stmt;
+	statement->next = s_next;
 	*next = &(**next)->next;
     }
 }
