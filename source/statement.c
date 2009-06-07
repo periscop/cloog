@@ -235,6 +235,7 @@ CloogStatement * cloog_statement_copy(CloogStatement * source)
     if (temp == NULL)
       cloog_die("memory overflow.\n");
     
+    temp->state  = source->state;
     temp->number = source->number ;
     temp->usr    = source->usr ;
     temp->next   = NULL ;
