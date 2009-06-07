@@ -1448,6 +1448,7 @@ These functions as well as the data structures are described in this section.
 @menu
 * CLooG Data Structures::
 * CLooG Functions::
+* CLooG Output::
 * Example of Library Utilization::
 @end menu
 
@@ -2231,6 +2232,233 @@ be replaced by the name of the convenient structure (without @samp{Cloog} prefix
 instance @code{void cloog_loop_print(FILE *, CloogLoop *) ;}. These functions
 print the pointed structure (and its fields recursively) to the file provided
 as input (possibly @code{stdout}).
+
+
+@node CLooG Output
+@section CLooG Output
+
+@noindent
+Given a @code{CloogProgram} for scanning the input polyhedra,
+computed using @code{cloog_program_generate}
+(@pxref{cloog_program_generate}),
+an AST corresponding to the @code{CloogProgram} can be constructed
+using @code{cloog_clast_create} and destroyed using
+@code{free_clast_stmt}.
+@example
+struct clast_stmt *cloog_clast_create(CloogProgram *program,
+                                      CloogOptions *options);
+void free_clast_stmt(struct clast_stmt *s);
+@end example
+@noindent
+@code{clast_stmt} represents a linked list of ``statements''.
+@example
+struct clast_stmt @{
+    const struct clast_stmt_op    *op;
+    struct clast_stmt	*next;
+@};
+@end example
+@noindent
+The entries in the list are not of type @code{clast_stmt} itself,
+but of some larger type.  The following statement types are defined
+by CLooG.
+
+@example
+struct clast_root @{
+    struct clast_stmt   stmt;
+    CloogNames *        names;
+@};
+struct clast_root *new_clast_root(CloogNames *names);
+
+struct clast_assignment @{
+    struct clast_stmt   stmt;
+    const char *        LHS;
+    struct clast_expr * RHS;
+@};
+struct clast_assignment *new_clast_assignment(const char *lhs,
+                                              struct clast_expr *rhs);
+
+struct clast_block @{
+    struct clast_stmt   stmt;
+    struct clast_stmt * body;
+@};
+struct clast_block *new_clast_block(void);
+
+struct clast_user_stmt @{
+    struct clast_stmt   stmt;
+    CloogStatement *    statement;
+    struct clast_stmt * substitutions;
+@};
+struct clast_user_stmt *new_clast_user_stmt(CloogStatement *stmt, 
+                                            struct clast_stmt *subs);
+
+struct clast_for @{
+    struct clast_stmt   stmt;
+    const char *        iterator;
+    struct clast_expr * LB;
+    struct clast_expr * UB;
+    cloog_int_t         stride;
+    struct clast_stmt * body;
+@};
+struct clast_for *new_clast_for(const char *it, struct clast_expr *LB, 
+                         struct clast_expr *UB, cloog_int_t stride);
+
+struct clast_guard @{
+    struct clast_stmt   stmt;
+    struct clast_stmt * then;
+    int                 n;
+    struct clast_equation       eq[1];
+@};
+struct clast_guard *new_clast_guard(int n);
+@end example
+@noindent
+The @code{clast_stmt} returned by @code{cloog_clast_create}
+is a @code{clast_root}.
+It contains a placeholder for all the variable names that appear
+in the AST and a (list of) nested statement(s).
+
+@noindent
+A @code{clast_assignment} assigns the value given by
+the @code{clast_expr} @code{RHS} to a variable named @code{LHS}.
+
+@noindent
+A @code{clast_block} groups a list of statements into one statement.
+These statements are only generated if the @code{block} option is set,
+@pxref{Statement Block} and @ref{CloogOptions}.
+
+@noindent
+A @code{clast_user_stmt} represents a call to a statement specified
+by the user, @pxref{CloogStatement}.
+@code{substitutions} is a list of @code{clast_assignment} statements
+assigning an expression in terms of the scattering dimensions to
+each of the original iterators in the original order.
+The @code{LHS}s of these assignments are left blank (@code{NULL}).
+
+@noindent
+A @code{clast_for} represents a for loop, iterating @code{body} for each
+value of @code{iterator} between @code{LB} and @code{UB} in steps
+of size @code{stride}.
+
+@noindent
+A @code{clast_guard} represents the guarded execution of the @code{then}
+(list of) statement(s) by a conjunction of @code{n} (in)equalities.
+Each (in)equality is represented by a @code{clast_equation}.
+@example
+struct clast_equation @{
+    struct clast_expr *	LHS;
+    struct clast_expr *	RHS;
+    int			sign;
+@};
+@end example
+@noindent
+The condition expressed by a @code{clast_equation} is
+@code{LHS <= RHS}, @code{LHS == RHS} or @code{LHS >= RHS}
+depending on whether @code{sign} is less than zero, equal
+to zero, or greater than zero.
+
+The dynamic type of a @code{clast_stmt} can be determined
+using the macro @code{CLAST_STMT_IS_A(stmt,type)},
+where @code{stmt} is a pointer to a @code{clast_stmt}
+and @code{type} is one of @code{stmt_root}, @code{stmt_ass},
+@code{stmt_user}, @code{stmt_block}, @code{stmt_for} or
+@code{stmt_guard}.
+Users are allowed to define their own statement types by
+assigning the @code{op} field of the statements a pointer
+to a @code{clast_stmt_op} structure.
+@example
+struct clast_stmt_op @{
+    void (*free)(struct clast_stmt *);
+@};
+@end example
+@noindent
+The @code{free} field of this structure should point
+to a function that frees the user defined statement.
+
+@noindent
+A @code{clast_expr} can be an identifier, a term,
+a binary expression or a reduction.
+@example
+enum clast_expr_type @{
+    clast_expr_name,
+    clast_expr_term,
+    clast_expr_bin,
+    clast_expr_red
+@};
+struct clast_expr @{
+    enum clast_expr_type type;
+@};
+void free_clast_expr(struct clast_expr *e);
+@end example
+
+@noindent
+Identifiers are of subtype @code{clast_name}.
+@example
+struct clast_name @{
+    struct clast_expr	expr;
+    const char *	name;
+@};
+struct clast_name *new_clast_name(const char *name);
+void free_clast_name(struct clast_name *t);
+@end example
+@noindent
+The character string pointed to by @code{name} is
+assumed to be part of the @code{CloogNames} structure
+in the root of the clast as is therefore not copied.
+
+@noindent
+Terms are of type @code{clast_term}.
+@example
+struct clast_term @{
+    struct clast_expr   expr;
+    cloog_int_t         val;
+    struct clast_expr  *var;
+@};
+struct clast_term *new_clast_term(cloog_int_t c, struct clast_expr *v);
+void free_clast_term(struct clast_term *t);
+@end example
+@noindent
+If @code{var} is set to @code{NULL}, then the term represents
+the integer value @code{val}.  Otherwise, it represents
+the term @code{val * var}.
+@code{new_clast_term} simply copies the @code{v} pointer
+without copying the underlying @code{clast_expr}.
+@code{free_clast_term}, on the other hand, recursively frees
+@code{var}.
+
+@noindent
+Binary expressions are of type @code{clast_bin_type} and
+represent either the floor of a division (fdiv),
+the ceil of a division (cdiv), an exact division or
+the remainder of an fdiv.
+@example
+enum clast_bin_type @{ clast_bin_fdiv, clast_bin_cdiv, 
+                      clast_bin_div, clast_bin_mod @};
+struct clast_binary @{
+    struct clast_expr   expr;
+    enum clast_bin_type type;
+    struct clast_expr*  LHS;
+    cloog_int_t         RHS;
+@};
+struct clast_binary *new_clast_binary(enum clast_bin_type t, 
+                          struct clast_expr *lhs, cloog_int_t rhs);
+void free_clast_binary(struct clast_binary *b);
+@end example
+
+@noindent
+Reductions are of type @code{clast_reduction} and
+can represent either the sum, the minimum or the maximum
+of its elements.
+@example
+enum clast_red_type @{ clast_red_sum, clast_red_min, clast_red_max @};
+struct clast_reduction @{
+    struct clast_expr   expr;
+    enum clast_red_type type;
+    int                 n;
+    struct clast_expr*  elts[1];
+@};
+struct clast_reduction *new_clast_reduction(enum clast_red_type t,
+                                            int n);
+void free_clast_reduction(struct clast_reduction *r);
+@end example
 
 
 @node Example of Library Utilization
