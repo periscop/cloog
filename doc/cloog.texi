@@ -8,16 +8,16 @@
 @c %   **                   First version: july 6th 2002                  **
 @c %   **-----------------------------------------------------------------**/
 @c %
-@c % release 1.0: september 17th 2002
-@c % release 1.1: december   5th 2002
-@c % release 1.2: april     22th 2003
-@c % release 2.0: november  21th 2005 (and now in texinfo instead of LaTeX)
-@c % release 2.1: october   15th 2007
+@c % release 1.0: September 17th 2002
+@c % release 1.1: December   5th 2002
+@c % release 1.2: April     22th 2003
+@c % release 2.0: November  21th 2005 (and now in texinfo instead of LaTeX)
+@c % release 2.1: October   15th 2007
 @c %
 @c %/**************************************************************************
 @c % *               CLooG : the Chunky Loop Generator (experimental)         *
 @c % **************************************************************************/
-@c %/* CAUTION: the english used is probably the worst you ever read, please
+@c %/* CAUTION: the English used is probably the worst you ever read, please
 @c % *          feel free to correct and improve it !
 @c % */
 
@@ -287,7 +287,7 @@ between @code{S1} and @code{S2}, but wrong otherwise.
 Thus it is often useful to force scanning to respect a given order. This can be
 done in CLooG by using @strong{scattering functions}. Scattering is a
 shortcut for scheduling, allocation, chunking functions and the like we can
-find in the restructuring compilation litterature. There are a lot of reasons
+find in the restructuring compilation literature. There are a lot of reasons
 to scatter the integral points of the domains (i.e. the statement instances
 of a program, for compilation people), parallelization or optimization are good
 examples. For instance, if the user wants for any reason to set some
@@ -318,7 +318,7 @@ example is generated.
 
 The user can set every kind of affine scanning order thanks to the
 scattering functions. Each domain has its own scattering function and
-each scattering function may be multi-dimensional. A multi-dimentional logical
+each scattering function may be multi-dimensional. A multi-dimensional logical
 date may be seen as classical date (year,month,day,hour,minute,etc.) where
 the first dimensions are the most significant. Each scattering dimension
 may depend linearly on the original dimensions (e.g., @code{i}), the
@@ -502,7 +502,7 @@ Because CLooG is very 'compilable code generation oriented', we can associate
 some additional informations to each domain. We call this association a
 @emph{statement}. The set of all informations is 
 called a @emph{program}. The input file respects the grammar below
-(terminals are preceeded by "_"):
+(terminals are preceded by "_"):
 
 @example
 File             ::= Program
@@ -567,7 +567,7 @@ Nb_functions     ::= _Integer
        next line.
        There must be exactly as many names as scattering dimensions. If the
        naming option @samp{Option} is 0, scattering dimension names are automatically
-       generated. The name of the @math{n^{th}} scattering dimention
+       generated. The name of the @math{n^{th}} scattering dimension
        will be @samp{cn}.
 @end itemize
 
@@ -1302,7 +1302,7 @@ T_S2(i,j,k)^T = (k,0,i,0,j,1,k,0)^T
 @noindent To ensure that the scattering functions have the same dimensionality, we
 complete the first function with zeroes
 (this is a CLooG @value{VERSION} and previous versions requirement,
-it should be removed in a future version, don't worry it's absolutly legal !):
+it should be removed in a future version, don't worry it's absolutely legal !):
 
 @tex
 $$
@@ -2408,7 +2408,7 @@ The PolyLib has to be built using the GMP library by specifying the option
 @samp{--with-libgmp=PATH_TO_GMP} to the PolyLib configure script
 (where @code{PATH_TO_GMP} is @code{/usr/local} if you did not change the GMP
 installation directory). Then you have to set the convenient CLooG configure
-script options to buid the GMP version (@pxref{Optional Features}).
+script options to build the GMP version (@pxref{Optional Features}).
 
 
 @node Basic Installation
