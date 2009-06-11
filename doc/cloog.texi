@@ -2568,6 +2568,15 @@ the license of CLooG.
 @node Requirements
 @section Requirements
 
+CLooG can be used with one of two possible backends,
+one using isl and one using PolyLib.
+The isl library is included in the CLooG distribution,
+while the PolyLib library needs to be obtained separately.
+On the other hand, isl requires GMP, while PolyLib can be
+compiled with or without the use of GMP.
+The user therefore needs to install at least one of
+PolyLib or GMP.
+
 @menu
 * PolyLib::
 * GMP Library::
@@ -2575,18 +2584,30 @@ the license of CLooG.
 
 
 @node PolyLib
-@subsection PolyLib (mandatory)
-To successfully install CLooG, the user need firstly to install PolyLib
+@subsection PolyLib (optional)
+To successfully install CLooG with the PolyLib backend,
+the user first needs to install PolyLib
 version 5.22.1 or above (default 64 bits version is satisfying
 as well as 32 bits or GMP multiple precision version).
 Polylib can be downloaded freely
 at @code{http://icps.u-strasbg.fr/PolyLib/} or
 @code{http://www.irisa.fr/polylib/}. Once downloaded and unpacked
-(e.g. using the @samp{tar -zxvf polylib-5.22.1.tar.gz} command),
+(e.g. using the @samp{tar -zxvf polylib-5.22.3.tar.gz} command),
 the user can compile
 it by typing the following commands on the PolyLib's root directory:
 
 @itemize @bullet
+@item @code{./configure}
+@item @code{make}
+@item And as root: @code{make install}
+@end itemize
+
+Alternatively, the latest development version can be obtained from the
+git repository:
+@itemize @bullet
+@item @code{git clone git://repo.or.cz/polylib.git}
+@item @code{cd polylib}
+@item @code{./autogen.sh}
 @item @code{./configure}
 @item @code{make}
 @item And as root: @code{make install}
@@ -2620,7 +2641,8 @@ functions for all the important operations on these structures.
 To be able to deal with insanely large coefficient, the user will need to
 install the GNU Multiple Precision Library (GMP for short) version 4.1.4
 or above. It can be freely downloaded from @code{http://www.swox.com/gmp}.
-The user can compile it by typing the following commands on the GMP root
+Note that the isl backend currently requires GMP.
+The user can compile GMP by typing the following commands on the GMP root
 directory:
 
 @itemize @bullet
@@ -2632,7 +2654,8 @@ directory:
 The GMP default installation is @code{/usr/local}, the same method to
 fix a library path problem applies as with PolyLib (@pxref{PolyLib}).
 
-The PolyLib has to be built using the GMP library by specifying the option
+If you want to use the PolyLib backend, then
+PolyLib has to be built using the GMP library by specifying the option
 @samp{--with-libgmp=PATH_TO_GMP} to the PolyLib configure script
 (where @code{PATH_TO_GMP} is @code{/usr/local} if you did not change the GMP
 installation directory). Then you have to set the convenient CLooG configure
@@ -2653,10 +2676,21 @@ directory:
 @item And as root: @code{make install}
 @end itemize
 
-Depending on the location of the PolyLib, you may need to set the
-option @code{--with-polylib} of the configure script
-(e.g. @samp{./configure --with-polylib=/usr/local} with a default PolyLib
-installation).
+Alternatively, the latest development version can be obtained from the
+git repository:
+@itemize @bullet
+@item @code{git clone git://repo.or.cz/cloog.git}
+@item @code{cd cloog}
+@item @code{./get_submodules.sh}
+@item @code{./autogen.sh}
+@item @code{./configure}
+@item @code{make}
+@item And as root: @code{make install}
+@end itemize
+
+Depending on which backend you want to use and where they
+are located, you may need to pass some
+options to the configure script, @pxref{Optional Features}.
 
 The program binaries and object files can be removed from the
 source code directory by typing @code{make clean}. To also remove the
@@ -2687,18 +2721,32 @@ CLooG top-level directory.
 The user can specify an installation prefix other than @code{/usr/local} by
 giving @code{configure} the option @code{--prefix=PATH}.
 
-@item By default, @code{configure} will look for the PolyLib in standard
-locations. If necessary, the user can specify the PolyLib path by giving
-@code{configure} the option @code{--with-polylib=PATH}.
+@item By default, the isl backend will use the version of isl
+that is @code{bundled} together with CLooG.
+Using the @code{--with-isl} option of @code{configure}
+the user can specify that @code{no} isl,
+a previously installed (@code{system}) isl or a @code{build} isl
+should be used.
+In the latter case, the user should also specify the build location
+using @code{--with-isl-builddir=PATH}.
+In case of an installed isl,
+the installation location can be specified using the
+@code{--with-isl-prefix=PATH} and
+@code{--with-isl-exec-prefix=PATH} options of @code{configure}.
 
-@item By default, both CLooG software and library are compiled and installed.
-By giving  @code{configure} the option @code{--without-cloog} the user
-disable the compilation and installation of the CLooG software.
-By giving @code{configure} the option
-@code{--without-lib} the user disable the compilation and installation of the
-CLooG library.
+@item By default, the PolyLib backend will use an installed
+(@code{system}) PolyLib, if any.
+The installation location can be specified using the
+@code{--with-polylib-prefix=PATH} and
+@code{--with-polylib-exec-prefix=PATH} options of @code{configure}.
+Using the @code{--with-polylib} option of @code{configure}
+the user can specify that @code{no} PolyLib or a @code{build} PolyLib
+should be used.
+In the latter case, the user should also specify the build location
+using @code{--with-polylib-builddir=PATH}.
 
-@item By default, CLooG is built in 64bits version if such version of the
+@item By default, the PolyLib backend of CLooG is built
+in 64bits version if such version of the
 PolyLib is found by @code{configure}. If the only existing version of the
 PolyLib is the 32bits or if the user give to @code{configure} the option
 @code{--with-bits=32}, the 32bits version of CLooG will be compiled. In the
@@ -2708,7 +2756,8 @@ the multiple precision version.
 @item By default, @code{configure} will look for the GMP library
 (necessary to build the multiple precision version) in standard
 locations. If necessary, the user can specify the GMP path by giving
-@code{configure} the option @code{--with-gmp=PATH}.
+@code{configure} the option @code{--with-gmp-prefix=PATH} and/or
+@code{--with-gmp-exec-prefix=PATH}.
 @end itemize
 
 @node Uninstallation 

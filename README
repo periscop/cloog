@@ -64,6 +64,14 @@ library.
 #   **                      II. Building CLooG                           **
 #   **-------------------------------------------------------------------**/
 
+If you obtained CLooG from the git repository, then you first
+need to obtain the submodules and create a configure script.
+
+  ./get_submodules.sh
+  ./autogen.sh
+
+The first step is only needed if you plan on using the isl backend.
+
 The configure shell script attempts to guess correct values for various
 system-dependent variables used during compilation. It uses those values to
 create a Makefile. The file configure.in is used to create configure by a
@@ -76,9 +84,7 @@ cd to the directory containing the package's source code and type
   ./configure
 
 to configure the package for your system (while running, configure prints
-some messages telling which features it is checking for) (in the strange case
-where ./configure do not exists, you can build it by typing
-"autoconf -l autoconf autoconf/configure.in > configure"). To compile the
+some messages telling which features it is checking for). To compile the
 package, type
 
   make
@@ -106,20 +112,24 @@ By default,  make will install the package's files in /usr/local/bin,
 /usr/local/lib, etc. You can specify an installation prefix other than 
 /usr/local by giving onfigure the option --prefix=PATH.
 
+By default, configure will use the isl that comes bundled with CLooG.
+Using the --with-isl option of configure the user can specify that "no" isl,
+a previously installed ("system") isl or a "build" isl should be used.
+In the latter case, the user should also specify the build location
+using --with-isl-builddir=PATH.  In case of an installed isl,
+the installation location can be specified using the
+--with-isl-prefix=PATH and --with-isl-exec-prefix=PATH options of configure.
+
 By default, configure will seek the PolyLib in standard locations.
 If necessary, you can specify the PolyLib's path by giving configure the
-option --with-polylib=PATH.
+option --with-polylib-prefix=PATH and/or --with-polylib-exec-prefix=PATH.
 
 By default, configure will seek the GMP library in standard locations.
 If necessary, you can specify the GMP's path by giving configure the
-option --with-gmp=PATH.
+option --with-gmp-prefix=PATH and/or --with-gmp-exec-prefix=PATH.
 
-By default, both CLooG and the CloogLib are compiled and installed.
-By giving configure the option --without-cloog you disable the
-compilation and installation of CLooG. By giving configure the option
---without-lib you disable the compilation and installation of the CloogLib.
-
-By default, CLooG and it's library are builded using 64 bits integer
+By default, when using the PolyLib backend,
+CLooG and its library are built using 64 bits integer
 representation. You can choose to specify explicitly others integer
 representations by using:
 --with-bits=32  for 32 bits integers,
