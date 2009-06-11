@@ -93,7 +93,7 @@ AC_ARG_WITH(bits,
 			    [integer type to use])],
 	    [ BITS=$withval ])
 
-AX_SUBMODULE(isl,no|system|build|bundled,no)
+AX_SUBMODULE(isl,no|system|build|bundled,bundled)
 if test "$with_isl" != "no"; then
 	BITS="gmp"
 fi
