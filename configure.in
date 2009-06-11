@@ -180,7 +180,7 @@ if test "x$with_polylib_builddir" != "x"; then
 			break;
 		fi
 	done
-else
+elif test "$with_polylib" != "no"; then
 	if test "x$with_polylib_prefix" != "x"; then
 		with_polylib_prefix=`cd $with_polylib_prefix; pwd`
 		AC_MSG_RESULT(installed in $with_polylib_exec_prefix)
@@ -208,12 +208,15 @@ else
 	CPPFLAGS="$SAVE_CPPFLAGS"
 	LDFLAGS="$SAVE_LDFLAGS"
 fi
-if test "$cl_cv_polylib" = "missing"; then
+case "$cl_cv_polylib" in
+missing)
 	AC_MSG_WARN(Can't find PolyLib.)
-else
+	;;
+polylib*)
 	CLOOG_LIBRARIES="$CLOOG_LIBRARIES libcloog-polylib.la"
 	BACKEND="polylib"
-fi
+	;;
+esac
 
 dnl /**************************************************************************
 dnl  *                          Where is isl?                                 *
