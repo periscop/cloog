@@ -42,6 +42,7 @@ if BUNDLED_ISL
 endif
 
 SUBDIRS = $(MAYBE_ISL) . doc test
+DIST_SUBDIRS = $(MAYBE_ISL) . doc test
 
 ACLOCAL_AMFLAGS = -I m4
 
