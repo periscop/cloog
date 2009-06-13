@@ -78,7 +78,8 @@ CloogDomain * cloog_domain_copy(CloogDomain * domain)
 CloogDomain *cloog_domain_convex(CloogDomain *domain)
 {
 	struct isl_set *set = &domain->set;
-	return isl_set_from_basic_set(isl_set_convex_hull(isl_set_copy(set)));
+	set = isl_set_from_basic_set(isl_set_convex_hull(isl_set_copy(set)));
+	return cloog_domain_from_isl_set(set);
 }
 
 
