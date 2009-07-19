@@ -179,12 +179,16 @@ SPECIAL_TESTS = \
 	vasilache \
 	merge \
 	equality \
-	equality2
+	equality2 \
+	stride \
+	stride2
 SPECIAL_OPTIONS = \
 	"vasilache" "-f 8 -l 9" "\n" \
 	"merge" "-f -1" "\n" \
 	"equality" "-f -1 -l 2 -override" "\n" \
-	"equality2" "-f -1 -l 4 -esp 1 -override"
+	"equality2" "-f -1 -l 4 -esp 1 -override" "\n" \
+	"stride" "-f -1 -strides 1" "\n" \
+	"stride2" "-f -1 -strides 1"
 
 EXTRA_DIST = \
 	$(CLOOGTEST_C:%=%.cloog) \

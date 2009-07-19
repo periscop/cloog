@@ -1121,10 +1121,18 @@ void cloog_domain_stride(CloogDomain *domain, int strided_level,
     value_set_si(*offset, 0);
     value_set_si(*stride, 1);
   } else {
-    /* Compute the gcd of the coefficients defining strided_level. */
-    Vector_Gcd(U->p[0], U->NbColumns, stride);
     value_oppose(*offset, V->p[0]);
-    value_pmodulus(*offset, *offset, *stride);
+    /* If rank == M->NbRows, i.e., if there is a unique fixed solution,
+     * then SolveDiophantine will return a 0x0 U matrix.
+     * In this case, v = 0 * x + v, so we set stride to 0.
+     */
+    if (U->NbRows == 0)
+	value_set_si(*stride, 0);
+    else {
+	/* Compute the gcd of the coefficients defining strided_level. */
+	Vector_Gcd(U->p[0], U->NbColumns, stride);
+	value_pmodulus(*offset, *offset, *stride);
+    }
   }
   Matrix_Free(U);
   Vector_Free(V);
