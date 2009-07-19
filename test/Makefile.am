@@ -175,6 +175,11 @@ CLOOGTEST_STRIDED =                    \
 	reservoir/stride	       \
 	reservoir/stride2
 
+SPECIAL_TESTS = \
+	vasilache \
+	merge \
+	equality \
+	equality2
 SPECIAL_OPTIONS = \
 	"vasilache" "-f 8 -l 9" "\n" \
 	"merge" "-f -1" "\n" \
@@ -192,10 +197,10 @@ EXTRA_DIST = \
 	$(CLOOGTEST_STRIDED:%=%.cloog) \
 	$(CLOOGTEST_STRIDED:%=isl/%.c) \
 	$(CLOOGTEST_STRIDED:%=polylib/%.c) \
-	isl/vasilache.c polylib/vasilache.c vasilache.cloog \
-	isl/merge.c polylib/merge.c merge.cloog \
-	isl/equality.c polylib/equality.c equality.cloog \
-	isl/equality2.c polylib/equality2.c equality2.cloog
+	$(SPECIAL_TESTS:%=%.cloog) \
+	$(SPECIAL_TESTS:%=isl/%.c) \
+	$(SPECIAL_TESTS:%=polylib/%.c) \
+	$(SPECIAL_TESTS:%=%.good.c)
 
 generate:
 	@echo "             /*-----------------------------------------------*"
