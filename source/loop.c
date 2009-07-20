@@ -1074,8 +1074,10 @@ void cloog_loop_stride(CloogLoop * loop, int level, int nb_par)
       if (!cloog_int_is_one(potential) && (!first_search))
       { /* Offsets must be the same for common stride. */
 	cloog_int_gcd(stride, potential, stride);
-	cloog_int_fdiv_r(offset, offset, stride);
-	cloog_int_fdiv_r(ref_offset, ref_offset, stride);
+	if (!cloog_int_is_zero(stride)) {
+	    cloog_int_fdiv_r(offset, offset, stride);
+	    cloog_int_fdiv_r(ref_offset, ref_offset, stride);
+	}
         if (cloog_int_ne(offset,ref_offset))
 	    cloog_int_set_si(stride, 1);
       }
@@ -1089,6 +1091,9 @@ void cloog_loop_stride(CloogLoop * loop, int level, int nb_par)
       
     inner = inner->next ;
   }
+
+  if (cloog_int_is_zero(stride))
+    cloog_int_set_si(stride, 1);
     
   /* Update the values if necessary. */
   if (!cloog_int_is_one(stride))

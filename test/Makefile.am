@@ -166,6 +166,7 @@ CLOOGTEST_FORTRAN =                    \
 	yosrf
 
 CLOOGTEST_STRIDED =                    \
+	basic-bounds-2                 \
 	nul_basic1                     \
 	nul_basic2                     \
 	nul_lcpc		       \
