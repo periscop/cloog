@@ -76,7 +76,6 @@ SOURCES_CORE = \
 # as that may result in polylib/matrix.h confusion
 DEFAULT_INCLUDES = -I.
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
-AM_CFLAGS = -Wall
 libcloog_polylib_la_CPPFLAGS = @POLYLIB_CPPFLAGS@ -DCLOOG_POLYLIB
 libcloog_polylib_la_LDFLAGS = -rpath $(libdir) @POLYLIB_LDFLAGS@
 libcloog_polylib_la_LIBADD = @POLYLIB_LIBS@
