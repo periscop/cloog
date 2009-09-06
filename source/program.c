@@ -394,10 +394,10 @@ CloogOptions * options ;
           fprintf(file,",%s",program->names->iterators[j]) ;
         }
         fprintf(file,") {total++;") ;
-	if (block->depth > 0)
-        { fprintf(file," printf(\"S%d \%%d",statement->number) ;
+	if (block->depth > 0) {
+          fprintf(file, " printf(\"S%d %%d", statement->number);
           for(j=1;j<block->depth;j++)
-          fprintf(file," \%%d") ;
+            fprintf(file, " %%d");
           
           fprintf(file,"\\n\",%s",program->names->iterators[0]) ;
 	  for(j=1;j<block->depth;j++)
