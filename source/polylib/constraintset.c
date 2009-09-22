@@ -61,28 +61,28 @@
 
 
 /**
- * cloog_matrix_print function:
+ * cloog_polylib_matrix_print function:
  * This function prints the content of a Matrix structure (matrix) into a
  * file (foo, possibly stdout).
  */
-void cloog_matrix_print(FILE * foo, Matrix * matrix)
+void cloog_polylib_matrix_print(FILE * foo, Matrix * matrix)
 { Matrix_Print(foo,P_VALUE_FMT,matrix) ;
 }
 
 
 /**
- * cloog_matrix_free function:
+ * cloog_polylib_matrix_free function:
  * This function frees the allocated memory for a Matrix structure
  * (matrix).
  */
-void cloog_matrix_free(Matrix * matrix)
+void cloog_polylib_matrix_free(Matrix * matrix)
 {
   Matrix_Free(matrix) ;
 }
 
 void cloog_constraint_set_free(CloogConstraintSet *constraints)
 {
-	cloog_matrix_free(constraints);
+	cloog_polylib_matrix_free(constraints);
 }
 
 int cloog_constraint_set_contains_level(CloogConstraintSet *constraints,
@@ -230,21 +230,21 @@ int cloog_constraint_total_dimension(CloogConstraint constraint)
 }
 
 /**
- * cloog_matrix_alloc function:
+ * cloog_polylib_matrix_alloc function:
  * This function allocates the memory space for a Matrix structure having
  * nb_rows rows and nb_columns columns, it set its elements to 0.
  */
-Matrix * cloog_matrix_alloc(unsigned nb_rows, unsigned nb_columns)
+Matrix * cloog_polylib_matrix_alloc(unsigned nb_rows, unsigned nb_columns)
 {
   return Matrix_Alloc(nb_rows,nb_columns) ;
 }
 
 
 /**
- * cloog_matrix_matrix function:
+ * cloog_polylib_matrix_matrix function:
  * This function converts a PolyLib Matrix to a Matrix structure.
  */
-Matrix * cloog_matrix_matrix(Matrix *matrix)
+Matrix * cloog_polylib_matrix_matrix(Matrix *matrix)
 {
   return matrix;
 }
@@ -268,7 +268,7 @@ Matrix * cloog_matrix_matrix(Matrix *matrix)
  *                   integration in matrix.c.
  * - June  22rd 2005: Adaptation for GMP.
  */
-void cloog_matrix_print_structure(FILE * file, Matrix * matrix, int level)
+void cloog_polylib_matrix_print_structure(FILE * file, Matrix * matrix, int level)
 { int i, j ;
   
   /* Display the matrix. */
@@ -294,7 +294,7 @@ void cloog_matrix_print_structure(FILE * file, Matrix * matrix, int level)
 
 
 /**
- * cloog_matrix_read function:
+ * cloog_polylib_matrix_read function:
  * Adaptation from the PolyLib. This function reads a matrix into a file (foo,
  * posibly stdin) and returns a pointer this matrix.
  * October 18th 2001: first version.
@@ -302,7 +302,7 @@ void cloog_matrix_print_structure(FILE * file, Matrix * matrix, int level)
  * - June  21rd 2005: Adaptation for GMP (based on S. Verdoolaege's version of
  *                    CLooG 0.12.1).
  */
-Matrix * cloog_matrix_read(FILE * foo)
+Matrix * cloog_polylib_matrix_read(FILE * foo)
 { unsigned NbRows, NbColumns ;
   int i, j, n ;
   char *c, s[MAX_STRING], str[MAX_STRING] ;
@@ -313,7 +313,7 @@ Matrix * cloog_matrix_read(FILE * foo)
   while ((*s=='#' || *s=='\n') || (sscanf(s," %u %u",&NbRows,&NbColumns)<2))
   fgets(s,MAX_STRING,foo) ;
   
-  matrix = cloog_matrix_alloc(NbRows,NbColumns) ;
+  matrix = cloog_polylib_matrix_alloc(NbRows,NbColumns) ;
 
   p = matrix->p_Init ;
   for (i=0;i<matrix->NbRows;i++) 
@@ -366,7 +366,7 @@ CloogEqualities *cloog_equal_alloc(int n, int nb_levels,
     int i;
     CloogEqualities *equal = ALLOC(CloogEqualities);
 
-    equal->constraints = cloog_matrix_alloc(n, nb_levels + nb_parameters + 1);
+    equal->constraints = cloog_polylib_matrix_alloc(n, nb_levels + nb_parameters + 1);
     equal->types = ALLOCN(int, n);
     for (i = 0; i < n; ++i)
 	equal->types[i] = EQTYPE_NONE;
@@ -375,7 +375,7 @@ CloogEqualities *cloog_equal_alloc(int n, int nb_levels,
 
 void cloog_equal_free(CloogEqualities *equal)
 {
-    cloog_matrix_free(equal->constraints);
+    cloog_polylib_matrix_free(equal->constraints);
     free(equal->types);
     free(equal);
 }
@@ -732,7 +732,7 @@ CloogConstraintSet *cloog_constraint_set_copy(CloogConstraintSet *matrix)
 { int i, j ;
   Matrix * copy ;
 
-  copy = cloog_matrix_alloc(matrix->NbRows,matrix->NbColumns) ;
+  copy = cloog_polylib_matrix_alloc(matrix->NbRows,matrix->NbColumns) ;
   
   for (i=0;i<matrix->NbRows;i++)
   for (j=0;j<matrix->NbColumns;j++)
@@ -743,12 +743,12 @@ CloogConstraintSet *cloog_constraint_set_copy(CloogConstraintSet *matrix)
 
 
 /**
- * cloog_matrix_vector_copy function:
+ * cloog_polylib_matrix_vector_copy function:
  * this function rutuns a hard copy of the vector "vector" of length "length"
  * provided as input.
  * - November 3rd 2005: first version.
  */
-static Value *cloog_matrix_vector_copy(Value *vector, int length)
+static Value *cloog_polylib_matrix_vector_copy(Value *vector, int length)
 { int i ;
   Value * copy ;
   
@@ -766,13 +766,13 @@ static Value *cloog_matrix_vector_copy(Value *vector, int length)
 
 
 /**
- * cloog_matrix_vector_free function:
+ * cloog_polylib_matrix_vector_free function:
  * this function clears the elements of a vector "vector" of length "length",
  * then frees the vector itself this is useful for the GMP version of CLooG
  * which has to clear all elements.
  * - October 29th 2005: first version.
  */
-static void cloog_matrix_vector_free(Value * vector, int length)
+static void cloog_polylib_matrix_vector_free(Value * vector, int length)
 { int i ;
   
   for (i=0;i<length;i++)
@@ -806,7 +806,7 @@ Value *cloog_equal_vector_simplify(CloogEqualities *equal, Value *vector,
 { int i, j ;
   Value gcd, factor_vector, factor_equal, temp_vector, temp_equal, * simplified;
   
-  simplified = cloog_matrix_vector_copy(vector,length) ;
+  simplified = cloog_polylib_matrix_vector_copy(vector,length) ;
   
   value_init(gcd);
   value_init(temp_vector);
@@ -894,14 +894,14 @@ CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *matrix,
    * then for each row of the original matrix, we compute the simplified
    * vector and we copy its content into the according simplified row.
    */
-  simplified = cloog_matrix_alloc(matrix->NbRows,matrix->NbColumns) ;
+  simplified = cloog_polylib_matrix_alloc(matrix->NbRows,matrix->NbColumns) ;
   for (i=0;i<matrix->NbRows;i++)
   { vector = cloog_equal_vector_simplify(equal, matrix->p[i],
 					  matrix->NbColumns, level, nb_par);
     for (j=0;j<matrix->NbColumns;j++)
     value_assign(simplified->p[i][j],vector[j]) ;
     
-    cloog_matrix_vector_free(vector,matrix->NbColumns) ;
+    cloog_polylib_matrix_vector_free(vector,matrix->NbColumns) ;
   }
   
   /* After simplification, it may happen that few constraints are the same,
@@ -1031,7 +1031,7 @@ CloogConstraintSet *cloog_constraint_set_for_reduction(CloogConstraint upper,
 {
 	CloogConstraintSet *set;
 
-	set = cloog_matrix_alloc(1, upper.set->NbColumns);
+	set = cloog_polylib_matrix_alloc(1, upper.set->NbColumns);
 	Vector_Copy(upper.line[0], set->p[0], set->NbColumns);
 	return set;
 }

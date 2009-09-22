@@ -1296,7 +1296,7 @@ static void insert_block(CloogBlock *block, int level,
  * - June      16th 2005: (debug) the N. Vasilache normalization step has been
  *                        added to avoid iteration duplication (see DaeGon Kim
  *                        bug in cloog_program_generate). Try vasilache.cloog
- *                        with and without the call to cloog_matrix_normalize,
+ *                        with and without the call to cloog_polylib_matrix_normalize,
  *                        using -f 8 -l 9 options for an idea.
  * - September 15th 2005: (debug) don't close equality braces when unnecessary.
  * - October   16th 2005: (debug) scalar value is saved for next loops.

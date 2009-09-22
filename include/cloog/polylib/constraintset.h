@@ -38,20 +38,20 @@ typedef struct cloogconstraint CloogConstraint;
 /******************************************************************************
  *                              PolyLib interface                             *
  ******************************************************************************/
-void          cloog_matrix_print(FILE *, Matrix *) ;
-void          cloog_matrix_free(Matrix *) ;
-Matrix * cloog_matrix_alloc(unsigned, unsigned) ;
-Matrix * cloog_matrix_matrix(Matrix *);
+void          cloog_polylib_matrix_print(FILE *, Matrix *) ;
+void          cloog_polylib_matrix_free(Matrix *) ;
+Matrix * cloog_polylib_matrix_alloc(unsigned, unsigned) ;
+Matrix * cloog_polylib_matrix_matrix(Matrix *);
 
 /******************************************************************************
  *                          Structure display function                        *
  ******************************************************************************/
-void          cloog_matrix_print_structure(FILE *, Matrix *, int) ;
+void          cloog_polylib_matrix_print_structure(FILE *, Matrix *, int) ;
 
 /******************************************************************************
  *                               Reading function                             *
  ******************************************************************************/
-Matrix * cloog_matrix_read(FILE *) ;
+Matrix * cloog_polylib_matrix_read(FILE *) ;
 
 
 #if defined(__cplusplus)

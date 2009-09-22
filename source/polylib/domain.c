@@ -42,9 +42,9 @@
 # include <ctype.h>
 #include <cloog/polylib/cloog.h>
 
-static CloogDomain * cloog_domain_matrix2domain(CloogState *state,
+static CloogDomain * cloog_domain_polylib_matrix2domain(CloogState *state,
 					 Matrix *, int nb_par);
-static Matrix      * cloog_domain_domain2matrix(CloogDomain *);
+static Matrix      * cloog_domain_domain2polylib_matrix(CloogDomain *);
 
 
 /******************************************************************************
@@ -113,13 +113,13 @@ int cloog_scattering_fully_specified(CloogScattering *scattering,
 }
 
 /**
- * cloog_domain_matrix2domain function:
+ * cloog_domain_polylib_matrix2domain function:
  * Given a matrix of constraints (matrix), this function constructs and returns
  * the corresponding domain (i.e. the CloogDomain structure including the
  * polyhedron with its double representation: constraint matrix and the set of
  * rays).
  */ 
-CloogDomain *cloog_domain_matrix2domain(CloogState *state,
+CloogDomain *cloog_domain_polylib_matrix2domain(CloogState *state,
 					Matrix *matrix, int nb_par)
 {
   Polyhedron *P = Constraints2Polyhedron(matrix, state->backend->MAX_RAYS);
@@ -128,18 +128,18 @@ CloogDomain *cloog_domain_matrix2domain(CloogState *state,
 
 
 /**
- * cloog_domain_domain2matrix function:
+ * cloog_domain_domain2polylib_matrix function:
  * Given a polyhedron (in domain), this function returns its corresponding
  * matrix of constraints.
  */
-Matrix * cloog_domain_domain2matrix(CloogDomain * domain)
+Matrix * cloog_domain_domain2polylib_matrix(CloogDomain * domain)
 {
-  return cloog_matrix_matrix(Polyhedron2Constraints(domain->polyhedron));
+  return cloog_polylib_matrix_matrix(Polyhedron2Constraints(domain->polyhedron));
 }
 
 CloogConstraintSet *cloog_domain_constraints(CloogDomain *domain)
 {
-	return cloog_domain_domain2matrix(domain);
+	return cloog_domain_domain2polylib_matrix(domain);
 }
 
 
@@ -181,9 +181,9 @@ void cloog_domain_print_constraints(FILE *foo, CloogDomain *domain,
   /* The polyhedra themselves. */
   for (polyhedron = cloog_domain_polyhedron(domain); polyhedron;
 					      polyhedron = polyhedron->next) {
-    matrix = cloog_matrix_matrix(Polyhedron2Constraints(polyhedron));
-    cloog_matrix_print(foo,matrix);
-    cloog_matrix_free(matrix);
+    matrix = cloog_polylib_matrix_matrix(Polyhedron2Constraints(polyhedron));
+    cloog_polylib_matrix_print(foo,matrix);
+    cloog_polylib_matrix_free(matrix);
   }
 }
 
@@ -304,7 +304,7 @@ static CloogDomain *cloog_domain_simplified_hull(CloogDomain * domain)
     ++nb_pol;
     nb_constraints += P->NbConstraints;
   }
-  matrix = cloog_matrix_alloc(nb_constraints, 1 + dim + 1);
+  matrix = cloog_polylib_matrix_alloc(nb_constraints, 1 + dim + 1);
   nb_constraints = 0;
   rays = (Matrix **)malloc(nb_pol * sizeof(Matrix*));
   for (P = domain->polyhedron, i = 0; P; P = P->next, ++i)
@@ -339,8 +339,8 @@ static CloogDomain *cloog_domain_simplified_hull(CloogDomain * domain)
   value_clear(tmp);
 
   matrix->NbRows = nb_constraints;
-  bounds = cloog_domain_matrix2domain(domain->state, matrix, domain->nb_par);
-  cloog_matrix_free(matrix);
+  bounds = cloog_domain_polylib_matrix2domain(domain->state, matrix, domain->nb_par);
+  cloog_polylib_matrix_free(matrix);
 
   return bounds;
 }
@@ -415,8 +415,8 @@ CloogDomain * cloog_domain_simplify(CloogDomain * dom1, CloogDomain * dom2)
     int rows = P->NbEq + dom2->polyhedron->NbEq;
     int cols = P->Dimension+2;
     int rank;
-    M = cloog_matrix_alloc(rows, cols);
-    M2 = cloog_matrix_alloc(P->NbConstraints, cols);
+    M = cloog_polylib_matrix_alloc(rows, cols);
+    M2 = cloog_polylib_matrix_alloc(P->NbConstraints, cols);
     Vector_Copy(dom2->polyhedron->Constraint[0], M->p[0], 
 		dom2->polyhedron->NbEq * cols);
     rank = dom2->polyhedron->NbEq;
@@ -434,8 +434,8 @@ CloogDomain * cloog_domain_simplify(CloogDomain * dom1, CloogDomain * dom2)
 		    (P->NbConstraints - P->NbEq) * cols);
       P = Constraints2Polyhedron(M2, MAX_RAYS);
     }
-    cloog_matrix_free(M2);
-    cloog_matrix_free(M);
+    cloog_polylib_matrix_free(M2);
+    cloog_polylib_matrix_free(M);
   }
   dom = cloog_domain_from_polylib_polyhedron(dom1->state,
 			    DomainSimplify(P, dom2->polyhedron, MAX_RAYS),
@@ -637,8 +637,8 @@ void cloog_domain_print_structure(FILE *file, CloogDomain *domain, int level,
     /* Print the matrix. */
     for (P = domain->polyhedron; P; P = P->next) {
       matrix = Polyhedron2Constraints(P);
-      cloog_matrix_print_structure(file, matrix, level);
-      cloog_matrix_free(matrix);
+      cloog_polylib_matrix_print_structure(file, matrix, level);
+      cloog_polylib_matrix_free(matrix);
 
       /* A blank line. */
       print_structure_prefix(file, level+1);
@@ -703,9 +703,9 @@ CloogDomain *cloog_domain_read(CloogState *state, FILE *foo, int nb_parameters)
 { Matrix * matrix ;
   CloogDomain * domain ;
   
-  matrix = cloog_matrix_read(foo) ;
-  domain = cloog_domain_matrix2domain(state, matrix, nb_parameters);
-  cloog_matrix_free(matrix) ;
+  matrix = cloog_polylib_matrix_read(foo) ;
+  domain = cloog_domain_polylib_matrix2domain(state, matrix, nb_parameters);
+  cloog_polylib_matrix_free(matrix) ;
   
   return(domain) ;
 }
@@ -904,7 +904,7 @@ CloogDomain *cloog_domain_project(CloogDomain *domain, int level)
   if (difference == 0)
   return(cloog_domain_copy(domain)) ;
   
-  matrix = cloog_matrix_alloc(nb_rows,nb_columns) ;
+  matrix = cloog_polylib_matrix_alloc(nb_rows,nb_columns) ;
      
   for (row=0;row<level;row++)
   for (column=0;column<nb_columns; column++)
@@ -915,7 +915,7 @@ CloogDomain *cloog_domain_project(CloogDomain *domain, int level)
   value_set_si(matrix->p[row][column],(row+difference == column ? 1 : 0)) ;
   
   projected_domain = cloog_domain_image(domain,matrix) ;
-  cloog_matrix_free(matrix) ;
+  cloog_polylib_matrix_free(matrix) ;
 
   return(projected_domain) ;
 }  
@@ -940,7 +940,7 @@ CloogDomain *cloog_domain_bounds(CloogDomain *domain, int dim)
   if (difference == 0)
     return(cloog_domain_convex(domain));
   
-  matrix = cloog_matrix_alloc(nb_rows, nb_columns);
+  matrix = cloog_polylib_matrix_alloc(nb_rows, nb_columns);
      
   value_set_si(matrix->p[0][dim], 1);
   for (row = 1; row < nb_rows; row++)
@@ -949,7 +949,7 @@ CloogDomain *cloog_domain_bounds(CloogDomain *domain, int dim)
   projected_domain = cloog_domain_image(domain,matrix) ;
   extended_domain = cloog_domain_preimage(projected_domain, matrix);
   cloog_domain_free(projected_domain);
-  cloog_matrix_free(matrix) ;
+  cloog_polylib_matrix_free(matrix) ;
   bounds = cloog_domain_convex(extended_domain);
   cloog_domain_free(extended_domain);
 
@@ -980,7 +980,7 @@ CloogDomain *cloog_domain_extend(CloogDomain *domain, int dim)
   if (difference == 0)
   return(cloog_domain_copy(domain)) ;
   
-  matrix = cloog_matrix_alloc(nb_rows,nb_columns) ;
+  matrix = cloog_polylib_matrix_alloc(nb_rows,nb_columns) ;
     
   for (row = 0; row < domain->polyhedron->Dimension - domain->nb_par; row++)
   for (column=0;column<nb_columns;column++)
@@ -991,7 +991,7 @@ CloogDomain *cloog_domain_extend(CloogDomain *domain, int dim)
   value_set_si(matrix->p[row][column],(row+difference == column ? 1 : 0)) ;
   
   extended_domain = cloog_domain_preimage(domain,matrix) ;
-  cloog_matrix_free(matrix) ;
+  cloog_polylib_matrix_free(matrix) ;
 
   return(extended_domain) ;
 }
@@ -1097,7 +1097,7 @@ void cloog_domain_stride(CloogDomain *domain, int strided_level,
     if (First_Non_Zero(polyhedron->Constraint[i]+strided_level, n_col) != -1)
       ++n_row;
 
-  M = cloog_matrix_alloc(n_row+1, n_col+1);
+  M = cloog_polylib_matrix_alloc(n_row+1, n_col+1);
   for (i=0, n_row = 0; i < polyhedron->NbEq; i++) {
     if (First_Non_Zero(polyhedron->Constraint[i]+strided_level, n_col) == -1)
       continue;
@@ -1109,7 +1109,7 @@ void cloog_domain_stride(CloogDomain *domain, int strided_level,
 
   /* Then look at the general solution to the above equalities. */
   rank = SolveDiophantine(M, &U, &V);
-  cloog_matrix_free(M);
+  cloog_polylib_matrix_free(M);
 
   if (rank == -1) {
     /* There is no solution, so the body of this loop will
@@ -1591,7 +1591,7 @@ CloogScattering *cloog_scattering_erase_dimension(CloogScattering *scatt,
   nb_dim = polyhedron->Dimension ;
   
   /* The matrix is one column less and at least one constraint less. */
-  matrix = cloog_matrix_alloc(polyhedron->NbConstraints-1,nb_dim+1) ;
+  matrix = cloog_polylib_matrix_alloc(polyhedron->NbConstraints-1,nb_dim+1) ;
  
   /* mi is the constraint counter for the matrix. */
   mi = 0 ;
@@ -1606,8 +1606,8 @@ CloogScattering *cloog_scattering_erase_dimension(CloogScattering *scatt,
     mi ++ ;
   }
   
-  erased = cloog_domain_matrix2domain(domain->state, matrix, domain->nb_par);
-  cloog_matrix_free(matrix) ;
+  erased = cloog_domain_polylib_matrix2domain(domain->state, matrix, domain->nb_par);
+  cloog_polylib_matrix_free(matrix) ;
 
   return (CloogScattering *)erased;
 }
