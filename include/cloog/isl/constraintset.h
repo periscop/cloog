@@ -1,5 +1,5 @@
-#ifndef CLOOG_ISL_MATRIX_H
-#define CLOOG_ISL_MATRIX_H
+#ifndef CLOOG_ISL_CONSTRAINTSET_H
+#define CLOOG_ISL_CONSTRAINTSET_H
 
 #include <cloog/isl/backend.h>
 

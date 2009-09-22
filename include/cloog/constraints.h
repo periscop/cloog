@@ -39,9 +39,9 @@
 #define CLOOG_CONSTRAINTS_H
 
 #if defined(CLOOG_POLYLIB)
-#include <cloog/polylib/matrix.h>
+#include <cloog/polylib/constraintset.h>
 #elif defined(CLOOG_ISL)
-#include <cloog/isl/matrix.h>
+#include <cloog/isl/constraintset.h>
 #else
 struct cloogconstraintset;
 typedef struct cloogconstraintset CloogConstraintSet;

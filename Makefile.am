@@ -82,7 +82,7 @@ libcloog_polylib_la_LIBADD = @POLYLIB_LIBS@
 libcloog_polylib_la_SOURCES = \
 	$(SOURCES_CORE) \
 	source/polylib/domain.c \
-	source/polylib/matrix.c \
+	source/polylib/constraintset.c \
 	source/polylib/backend.c
 libcloog_isl_la_CPPFLAGS = @ISL_CPPFLAGS@ -DCLOOG_ISL
 libcloog_isl_la_LDFLAGS = -rpath $(libdir) @ISL_LDFLAGS@
@@ -117,7 +117,7 @@ pkgpolylibincludedir = $(pkgincludedir)/polylib
 pkgpolylibinclude_HEADERS = \
 	include/cloog/polylib/cloog.h \
 	include/cloog/polylib/domain.h \
-	include/cloog/polylib/matrix.h
+	include/cloog/polylib/constraintset.h
 nodist_pkgpolylibinclude_HEADERS = \
 	include/cloog/polylib/backend.h
 
@@ -126,7 +126,7 @@ pkgislinclude_HEADERS = \
 	include/cloog/isl/backend.h \
 	include/cloog/isl/cloog.h \
 	include/cloog/isl/domain.h \
-	include/cloog/isl/matrix.h
+	include/cloog/isl/constraintset.h
 
 version.h: @GIT_INDEX@
 	echo '#define CLOOG_HEAD "'`$(top_builddir)/genversion.sh`'"' > $@
