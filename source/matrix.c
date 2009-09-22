@@ -1,10 +1,7 @@
-
    /**-------------------------------------------------------------------**
-    **                               CLooG                               **
+    **                              CLooG                                **
     **-------------------------------------------------------------------**
-    **                              cloog.h                              **
-    **-------------------------------------------------------------------**
-    **                   First version: july 25th 2002                   **
+    **                           cloogmatrix.c                           **
     **-------------------------------------------------------------------**/
 
 
@@ -34,26 +31,107 @@
  *                                                                            *
  ******************************************************************************/
 
-/******************************************************************************
- *  THIS FILE HAS BEEN AUTOMATICALLY GENERATED FROM clooh.h.in BY configure   *
- ******************************************************************************/
+#include <stdlib.h>
+#include <stdio.h>
+#include "../include/cloog/cloog.h"
 
-#ifndef CLOOG_H
-#define CLOOG_H
+/**
+ * cloog_matrix_alloc:
+ * Allocate a CloogMatrix data structure with NbRows rows and NbColumns columns.
+ * All values are initialized to 0.
+ * This method returns a pointer to the data structure if successful or a NULL
+ * pointer otherwise.
+ */
+CloogMatrix *cloog_matrix_alloc(unsigned NbRows, unsigned NbColumns)
+{
+  CloogMatrix *matrix;
+  cloog_int_t **p, *q;
+  int i, j;
 
-#include <cloog/version.h>
-#include <cloog/int.h>
-#include <cloog/matrix.h>
-#include <cloog/state.h>
-#include <cloog/options.h>
-#include <cloog/names.h>
-#include <cloog/constraints.h>
-#include <cloog/domain.h>
-#include <cloog/statement.h>
-#include <cloog/block.h>
-#include <cloog/loop.h>
-#include <cloog/program.h>
-#include <cloog/clast.h>
-#include <cloog/pprint.h>
+  matrix = (CloogMatrix *)malloc(sizeof(CloogMatrix));
 
-#endif /* !CLOOG_H */
+  if (!matrix)
+    return NULL;
+
+  matrix->NbRows = NbRows;
+  matrix->NbColumns = NbColumns;
+
+  if (!NbRows || !NbColumns) {
+    matrix->p = NULL;
+    matrix->p_Init = NULL;
+    return matrix;
+  }
+
+  p = (cloog_int_t **)malloc(NbRows * sizeof(cloog_int_t *));
+
+  if (p == NULL) {
+    free (matrix);
+    return NULL;
+  }
+
+  q = (cloog_int_t *)malloc(NbRows * NbColumns * sizeof(cloog_int_t));
+
+  if (q == NULL) {
+    free (matrix);
+    free (p);
+    return NULL;
+  }
+
+  matrix->p = p;
+  matrix->p_Init = q;
+
+  for (i = 0; i < NbRows; i++) {
+    *p++ = q;
+    for (j = 0; j < NbColumns; j++) {
+      cloog_int_init(*(q+j));
+      cloog_int_set_si(*(q+j), 0);
+    }
+    q += NbColumns;
+  }
+
+  return matrix;
+}
+
+/**
+ * cloog_matrix_free:
+ * Free matrix.
+ */
+void cloog_matrix_free(CloogMatrix * matrix)
+{
+  int i;
+  cloog_int_t *p;
+  int size = matrix->NbRows * matrix->NbColumns;
+
+  p = matrix->p_Init;
+
+  for (i = 0; i < size; i++)
+    cloog_int_clear(*p++);
+
+  if (matrix) {
+    free(matrix->p_Init);
+    free(matrix->p);
+    free(matrix);
+  }
+}
+
+/**
+ * cloog_matrix_print function:
+ * This function prints the content of a CloogMatrix structure (matrix) into a
+ * file (foo, possibly stdout).
+ */
+void cloog_matrix_print(FILE* foo, CloogMatrix* m)
+{
+  int i, j;
+
+  if (!m)
+    fprintf(foo, "(null)\n");
+
+  for (i = 0; i < m->NbRows; ++i) {
+    for (j = 0; j < m->NbColumns; ++j) {
+      cloog_int_print(foo, m->p[i][j]);
+      fprintf(foo, " ");
+    }
+    fprintf(foo, "\n");
+  }
+  fflush(foo);
+}

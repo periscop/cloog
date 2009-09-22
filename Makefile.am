@@ -62,6 +62,7 @@ SOURCES_CORE = \
 	$(GET_MEMORY_FUNCTIONS) \
 	source/block.c \
 	source/clast.c \
+	source/matrix.c \
 	source/state.c \
 	source/int.c \
 	source/loop.c \
@@ -100,6 +101,7 @@ pkginclude_HEADERS = \
 	include/cloog/block.h \
 	include/cloog/clast.h \
 	include/cloog/cloog.h \
+	include/cloog/matrix.h \
 	include/cloog/state.h \
 	include/cloog/domain.h \
 	include/cloog/loop.h \

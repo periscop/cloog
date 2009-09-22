@@ -1495,27 +1495,20 @@ created within the state of an other @code{CloogState} structure.
 
 @node CloogMatrix
 @subsection CloogMatrix
-@example
-@group
-#define CloogMatrix Matrix
-@end group
-@end example
 
-@noindent The @code{CloogMatrix} structure is directly the PolyLib
+@noindent The @code{CloogMatrix} structure is equivalent to the PolyLib
 @code{Matrix} data structure (@pxref{Wil93}). This structure is devoted to
-represent a set of constraints. It is 
-defined in @code{polylib/types.h} as the following:
+represent a set of constraints.
 
 @example
 @group
-struct matrix
+struct cloogmatrix
 @{ unsigned NbRows ;    /* Number of rows. */
   unsigned NbColumns ; /* Number of columns. */
-  Value ** p ;         /* Array of pointers to the matrix rows. */
-  Value * p_Init ;     /* Matrix rows contiguously in memory. */
-  int p_Init_size ;    /* For internal use. */
-@}
-typedef struct matrix Matrix;
+  cloog_int_t **p;     /* Array of pointers to the matrix rows. */
+  cloog_int_t *p_Init; /* Matrix rows contiguously in memory. */
+@};
+typedef struct cloogmatrix CloogMatrix;
 @end group
 @end example
 
@@ -1528,8 +1521,8 @@ Each row corresponds to a constraint. The first element of each row is an
 equality/inequality tag. The
 constraint is an equality @math{p(x) = 0} if the first element is 0, but it is
 an inequality @math{p(x) \geq 0} if the first element is 1.
-The next elements are the unknown coefficients, followed by the parameter
-coefficients, then the scalar coefficient.
+The next elements are the coefficients of the unknowns,
+followed by the coefficients of the parameters, and finally the constant term.
 For instance, the following three constraints:
 
 @tex
@@ -1563,15 +1556,9 @@ $$
 
 @noindent To be able to provide different precision version (CLooG
 supports 32 bits, 64 bits and arbitrary precision through the GMP library),
-the @code{Value} type depends on the configuration options (it may be
+the @code{cloog_int_t} type depends on the configuration options (it may be
 @code{long int} for 32 bits version, @code{long long int} for 64 bits version,
 and @code{mpz_t} for multiple precision version).
-The @code{p_Init_size} field is needed by the PolyLib to free
-the memory allocated by @code{mpz_init} in the multiple precision release.
-Set this field to 0 if you are @emph{not} using multiple precision.
-Set this field to the size of the @code{p_Init} array if you
-initialized it yourself and if you are using the multiple precision version.
-
 
 @node CloogDomain
 @subsection CloogDomain
