@@ -62,20 +62,20 @@
 
 /**
  * cloog_matrix_print function:
- * This function prints the content of a CloogMatrix structure (matrix) into a
+ * This function prints the content of a Matrix structure (matrix) into a
  * file (foo, possibly stdout).
  */
-void cloog_matrix_print(FILE * foo, CloogMatrix * matrix)
+void cloog_matrix_print(FILE * foo, Matrix * matrix)
 { Matrix_Print(foo,P_VALUE_FMT,matrix) ;
 }
 
 
 /**
  * cloog_matrix_free function:
- * This function frees the allocated memory for a CloogMatrix structure
+ * This function frees the allocated memory for a Matrix structure
  * (matrix).
  */
-void cloog_matrix_free(CloogMatrix * matrix)
+void cloog_matrix_free(Matrix * matrix)
 {
   Matrix_Free(matrix) ;
 }
@@ -231,10 +231,10 @@ int cloog_constraint_total_dimension(CloogConstraint constraint)
 
 /**
  * cloog_matrix_alloc function:
- * This function allocates the memory space for a CloogMatrix structure having
+ * This function allocates the memory space for a Matrix structure having
  * nb_rows rows and nb_columns columns, it set its elements to 0.
  */
-CloogMatrix * cloog_matrix_alloc(unsigned nb_rows, unsigned nb_columns)
+Matrix * cloog_matrix_alloc(unsigned nb_rows, unsigned nb_columns)
 {
   return Matrix_Alloc(nb_rows,nb_columns) ;
 }
@@ -242,9 +242,9 @@ CloogMatrix * cloog_matrix_alloc(unsigned nb_rows, unsigned nb_columns)
 
 /**
  * cloog_matrix_matrix function:
- * This function converts a PolyLib Matrix to a CloogMatrix structure.
+ * This function converts a PolyLib Matrix to a Matrix structure.
  */
-CloogMatrix * cloog_matrix_matrix(Matrix *matrix)
+Matrix * cloog_matrix_matrix(Matrix *matrix)
 {
   return matrix;
 }
@@ -257,7 +257,7 @@ CloogMatrix * cloog_matrix_matrix(Matrix *matrix)
 
 /**
  * cloog_loop_print_structure function:
- * Displays a CloogMatrix structure (matrix) into a file (file, possibly stdout)
+ * Displays a Matrix structure (matrix) into a file (file, possibly stdout)
  * in a way that trends to be understandable without falling in a deep
  * depression or, for the lucky ones, getting a headache... It includes an
  * indentation level (level) in order to work with others print_structure
@@ -268,7 +268,7 @@ CloogMatrix * cloog_matrix_matrix(Matrix *matrix)
  *                   integration in matrix.c.
  * - June  22rd 2005: Adaptation for GMP.
  */
-void cloog_matrix_print_structure(FILE * file, CloogMatrix * matrix, int level)
+void cloog_matrix_print_structure(FILE * file, Matrix * matrix, int level)
 { int i, j ;
   
   /* Display the matrix. */
@@ -302,11 +302,11 @@ void cloog_matrix_print_structure(FILE * file, CloogMatrix * matrix, int level)
  * - June  21rd 2005: Adaptation for GMP (based on S. Verdoolaege's version of
  *                    CLooG 0.12.1).
  */
-CloogMatrix * cloog_matrix_read(FILE * foo)
+Matrix * cloog_matrix_read(FILE * foo)
 { unsigned NbRows, NbColumns ;
   int i, j, n ;
   char *c, s[MAX_STRING], str[MAX_STRING] ;
-  CloogMatrix * matrix ;
+  Matrix * matrix ;
   Value * p ;
   
   while (fgets(s,MAX_STRING,foo) == 0) ;
@@ -346,7 +346,7 @@ CloogMatrix * cloog_matrix_read(FILE * foo)
  ******************************************************************************/
 
 
-/* Equalities are stored inside a CloogMatrix data structure called "equal".
+/* Equalities are stored inside a Matrix data structure called "equal".
  * This matrix has (nb_scattering + nb_iterators + 1) rows (i.e. total
  * dimensions + 1, the "+ 1" is because a statement can be included inside an
  * external loop without iteration domain), and (nb_scattering + nb_iterators +
@@ -725,12 +725,12 @@ void cloog_constraint_set_normalize(CloogConstraintSet *matrix, int level)
 /**
  * cloog_constraint_set_copy function:
  * this functions builds and returns a "hard copy" (not a pointer copy) of a
- * CloogMatrix data structure.
+ * Matrix data structure.
  * - October 26th 2005: first version.
  */
 CloogConstraintSet *cloog_constraint_set_copy(CloogConstraintSet *matrix)
 { int i, j ;
-  CloogMatrix * copy ;
+  Matrix * copy ;
 
   copy = cloog_matrix_alloc(matrix->NbRows,matrix->NbColumns) ;
   
@@ -884,7 +884,7 @@ CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *matrix,
 	CloogEqualities *equal, int level, int nb_par)
 { int i, j, k ;
   Value * vector ;
-  CloogMatrix * simplified ;
+  Matrix * simplified ;
   
   if (matrix == NULL)
   return NULL ;

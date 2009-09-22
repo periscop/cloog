@@ -128,7 +128,7 @@ int cloog_constraint_set_n_iterators(CloogConstraintSet *constraints, int n_par)
  ******************************************************************************/
 
 
-/* Equalities are stored inside a CloogMatrix data structure called "equal".
+/* Equalities are stored inside a Matrix data structure called "equal".
  * This matrix has (nb_scattering + nb_iterators + 1) rows (i.e. total
  * dimensions + 1, the "+ 1" is because a statement can be included inside an
  * external loop without iteration domain), and (nb_scattering + nb_iterators +

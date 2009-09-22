@@ -38,9 +38,9 @@
  */
 
 /* June    22nd 2005: General adaptation for GMP.
- * October 26th 2005: General adaptation from CloogDomain to CloogMatrix data 
+ * October 26th 2005: General adaptation from CloogDomain to Matrix data
  *                    structure for all constraint systems.
- * October 27th 2005: General adaptation from CloogEqual to CloogMatrix data 
+ * October 27th 2005: General adaptation from CloogEqual to Matrix data
  *                    structure for equality spreading.
  */
 

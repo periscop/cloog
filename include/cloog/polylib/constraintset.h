@@ -20,7 +20,6 @@ extern "C"
  *  Matrix;
  */
 
-typedef Matrix CloogMatrix;
 typedef Matrix CloogConstraintSet;
 
 struct cloogequalities {
@@ -39,20 +38,20 @@ typedef struct cloogconstraint CloogConstraint;
 /******************************************************************************
  *                              PolyLib interface                             *
  ******************************************************************************/
-void          cloog_matrix_print(FILE *, CloogMatrix *) ;
-void          cloog_matrix_free(CloogMatrix *) ;
-CloogMatrix * cloog_matrix_alloc(unsigned, unsigned) ;
-CloogMatrix * cloog_matrix_matrix(Matrix *);
+void          cloog_matrix_print(FILE *, Matrix *) ;
+void          cloog_matrix_free(Matrix *) ;
+Matrix * cloog_matrix_alloc(unsigned, unsigned) ;
+Matrix * cloog_matrix_matrix(Matrix *);
 
 /******************************************************************************
  *                          Structure display function                        *
  ******************************************************************************/
-void          cloog_matrix_print_structure(FILE *, CloogMatrix *, int) ;
+void          cloog_matrix_print_structure(FILE *, Matrix *, int) ;
 
 /******************************************************************************
  *                               Reading function                             *
  ******************************************************************************/
-CloogMatrix * cloog_matrix_read(FILE *) ;
+Matrix * cloog_matrix_read(FILE *) ;
 
 
 #if defined(__cplusplus)
