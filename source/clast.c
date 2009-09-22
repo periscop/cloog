@@ -54,7 +54,7 @@ static int insert_for(CloogConstraintSet *constraints, int level,
 			struct clast_stmt ***next, CloogInfos *infos);
 static void insert_block(CloogBlock *block, int level,
 			  struct clast_stmt ***next, CloogInfos *infos);
-static void insert_loop(CloogLoop * loop, int level, int scalar,
+static void insert_loop(CloogLoop * loop, int level,
 			struct clast_stmt ***next, CloogInfos *infos);
 
 
@@ -1301,10 +1301,10 @@ static void insert_block(CloogBlock *block, int level,
  * - September 15th 2005: (debug) don't close equality braces when unnecessary.
  * - October   16th 2005: (debug) scalar value is saved for next loops.
  */
-static void insert_loop(CloogLoop * loop, int level, int scalar,
+static void insert_loop(CloogLoop * loop, int level,
 			struct clast_stmt ***next, CloogInfos *infos)
 {
-    int equality=0, scalar_level;
+    int equality = 0;
     CloogConstraintSet *constraints, *temp;
     struct clast_stmt **top = *next;
     CloogConstraint i, j;
@@ -1351,7 +1351,7 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
 
 	/* Go to the next level. */
 	if (loop->inner != NULL)
-	    insert_loop(loop->inner, level+1,scalar, next, infos);
+	    insert_loop(loop->inner, level+1, next, infos);
     }
 
     if (level)
@@ -1362,7 +1362,7 @@ static void insert_loop(CloogLoop * loop, int level, int scalar,
     while (*top)
 	top = &(*top)->next;
     if (loop->next != NULL)
-	insert_loop(loop->next, level,scalar_level, &top,infos);
+	insert_loop(loop->next, level, &top,infos);
 }
 
 
@@ -1391,7 +1391,7 @@ struct clast_stmt *cloog_clast_create(CloogProgram *program,
     infos->equal = cloog_equal_alloc(nb_levels,
 			       nb_levels, program->names->nb_parameters);
 	
-    insert_loop(program->loop, 0, 0, &next, infos);
+    insert_loop(program->loop, 0, &next, infos);
 
     cloog_equal_free(infos->equal);
 
