@@ -1566,6 +1566,8 @@ and @code{mpz_t} for multiple precision version).
 @group
 CloogDomain *cloog_domain_union_read(CloogState *state,
                                      FILE *input, int nb_parameters);
+CloogDomain *cloog_domain_from_cloog_matrix(CloogState *state,
+                                    CloogMatrix *matrix, int nb_par);
 void cloog_domain_free(CloogDomain *domain);
 @end group
 @end example
@@ -1573,8 +1575,15 @@ void cloog_domain_free(CloogDomain *domain);
 @noindent @code{CloogDomain} is an opaque type representing a polyhedral
 domain (a union of polyhedra).
 A @code{CloogDomain} can be read
-from a file using @code{cloog_domain_union_read}.
-The input format is that of @ref{Domain Representation}.
+from a file using @code{cloog_domain_union_read} or
+converted from a @code{CloogMatrix}.
+The input format for @code{cloog_domain_union_read}
+is that of @ref{Domain Representation}.
+The function @code{cloog_domain_from_cloog_matrix} takes a @code{CloogState}, a
+@code{CloogMatrix} and @code{int} as input and returns a pointer to a
+@code{CloogDomain}. @code{matrix} describes the domain and @code{nb_par} is the
+number of parameters in this domain. The input data structures are neiter
+modified nor freed.
 The @code{CloogDomain} can be freed using @code{cloog_domain_free}.
 There are also some backend dependent functions for creating
 @code{CloogDomain}s.
@@ -1617,6 +1626,8 @@ The function consumes a reference to the given @code{struct isl_set}.
 @group
 CloogScattering *cloog_domain_read_scattering(CloogDomain *domain,
                                               FILE *foo);
+CloogScattering *cloog_scattering_from_cloog_matrix(CloogState *state,
+                         CloogMatrix *matrix, int nb_scat, int nb_par);
 void cloog_scattering_free(CloogScattering *);
 @end group
 @end example
@@ -1624,8 +1635,17 @@ void cloog_scattering_free(CloogScattering *);
 @noindent
 The @code{CloogScattering} type represents a scattering function.
 A @code{CloogScattering} for a given @code{CloogDomain} can be read
-from a file using @code{cloog_scattering_read}.
-It can be freed using @code{cloog_scattering_free}.
+from a file using @code{cloog_scattering_read} or converted
+from a @code{CloogMatrix} using @code{cloog_scattering_from_cloog_matrix}.
+The function @code{cloog_scattering_from_cloog_matrix} takes a
+@code{CloogState}, a @code{CloogMatrix} and two @code{int}s as input and
+returns a
+pointer to a @code{CloogScattering}.
+@code{matrix} describes the scattering, while @code{nb_scat} and
+@code{nb_par} are the number of scattering dimensions and
+the number of parameters, respectively. The input data structures are
+neiter modified nor freed.
+A @code{CloogScattering} can be freed using @code{cloog_scattering_free}.
 There are also some backend dependent functions for creating
 @code{CloogScattering}s.
 
@@ -1633,7 +1653,6 @@ There are also some backend dependent functions for creating
 * CloogScattering/PolyLib::
 * CloogScattering/isl::
 @end menu
-
 
 @node CloogScattering/PolyLib
 @subsubsection PolyLib

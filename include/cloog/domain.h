@@ -97,6 +97,11 @@ CloogDomain * cloog_domain_read_context(CloogState *state, FILE * foo);
 CloogDomain * cloog_domain_union_read(CloogState *state, FILE *foo, int nb_par);
 CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *foo);
 
+CloogDomain * cloog_domain_from_cloog_matrix(CloogState *state,
+				CloogMatrix *matrix, int nb_par);
+CloogScattering * cloog_scattering_from_cloog_matrix(CloogState *state,
+				CloogMatrix *matrix, int nb_scat, int nb_par);
+
 
 /******************************************************************************
  *                            Processing functions                            *

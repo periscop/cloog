@@ -788,6 +788,49 @@ CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *foo)
 
 
 /******************************************************************************
+ *                      CloogMatrix Reading function                          *
+ ******************************************************************************/
+
+/**
+ * Create a CloogDomain containing the constraints described in matrix.
+ * nb_par is the number of parameters contained in the domain.
+ * Returns a pointer to the CloogDomain if successful; NULL otherwise.
+ */
+CloogDomain *cloog_domain_from_cloog_matrix(CloogState *state,
+	CloogMatrix *matrix, int nb_par)
+{
+  int i, j;
+  Matrix *pmatrix;
+  Value **p;
+
+  pmatrix = cloog_polylib_matrix_alloc(matrix->NbRows,matrix->NbColumns);
+
+  if (!pmatrix)
+    return NULL;
+
+  p = pmatrix->p;
+
+  for (i = 0; i < pmatrix->NbRows; i++)
+    for (j = 0; j < pmatrix->NbColumns; j++)
+      cloog_int_set(p[i][j], matrix->p[i][j]);
+
+  return cloog_domain_polylib_matrix2domain(state, pmatrix, nb_par);
+}
+
+/**
+ * Create a CloogScattering containing the constraints described in matrix.
+ * nb_par is the number of parameters contained in the domain.
+ * Returns a pointer to the CloogScattering if successful; NULL otherwise.
+ */
+CloogScattering *cloog_scattering_from_cloog_matrix(CloogState *state,
+	CloogMatrix *matrix, int nb_scat, int nb_par)
+{
+  CloogDomain *domain = cloog_domain_from_cloog_matrix(state, matrix, nb_par);
+  return (CloogScattering *)domain;
+}
+
+
+/******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
 
