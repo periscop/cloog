@@ -1130,6 +1130,12 @@ void cloog_domain_stride(CloogDomain *domain, int strided_level,
   polyhedron = domain->polyhedron ;
   dimension = polyhedron->Dimension ;
 
+  if (polyhedron->next) {
+    value_set_si(*offset, 0);
+    value_set_si(*stride, 1);
+    return;
+  }
+
   /* Look at all equalities involving strided_level and the inner
    * iterators.  We can ignore the outer iterators and the parameters
    * here because the lower bound on strided_level is assumed to

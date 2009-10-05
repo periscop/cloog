@@ -597,9 +597,7 @@ void cloog_domain_stride(CloogDomain *domain, int strided_level,
 	cloog_int_t *stride, cloog_int_t *offset)
 {
 	struct isl_set *set = &domain->set;
-	assert(set->n == 1);
-	isl_basic_set_dim_residue_class(set->p[0], strided_level - 1,
-					stride, offset);
+	isl_set_dim_residue_class(set, strided_level - 1, stride, offset);
 	if (!isl_int_is_zero(*offset))
 		isl_int_sub(*offset, *stride, *offset);
 	return;
