@@ -542,7 +542,6 @@ void cloog_equal_add(CloogEqualities *equal, CloogConstraintSet *matrix,
 { 
   int j;
   CloogConstraint i;
-  Value numerator, denominator, division, modulo ;
 
   /* If we are in the case of a loop running once, this means that the equality
    * comes from an inequality. Here we find this inequality.
@@ -564,45 +563,14 @@ void cloog_equal_add(CloogEqualities *equal, CloogConstraintSet *matrix,
       if (value_ne_si(i.line[0][level],1) &&
           value_ne_si(i.line[0][level],-1) &&
 	  value_notzero_p(i.line[0][matrix->NbColumns-1])) {
-        value_init(numerator);
-        value_init(denominator);
-        value_init(division);
-        value_init(modulo);
+	cloog_int_t denominator;
         
-	value_assign(denominator,i.line[0][level]) ;
-	value_absolute(denominator,denominator) ; 
-        value_assign(numerator,i.line[0][matrix->NbColumns-1]) ;   
-        value_modulus(modulo,numerator,denominator) ;
-        value_division(division,numerator,denominator) ;
-	
-	/* There are 4 scenarios:
-	 *  di +n >= 0  -->  i + (n div d) >= 0
-	 * -di +n >= 0  --> -i + (n div d) >= 0
-	 *  di -n >= 0  -->  if (n%d == 0)  i + ((-n div d)+1) >= 0
-	 *                   else           i +  (-n div d)    >= 0
-	 * -di -n >= 0  -->  if (n%d == 0) -i + ((-n div d)-1) >= 0
-	 *                   else          -i +  (-n div d)    >= 0
-	 * In the following we distinct the scalar value setting and the
-	 * level coefficient.
-	 */
-	if (value_pos_p(numerator) || value_zero_p(modulo))
-	value_assign(i.line[0][matrix->NbColumns-1],division) ;
-	else
-	{ if (value_pos_p(i.line[0][level]))
-	  value_increment(i.line[0][matrix->NbColumns-1],division) ;
-	  else
-	  value_decrement(i.line[0][matrix->NbColumns-1],division) ;
-	}
-        
-	if (value_pos_p(i.line[0][level]))
-	value_set_si(i.line[0][level],1) ;
-	else
-	value_set_si(i.line[0][level],-1) ;
-	
-	value_clear(numerator);
-        value_clear(denominator);
-        value_clear(division);
-        value_clear(modulo);
+	cloog_int_init(denominator);
+	cloog_int_abs(denominator, i.line[0][level]);
+	cloog_int_fdiv_q(i.line[0][matrix->NbColumns-1],
+			 i.line[0][matrix->NbColumns-1], denominator);
+	cloog_int_set_si(i.line[0][level], cloog_int_sgn(i.line[0][level]));
+	cloog_int_clear(denominator);
       }
             
       break ;
