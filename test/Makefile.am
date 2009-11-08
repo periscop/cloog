@@ -184,12 +184,12 @@ SPECIAL_TESTS = \
 	stride \
 	stride2
 SPECIAL_OPTIONS = \
-	"vasilache" "-f 8 -l 9" "\n" \
-	"merge" "-f -1" "\n" \
-	"equality" "-f -1 -l 2 -override" "\n" \
-	"equality2" "-f -1 -l 4 -esp 1 -override" "\n" \
-	"stride" "-f -1 -strides 1" "\n" \
-	"stride2" "-f -1 -strides 1"
+	'vasilache -f 8 -l 9' \
+	'merge -f -1' \
+	'equality -f -1 -l 2 -override' \
+	'equality2 -f -1 -l 4 -esp 1 -override' \
+	'stride -f -1 -strides 1' \
+	'stride2 -f -1 -strides 1'
 
 EXTRA_DIST = \
 	$(CLOOGTEST_C:%=%.cloog) \
@@ -224,21 +224,21 @@ generate:
 		$(top_builddir)/cloog $(srcdir)/$$x.cloog \
 			-strides 1 -o $(srcdir)/@BACKEND@/$$x.c ; \
 	done ; \
-	(echo -e $(SPECIAL_OPTIONS)) | while read x options; do \
+	for line in $(SPECIAL_OPTIONS); do echo $$line | while read x options; do \
 		echo "Generate file $$x ($$options)" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
 		    $$options > $(srcdir)/@BACKEND@/$$x.c ; \
-	done
+	done; done
 
 generate_good:
 	@for x in $(FINITE_CLOOGTEST_C) ; do \
 		echo "Generate $$x.good.c" ; \
 		$(top_builddir)/cloog$(EXEEXT) -callable 1 $(srcdir)/$$x.cloog -o $(srcdir)/$$x.good.c ; \
 	done; \
-	(echo -e $(SPECIAL_OPTIONS)) | while read x options; do \
+	for line in $(SPECIAL_OPTIONS); do echo $$line | while read x options; do \
 		echo "Generate $$x.good.c ($$options)" ; \
 		$(top_builddir)/cloog$(EXEEXT) -callable 1 $$options $(srcdir)/$$x.cloog -o $(srcdir)/$$x.good.c ; \
-	done
+	done; done
 
 valgrind:
 	@echo "             /*-----------------------------------------------*"
@@ -277,7 +277,7 @@ test_run: generate_test$(EXEEXT)
 		$(RM) $@; \
 		echo; \
 	done; \
-	(echo -e $(SPECIAL_OPTIONS)) | while read x options; do \
+	for line in $(SPECIAL_OPTIONS); do echo $$line | while read x options; do \
 		echo -n "Verify file $$x ($$options)... " ; \
 		echo -n "generating... " ; \
 		$(top_builddir)/cloog$(EXEEXT) -q -callable 1 $$options $(srcdir)/$$x.cloog > test_test.c ; \
@@ -294,8 +294,8 @@ test_run: generate_test$(EXEEXT)
 		fi; \
 		$(RM) $@; \
 		echo; \
-	done; \
-	(echo -e $(SPECIAL_OPTIONS)) | while read x options; do \
+	done; done; \
+	for line in $(SPECIAL_OPTIONS); do echo $$line | while read x options; do \
 		echo -n "Verify file $$x ($$options -sh 1)... " ; \
 		echo -n "generating... " ; \
 		$(top_builddir)/cloog$(EXEEXT) -q -callable 1 $$options -sh 1 $(srcdir)/$$x.cloog > test_test.c ; \
@@ -312,7 +312,7 @@ test_run: generate_test$(EXEEXT)
 		fi; \
 		$(RM) $@; \
 		echo; \
-	done; \
+	done; done; \
 	if [ $$failedtest != 0 ] ; then \
 		echo "$$failedtest tests failed" ; \
 	else \
@@ -364,7 +364,7 @@ test:
 	        fi ; \
 	done ; \
 	echo "--- Testing SPECIAL OPTIONS files..." ; \
-	(echo -e $(SPECIAL_OPTIONS)) | (while read x options; do \
+	for line in $(SPECIAL_OPTIONS); do echo $$line | while read x options; do \
 	        echo "Verify file $$x ($$options)" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
 			$$options > ttemp ; \
@@ -376,8 +376,7 @@ test:
 		else \
 			echo "$$x passed" ; \
 	        fi ; \
-	done; exit $$failedtest; ); \
-	failedtest=$$?; \
+	done; done; \
 	rm ttemp ; \
 	if [ $$failedtest != 0 ] ; then \
 		echo "$$failedtest tests failed" ; \
