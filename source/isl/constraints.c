@@ -267,7 +267,7 @@ int cloog_equal_type(CloogEqualities *equal, int level)
  * - line is the line number in matrix of the constraint we want to study,
  * - the infos structure gives the user all options on code printing and more.
  **
- * line is set to and invalid constraint for equalities that CLooG itself has
+ * line is set to an invalid constraint for equalities that CLooG itself has
  * discovered because the lower and upper bound of a loop happened to be equal.
  * This situation shouldn't happen in the isl port since isl should
  * have found the equality itself.
