@@ -17,6 +17,7 @@ extern "C" {
 struct cloogstate {
   CloogBackend *backend;
 
+  cloog_int_t zero;
   cloog_int_t one;
   cloog_int_t negone;
 
