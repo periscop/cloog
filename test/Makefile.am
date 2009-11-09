@@ -113,6 +113,7 @@ FINITE_CLOOGTEST_C =                   \
 	uday_scalars		       \
 	vivien                         \
 	vivien2                        \
+	walters                        \
 	wavefront                      \
 	yosr                           \
 	yosr2                          \
@@ -167,6 +168,7 @@ CLOOGTEST_FORTRAN =                    \
 
 CLOOGTEST_STRIDED =                    \
 	basic-bounds-2                 \
+	mod4                           \
 	nul_basic1                     \
 	nul_basic2                     \
 	nul_lcpc		       \

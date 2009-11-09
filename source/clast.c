@@ -46,10 +46,10 @@ static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
 					CloogInfos *infos);
 static void insert_guard(CloogConstraintSet *constraints, int level,
 			  struct clast_stmt ***next, CloogInfos *infos);
-static void insert_modulo_guard(CloogConstraint upper,
+static int insert_modulo_guard(CloogConstraint upper,
 				CloogConstraint lower, int level,
 			        struct clast_stmt ***next, CloogInfos *infos);
-static void insert_equation(CloogConstraint upper, CloogConstraint lower,
+static int insert_equation(CloogConstraint upper, CloogConstraint lower,
 			 int level, struct clast_stmt ***next, CloogInfos *infos);
 static int insert_for(CloogConstraintSet *constraints, int level,
 			struct clast_stmt ***next, CloogInfos *infos);
@@ -926,12 +926,56 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
   
   return;
 }
- 
+
+/**
+ * Check if the constant "cst" satisfies the modulo guard that
+ * would be introduced by insert_computed_modulo_guard.
+ * The constant is assumed to have been reduced prior to calling
+ * this function.
+ */
+static int constant_modulo_guard_is_satisfied(CloogConstraint lower,
+	cloog_int_t bound, cloog_int_t cst)
+{
+    if (cloog_constraint_is_valid(lower))
+	return cloog_int_le(cst, bound);
+    else
+	return cloog_int_is_zero(cst);
+}
+
+/**
+ * Insert a modulo guard "r % mod == 0" or "r % mod <= bound",
+ * depending on whether lower represents a valid constraint.
+ */
+static void insert_computed_modulo_guard(struct clast_reduction *r,
+	CloogConstraint lower, cloog_int_t mod, cloog_int_t bound,
+	struct clast_stmt ***next)
+{
+    struct clast_expr *e;
+    struct clast_guard *g;
+
+    e = &new_clast_binary(clast_bin_mod, &r->expr, mod)->expr;
+    g = new_clast_guard(1);
+    if (!cloog_constraint_is_valid(lower)) {
+	g->eq[0].LHS = e;
+	cloog_int_set_si(bound, 0);
+	g->eq[0].RHS = &new_clast_term(bound, NULL)->expr;
+	g->eq[0].sign = 0;
+    } else {
+	g->eq[0].LHS = e;
+	g->eq[0].RHS = &new_clast_term(bound, NULL)->expr;
+	g->eq[0].sign = -1;
+    }
+
+    **next = &g->stmt;
+    *next = &g->then;
+}
 
 /**
  * insert_modulo_guard:
  * This function inserts a modulo guard corresponding to an equality
  * or a pair of inequalities.
+ * Returns 0 if the modulo guard is discovered to be unsatisfiable.
+ *
  * See insert_equation.
  * - matrix is the polyhedron containing all the constraints,
  * - upper and lower are the line numbers of the constraint in matrix
@@ -944,11 +988,12 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
  *   the number of parameters in matrix (nb_par), and the arrays of iterator
  *   names and parameters (iters and params). 
  */
-static void insert_modulo_guard(CloogConstraint upper,
+static int insert_modulo_guard(CloogConstraint upper,
 				CloogConstraint lower, int level,
 				struct clast_stmt ***next, CloogInfos *infos)
 {
   int i, nb_elts = 0, len, len2, nb_iter, in_stride = 0, nb_par;
+  int constant, empty = 0;
   struct cloog_vec *line_vector;
   cloog_int_t *line, val, bound;
   CloogConstraintSet *set;
@@ -957,7 +1002,7 @@ static void insert_modulo_guard(CloogConstraint upper,
   cloog_constraint_coefficient_get(upper, level-1, &val);
   if (cloog_int_is_one(val) || cloog_int_is_neg_one(val)) {
     cloog_int_clear(val);
-    return;
+    return 1;
   }
 
   len = cloog_constraint_total_dimension(upper) + 2;
@@ -976,7 +1021,7 @@ static void insert_modulo_guard(CloogConstraint upper,
     if (cloog_int_eq(val, bound)) {
       cloog_int_clear(val);
       cloog_int_clear(bound);
-      return;
+      return 1;
     }
   }
 
@@ -987,7 +1032,7 @@ static void insert_modulo_guard(CloogConstraint upper,
     cloog_int_clear(val);
     cloog_int_clear(bound);
     cloog_constraint_set_free(set);
-    return;
+    return 1;
   }
 
   line_vector = cloog_vec_alloc(len);
@@ -1025,8 +1070,6 @@ static void insert_modulo_guard(CloogConstraint upper,
 
   if (nb_elts || (!cloog_int_is_zero(line[len-1]) && (!in_stride))) {
     struct clast_reduction *r;
-    struct clast_expr *e;
-    struct clast_guard *g;
     const char *name;
 
     r = new_clast_reduction(clast_red_sum, nb_elts+1);
@@ -1058,6 +1101,7 @@ static void insert_modulo_guard(CloogConstraint upper,
 				&new_clast_name(name)->expr)->expr;
     }
 
+    constant = nb_elts == 0;
     /* ...the constant. */
     if (!cloog_int_is_zero(line[len-1]))
       r->elts[nb_elts++] = &new_clast_term(line[len-1], NULL)->expr;
@@ -1065,21 +1109,11 @@ static void insert_modulo_guard(CloogConstraint upper,
     /* our initial computation may have been an overestimate */
     r->n = nb_elts;
 
-    e = &new_clast_binary(clast_bin_mod, &r->expr, line[level])->expr;
-    g = new_clast_guard(1);
-    if (!cloog_constraint_is_valid(lower)) {
-      g->eq[0].LHS = e;
-      cloog_int_set_si(val, 0);
-      g->eq[0].RHS = &new_clast_term(val, NULL)->expr;
-      g->eq[0].sign = 0;
-    } else {
-      g->eq[0].LHS = e;
-      g->eq[0].RHS = &new_clast_term(bound, NULL)->expr;
-      g->eq[0].sign = -1;
-    }
-
-    **next = &g->stmt;
-    *next = &g->then;
+    if (constant) {
+      empty = !constant_modulo_guard_is_satisfied(lower, bound, line[len-1]);
+      free_clast_reduction(r);
+    } else
+      insert_computed_modulo_guard(r, lower, line[level], bound, next);
   }
 
   cloog_constraint_release(upper);
@@ -1087,6 +1121,8 @@ static void insert_modulo_guard(CloogConstraint upper,
   cloog_vec_free(line_vector);
   cloog_int_clear(val);
   cloog_int_clear(bound);
+
+  return !empty;
 }
 
 
@@ -1094,6 +1130,8 @@ static void insert_modulo_guard(CloogConstraint upper,
  * insert_equation function:
  * This function inserts an equality 
  * constraint according to an element in the clast.
+ * Returns 1 if the calling function should recurse into inner loops.
+ *
  * An equality can be preceded by a 'modulo guard'.
  * For instance, consider the constraint i -2*j = 0 and the
  * element j: pprint_equality should return 'if(i%2==0) { j = i/2 ;'.
@@ -1112,13 +1150,18 @@ static void insert_modulo_guard(CloogConstraint upper,
  * - July 14th 2003: (debug) no more print the constant in the modulo guard when
  *                   it was previously included in a stride calculation.
  */
-static void insert_equation(CloogConstraint upper, CloogConstraint lower,
+static int insert_equation(CloogConstraint upper, CloogConstraint lower,
 			    int level, struct clast_stmt ***next, CloogInfos *infos)
 {
   struct clast_expr *e;
   struct clast_assignment *ass;
 
-  insert_modulo_guard(upper, lower, level, next, infos);
+  if (!insert_modulo_guard(upper, lower, level, next, infos)) {
+    cloog_constraint_release(lower);
+    cloog_constraint_release(upper);
+
+    return 0;
+  }
 
   if (cloog_constraint_is_valid(lower) ||
       !clast_equal_add(infos->equal, NULL, level, upper, infos))
@@ -1144,7 +1187,7 @@ static void insert_equation(CloogConstraint upper, CloogConstraint lower,
   cloog_constraint_release(lower);
   cloog_constraint_release(upper);
 
-  return;
+  return 1;
 }
 
 
@@ -1341,12 +1384,13 @@ static void insert_loop(CloogLoop * loop, int level,
 	 */
 	if (cloog_constraint_is_valid(i =
 		cloog_constraint_set_defining_equality(constraints, level))) {
-	  insert_equation(i, cloog_constraint_invalid(), level, next, infos);
+	  empty_loop = !insert_equation(i, cloog_constraint_invalid(),
+					level, next, infos);
 	  equality = 1 ;   
 	} else if (cloog_constraint_is_valid(i =
 		    cloog_constraint_set_defining_inequalities(constraints,
 			      level, &j, infos->names->nb_parameters))) {
-	    insert_equation(i, j, level, next, infos);
+	    empty_loop = !insert_equation(i, j, level, next, infos);
 	} else
 	    empty_loop = !insert_for(constraints, level, next, infos);
     }
