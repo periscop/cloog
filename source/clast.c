@@ -17,6 +17,7 @@
 struct clooginfos {
   CloogState *state;         /**< State. */
   cloog_int_t *stride;       /**< The stride for each iterator. */
+  cloog_int_t *offset;       /**< The offset for each iterator. */
   int  nb_scattdims ;        /**< Scattering dimension number. */
   int * scaldims ;           /**< Boolean array saying whether a given
                               *   scattering dimension is scalar or not.
@@ -1035,8 +1036,11 @@ static void insert_modulo_guard(CloogConstraint upper,
     for (i=1;i<=nb_iter;i++) {
       if (i == level || cloog_int_is_zero(line[i]))
 	continue;
-      if (cloog_int_is_divisible_by(infos->stride[i-1], line[level]))
+      if (cloog_int_is_divisible_by(infos->stride[i-1], line[level])) {
+	cloog_int_addmul(line[len-1], line[i], infos->offset[i-1]);
+	cloog_int_fdiv_r(line[len-1], line[len-1], line[level]);
 	continue;
+      }
 
       name = cloog_names_name_at_level(infos->names, i);
 
@@ -1322,8 +1326,10 @@ static void insert_loop(CloogLoop * loop, int level,
     constraints = cloog_constraint_set_simplify(temp,infos->equal,level,
 				   infos->names->nb_parameters);
     cloog_constraint_set_free(temp);
-    if (level)
+    if (level) {
       cloog_int_set(infos->stride[level-1], loop->stride);
+      cloog_int_set(infos->offset[level-1], loop->offset);
+    }
 
     /* First of all we have to print the guard. */
     insert_guard(constraints,level, next, infos);
@@ -1385,8 +1391,11 @@ struct clast_stmt *cloog_clast_create(CloogProgram *program,
     */ 
     nb_levels = program->names->nb_scattering+program->names->nb_iterators+1;
     infos->stride = ALLOCN(cloog_int_t, nb_levels);
-    for (i = 0; i < nb_levels; ++i)
+    infos->offset = ALLOCN(cloog_int_t, nb_levels);
+    for (i = 0; i < nb_levels; ++i) {
 	cloog_int_init(infos->stride[i]);
+	cloog_int_init(infos->offset[i]);
+    }
 
     infos->equal = cloog_equal_alloc(nb_levels,
 			       nb_levels, program->names->nb_parameters);
@@ -1395,9 +1404,12 @@ struct clast_stmt *cloog_clast_create(CloogProgram *program,
 
     cloog_equal_free(infos->equal);
 
-    for (i = 0; i < nb_levels; ++i)
+    for (i = 0; i < nb_levels; ++i) {
 	cloog_int_clear(infos->stride[i]);
+	cloog_int_clear(infos->offset[i]);
+    }
     free(infos->stride);
+    free(infos->offset);
     free(infos);
 
     return root;
