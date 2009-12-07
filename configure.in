@@ -63,7 +63,8 @@ AC_CHECK_PROG(TEXI2DVI, texi2dvi, texi2dvi, [])
 AM_CONDITIONAL(HAVE_TEXI2DVI, test -n "$TEXI2DVI")
 
 AX_CC_MAXOPT
-AX_CFLAGS_WARN_ALL
+AC_SUBST(CFLAGS_WARN)
+AX_CFLAGS_WARN_ALL(CFLAGS_WARN)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
