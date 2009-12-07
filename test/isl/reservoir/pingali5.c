@@ -1,4 +1,4 @@
-/* Generated from ../../../git/cloog/test/reservoir/pingali5.cloog by CLooG 0.14.0-162-gaf9e78f gmp bits in 0.02s. */
+/* Generated from /home/skimo/git/cloog/test/./reservoir/pingali5.cloog by CLooG 0.14.0-225-g6e2d019 gmp bits in 0.02s. */
 if (M >= 2) {
   for (c2=3;c2<=2*M-3;c2++) {
     for (c4=ceild(c2+3,2);c4<=M;c4++) {
@@ -15,9 +15,7 @@ if (M >= 2) {
       }
     }
   }
-  for (c2=max(3,2*M-2);c2<=2*M-1;c2++) {
-    if ((c2 >= M+1) && (c2 <= 2*M-1)) {
-      S2(M,c2-M);
-    }
+  for (c2=max(M+1,2*M-2);c2<=2*M-1;c2++) {
+    S2(M,c2-M);
   }
 }

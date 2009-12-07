@@ -1,4 +1,4 @@
-/* Generated from ../../../git/cloog/test/cholesky2.cloog by CLooG 0.14.0-162-g1e599e0 gmp bits in 0.06s. */
+/* Generated from /home/skimo/git/cloog/test/cholesky2.cloog by CLooG 0.14.0-225-g6e2d019 gmp bits in 0.05s. */
 if (M >= 1) {
   if (M >= 2) {
     for (c2=1;c2<=M-1;c2++) {
@@ -37,12 +37,11 @@ if (M >= 1) {
     if (c1%3 == 0) {
       S2((c1+3)/3,c1/3);
     }
-    c2 = floord(c1+6,3);
     if ((c1+1)%3 == 0) {
-      S6((c1+1)/3,c2);
+      S6((c1+1)/3,(c1+4)/3);
     }
     if (c1%3 == 0) {
-      S2(c2,c1/3);
+      S2((c1+6)/3,c1/3);
     }
     for (c2=ceild(c1+7,3);c2<=M;c2++) {
       if ((c1+1)%3 == 0) {
@@ -59,16 +58,15 @@ if (M >= 1) {
     }
   }
   if (M >= 3) {
-    S2(M-1,M-2);
-    S2(M,M-2);
+    for (c2=M-1;c2<=M;c2++) {
+      S2(c2,M-2);
+    }
   }
-  for (c1=max(3,3*M-5);c1<=3*M-4;c1++) {
-    if ((c1+2)%3 == 0) {
-      S3((c1+2)/3);
-    }
-    if ((c1+1)%3 == 0) {
-      S6((c1+1)/3,M);
-    }
+  if (M >= 3) {
+    S3(M-1);
+  }
+  if (M >= 3) {
+    S6(M-1,M);
   }
   if (M >= 2) {
     S2(M,M-1);
