@@ -1,4 +1,4 @@
-/* Generated from /home/skimo/git/cloog/test/cholesky2.cloog by CLooG 0.14.0-225-g6e2d019 gmp bits in 0.05s. */
+/* Generated from /home/skimo/git/cloog/test/cholesky2.cloog by CLooG 0.14.0-226-g17d80b7 gmp bits in 0.04s. */
 if (M >= 1) {
   if (M >= 2) {
     for (c2=1;c2<=M-1;c2++) {
@@ -12,10 +12,13 @@ if (M >= 1) {
   if (M == 1) {
     S1(1);
   }
-  if (M == 1) {
+  if (M >= 3) {
     S3(1);
   }
-  if (M >= 2) {
+  if (M == 2) {
+    S3(1);
+  }
+  if (M == 1) {
     S3(1);
   }
   if (M >= 3) {

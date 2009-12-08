@@ -1,10 +1,5 @@
-/* Generated from /home/skimo/git/cloog/test/./reservoir/lim-lam3.cloog by CLooG 0.14.0-225-g6e2d019 gmp bits in 0.03s. */
-if (M == 1) {
-  S4(1);
-}
-if (M >= 2) {
-  S4(1);
-}
+/* Generated from /home/skimo/git/cloog/test/./reservoir/lim-lam3.cloog by CLooG 0.14.0-226-g17d80b7 gmp bits in 0.03s. */
+S4(1);
 if (M >= 2) {
   S2(2,1);
   S3(2,1);
