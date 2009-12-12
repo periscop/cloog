@@ -88,6 +88,7 @@ FINITE_CLOOGTEST_C =                   \
 	iftest2                        \
 	largeur                        \
 	levenshtein-1-2-3              \
+	lex                            \
 	lineality-1-2                  \
 	lineality-2-1-2                \
 	logo                           \

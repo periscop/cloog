@@ -1164,6 +1164,35 @@ CloogLoop * cloog_loop_stop(CloogLoop * loop, CloogDomain * context)
 
 
 /**
+ * Compare the constant dimensions of loops 'l1' and 'l2' starting at 'scalar'
+ * and return -1 if the vector of constant dimensions of 'l1' is smaller
+ * than that of 'l2', 0 if they are the same and +1 if that of 'l1' is
+ * greater than that of 'l2'.
+ * \param l1 Loop to be compared with l2.
+ * \param l2 Loop to be compared with l1.
+ * \param level Current non-scalar dimension.
+ * \param scaldims Boolean array saying whether a dimension is scalar or not.
+ * \param nb_scattdims Size of the scaldims array.
+ * \param scalar Current scalar dimension.
+ * \return -1 if (l1 < l2), 0 if (l1 == l2) and +1 if (l1 > l2)
+ */
+int cloog_loop_constant_cmp(CloogLoop *l1, CloogLoop *l2, int level,
+	int *scaldims, int nb_scattdims, int scalar)
+{
+  CloogBlock *b1, *b2;
+  b1 = l1->inner->block;
+  b2 = l2->inner->block;
+  while (level + scalar <= nb_scattdims && scaldims[level+scalar-1]) {
+    int cmp = cloog_int_cmp(b1->scaldims[scalar], b2->scaldims[scalar]);
+    if (cmp)
+	return cmp;
+    scalar++;
+  }
+  return 0;
+}
+
+
+/**
  * cloog_loop_scalar_gt function:
  * This function returns 1 if loop 'l1' is greater than loop 'l2' for the
  * scalar dimension vector that begins at dimension 'scalar', 0 otherwise. What
@@ -1186,14 +1215,8 @@ CloogLoop * cloog_loop_stop(CloogLoop * loop, CloogDomain * context)
 int cloog_loop_scalar_gt(l1, l2, level, scaldims, nb_scattdims, scalar)
 CloogLoop * l1, * l2 ;
 int level, * scaldims, nb_scattdims, scalar ;
-{ while ((scalar < l1->inner->block->nb_scaldims) && scaldims[level+scalar-1])
-  { if (cloog_int_gt(l1->inner->block->scaldims[scalar],
-		     l2->inner->block->scaldims[scalar]))
-    scalar ++ ;
-    else
-    return 0 ;
-  }
-  return 1 ;
+{
+  return cloog_loop_constant_cmp(l1, l2, level, scaldims, nb_scattdims, scalar) > 0;
 }
 
 
