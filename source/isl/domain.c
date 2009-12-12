@@ -170,7 +170,7 @@ CloogDomain *cloog_domain_difference(CloogDomain *domain, CloogDomain *minus)
 
 /**
  * cloog_domain_sort function:
- * This function topologically sorts (nb_doms) domains. Here (doms) is a an
+ * This function topologically sorts (nb_doms) domains. Here (doms) is an
  * array of pointers to CloogDomains, (nb_doms) is the number of domains,
  * (level) is the level to consider for partial ordering (nb_par) is the
  * parameter space dimension, (permut) if not NULL, is an array of (nb_doms)
