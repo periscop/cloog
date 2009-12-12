@@ -602,6 +602,32 @@ CloogLoop *cloog_loop_restrict(CloogLoop *loop, CloogDomain *context)
 
 
 /**
+ * Call cloog_loop_restrict on each loop in the list "loop" and return
+ * the concatenated result.
+ */
+CloogLoop *cloog_loop_restrict_all(CloogLoop *loop, CloogDomain *context)
+{
+    CloogLoop *next;
+    CloogLoop *res = NULL;
+    CloogLoop **res_next = &res;
+
+    for (; loop; loop = next) {
+	next = loop->next;
+
+	*res_next = cloog_loop_restrict(loop, context);
+	if (*res_next) {
+	    res_next = &(*res_next)->next;
+	    cloog_loop_free_parts(loop, 1, 0, 0, 0);
+	} else {
+	    loop->next = NULL;
+	    cloog_loop_free(loop);
+	}
+    }
+
+    return res;
+}
+
+/**
  * cloog_loop_project function:
  * This function returns the projection of (loop) on the (level) first
  * dimensions (outer loops). It makes the projection of the (loop) domain,
@@ -628,6 +654,28 @@ CloogLoop * cloog_loop_project(CloogLoop * loop, int level)
 			      loop->state->zero, NULL, copy, NULL);
   
   return(new_loop) ;
+}
+
+
+/**
+ * Call cloog_loop_project on each loop in the list "loop" and return
+ * the concatenated result.
+ */
+CloogLoop *cloog_loop_project_all(CloogLoop *loop, int level)
+{
+    CloogLoop *next;
+    CloogLoop *res = NULL;
+    CloogLoop **res_next = &res;
+
+    for (; loop; loop = next) {
+	next = loop->next;
+
+	*res_next = cloog_loop_project(loop, level);
+	res_next = &(*res_next)->next;
+	cloog_loop_free_parts(loop, 0, 0, 0, 0);
+    }
+
+    return res;
 }
 
 
@@ -1685,51 +1733,35 @@ CloogLoop *cloog_loop_block(CloogLoop *loop, int *scaldims, int nb_scattdims)
 CloogLoop *cloog_loop_generate(CloogLoop *loop, CloogDomain *context,
 	int level, int scalar, int *scaldims, int nb_scattdims,
 	CloogOptions *options)
-{ CloogLoop * res, * now, * temp, * next, * old ;
-  
+{
   /* If the user asked to stop code generation at this level, let's stop. */
   if ((options->stop >= 0) && (level+scalar >= options->stop+1))
   return cloog_loop_stop(loop,context) ;
-
-  res = NULL ;  
   
   /* 1. Replace each polyhedron by its intersection with the context.
+   */
+  loop = cloog_loop_restrict_all(loop, context);
+  if (!loop)
+    return NULL;
+
+  /*
    * 2. Compute the projection of each polyhedron onto the outermost
    *    loop variable and the parameters.
    */
-  while (loop != NULL)
-  { next = loop->next ;
-    temp = cloog_loop_restrict(loop, context);
-    
-    if (temp != NULL)
-    { old = temp ;
-      temp = cloog_loop_project(temp, level);
-      cloog_loop_free_parts(old,0,0,0,0) ;
-      cloog_loop_add(&res,&now,temp) ;
-      cloog_loop_free_parts(loop,1,0,0,0) ;
-    }
-    else
-    { loop->next = NULL ;
-      cloog_loop_free(loop) ;
-    }
-    
-    loop = next ;
-  }
-  if (res == NULL)
-  return NULL ;
+  loop = cloog_loop_project_all(loop, level);
 
   /* To save both time and memory, we switch here depending on whether the
    * current dimension is scalar (simplified processing) or not (general
    * processing).
    */
   if (level_is_constant(level, scalar, scaldims, nb_scattdims))
-    res = cloog_loop_generate_scalar(res, level, scalar,
+    loop = cloog_loop_generate_scalar(loop, level, scalar,
 				     scaldims, nb_scattdims, options);
   else
-    res = cloog_loop_generate_general(res, level, scalar,
+    loop = cloog_loop_generate_general(loop, level, scalar,
 				      scaldims, nb_scattdims, options);
 
-  return res ;
+  return loop;
 }
 
 
