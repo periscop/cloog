@@ -103,9 +103,10 @@ CloogLoop * cloog_loop_read(CloogState *state,
  ******************************************************************************/
 CloogLoop * cloog_loop_block(CloogLoop *loop, int *scaldims, int nb_scattdims);
 CloogLoop * cloog_loop_malloc(CloogState *state);
-CloogLoop * cloog_loop_generate(CloogLoop *, CloogDomain *, int, int,
-                                int *, int, int, CloogOptions *) ;
-CloogLoop * cloog_loop_simplify(CloogLoop *, CloogDomain *, int, int) ;
+CloogLoop *cloog_loop_generate(CloogLoop *loop, CloogDomain *context,
+	int level, int scalar, int *scaldims, int nb_scattdims,
+	CloogOptions *options);
+CloogLoop *cloog_loop_simplify(CloogLoop *loop, CloogDomain *context, int level);
 void cloog_loop_scatter(CloogLoop *, CloogScattering *);
 
 

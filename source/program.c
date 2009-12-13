@@ -755,7 +755,6 @@ CloogOptions * options ;
     loop = cloog_loop_generate(loop, program->context, 0, 0,
                                program->scaldims,
 			       program->nb_scattdims,
-			       program->names->nb_parameters,
 			       options);
 			          
 #ifdef CLOOG_MEMORY
@@ -768,8 +767,7 @@ CloogOptions * options ;
 #endif
     
     if ((!options->nosimplify) && (program->loop != NULL))
-    loop = cloog_loop_simplify(loop,program->context,1,
-                               program->names->nb_parameters);
+      loop = cloog_loop_simplify(loop, program->context, 1);
    
     program->loop = loop ;
   }
