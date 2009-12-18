@@ -191,7 +191,8 @@ SPECIAL_OPTIONS = \
 	'equality -f -1 -l 2 -override' \
 	'equality2 -f -1 -l 4 -esp 1 -override' \
 	'stride -f -1 -strides 1' \
-	'stride2 -f -1 -strides 1'
+	'stride2 -f -1 -strides 1' \
+	'sor1d -f -1'
 
 EXTRA_DIST = \
 	$(CLOOGTEST_C:%=%.cloog) \
