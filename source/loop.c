@@ -548,7 +548,7 @@ CloogLoop * cloog_loop_disjoint(CloogLoop * loop)
 { CloogLoop *res=NULL, * now=NULL, * next ;
   
   /* Because this is often the case, don't waste time ! */
-  if ((loop != NULL) && cloog_domain_isconvex(loop->domain))
+  if (loop && !loop->next && cloog_domain_isconvex(loop->domain))
   return loop ;
 
   while (loop != NULL)
