@@ -1018,12 +1018,12 @@ int level, nb_par ;
        * and smaller, and each projection includes the preceding projection
        * (thus, in the target list, dimensions are added one by one).
        */
-      if (cloog_domain_dimension(p->domain) > level)
-      for (l = cloog_domain_dimension(p->domain) - 1; l >= level; l--)
-      { new_domain = cloog_domain_project(p->domain, l);
-        temp = cloog_loop_alloc(p->state, new_domain, p->state->one,
-				p->state->zero, NULL, temp, NULL);
-      }
+      if (cloog_domain_dimension(p->domain) >= level)
+	for (l = cloog_domain_dimension(p->domain); l >= level; l--) {
+	  new_domain = cloog_domain_project(p->domain, l);
+	  temp = cloog_loop_alloc(p->state, new_domain, p->state->one,
+				  p->state->zero, NULL, temp, NULL);
+	}
 
        /* p is no more useful (but its content yes !). */ 
       cloog_loop_free_parts(p,0,0,0,0) ;
