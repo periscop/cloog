@@ -1000,6 +1000,8 @@ int level, nb_par ;
   CloogLoop * p, * temp, * res, * now, * next ;
   CloogDomain * new_domain ;
 
+  loop = cloog_loop_disjoint(loop);
+
   res = NULL ;
   /* Each domain is changed by its intersection with the context. */
   while (loop != NULL)
