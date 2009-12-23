@@ -1406,6 +1406,16 @@ CloogLoop *cloog_loop_generate_backtrack(CloogLoop *loop,
 
 
 /**
+ * Return 1 if we need to continue recursing to the specified level.
+ */
+int cloog_loop_more(CloogLoop *loop, int level, int scalar, int nb_scattdims)
+{
+  return level + scalar <= nb_scattdims ||
+	 cloog_domain_dimension(loop->domain) >= level;
+}
+ 
+
+/**
  * cloog_loop_generate_general function:
  * Adaptation from LoopGen 0.4 by F. Quillere. This function implements the
  * Quillere algorithm for polyhedron scanning from step 3 to 5.
@@ -1455,10 +1465,10 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
     into = NULL ;
     while (inner != NULL)
     { /* 4b. -ced- recurse for each sub-list of non terminal loops. */
-      if (cloog_domain_dimension(inner->domain) > level)
-      { end = inner ;
+      if (cloog_loop_more(inner, level + 1, scalar, nb_scattdims)) {
+	end = inner;
         while ((end->next != NULL) &&
-               (cloog_domain_dimension(end->next->domain) > level))
+               cloog_loop_more(end->next, level + 1, scalar, nb_scattdims))
         end = end->next ;
         
 	next = end->next ;
@@ -1547,9 +1557,12 @@ CloogLoop *cloog_loop_generate_scalar(CloogLoop *loop,
 	int level, int scalar, int *scaldims, int nb_scattdims,
 	CloogOptions *options)
 { CloogLoop * res, * now, * temp, * l, * end, * next, * ref ;
-  
+  int scalar_new;
+
   /* We sort the loop list with respect to the current scalar vector. */
   res = cloog_loop_scalar_sort(loop,level,scaldims,nb_scattdims,scalar) ;
+
+  scalar_new = scalar + scaldims[level + scalar - 1];
   
   temp = res ;
   res = NULL ;
@@ -1561,6 +1574,7 @@ CloogLoop *cloog_loop_generate_scalar(CloogLoop *loop,
     ref = temp ;
     
     while((end->next != NULL) &&
+	 cloog_loop_more(end->next, level, scalar_new, nb_scattdims) &&
          cloog_loop_scalar_eq(ref,end->next,level,scaldims,nb_scattdims,scalar))
     end = end->next ;
 
@@ -1570,12 +1584,14 @@ CloogLoop *cloog_loop_generate_scalar(CloogLoop *loop,
     /* For the next dimension, scalar value is updated by adding the scalar
      * vector size, which is stored at scaldims[level+scalar-1].
      */
-    l = cloog_loop_generate_restricted(temp, level,
-                                    scalar+scaldims[level+scalar-1],
-	                            scaldims, nb_scattdims, options);
+    if (cloog_loop_more(temp, level, scalar_new, nb_scattdims)) {
+      l = cloog_loop_generate_restricted(temp, level, scalar_new,
+				      scaldims, nb_scattdims, options);
 
-    if (l != NULL)
-    cloog_loop_add_list(&res,&now,l) ;
+      if (l != NULL)
+	cloog_loop_add_list(&res, &now, l);
+    } else
+      cloog_loop_add(&res, &now, temp);
       
     temp = next ;
   }

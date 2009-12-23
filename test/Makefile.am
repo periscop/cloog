@@ -106,6 +106,7 @@ FINITE_CLOOGTEST_C =                   \
 	no_lindep                      \
 	orc                            \
 	rectangle                      \
+	singleton                      \
 	square+triangle-1-1-2-3        \
 	swim                           \
 	test                           \
