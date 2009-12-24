@@ -239,6 +239,26 @@ void cloog_domain_sort(CloogDomain **doms, unsigned nb_doms, unsigned level,
 
 
 /**
+ * Check whether there is or may be any value of dom1 at the given level
+ * that is greater than or equal to a value of dom2 at the same level.
+ *
+ * Return
+ *	 1 is there is or may be a greater-than pair.
+ *	 0 if there is no greater-than pair, but there may be an equal-to pair
+ *	-1 if there is definitely no such pair
+ */
+int cloog_domain_follows(CloogDomain *dom1, CloogDomain *dom2, unsigned level)
+{
+	int follows;
+
+	follows = isl_set_follows_at(&dom1->set, &dom2->set, level - 1);
+	assert(follows >= -1);
+
+	return follows;
+}
+
+
+/**
  * cloog_domain_empty function:
  * Returns an empty domain of the same dimensions as template.
  */

@@ -1727,6 +1727,270 @@ CloogLoop *cloog_loop_block(CloogLoop *loop, int *scaldims, int nb_scattdims)
 }
 
 
+/**
+ * Check whether for any fixed iteration of the outer loops,
+ * there is an iteration of loop1 that is lexicographically greater
+ * than an iteration of loop2.
+ * Return 1 if there exists (or may exist) such a pair.
+ * Return 0 if all iterations of loop1 are lexicographically smaller
+ * than the iterations of loop2.
+ * If no iteration is lexicographically greater, but if there are
+ * iterations that are equal to iterations of loop2, then return "def".
+ * This is useful for ensuring that such statements are not reordered.
+ * Some users, including the test_run target in test, expect
+ * the statements at a given point to be run in the original order.
+ * Passing the value "0" for "def" would allow such statements to be reordered
+ * and would allow for the detection of more components.
+ */
+int cloog_loop_follows(CloogLoop *loop1, CloogLoop *loop2,
+	int level, int scalar, int *scaldims, int nb_scattdims, int def)
+{
+    int dim1, dim2;
+
+    dim1 = cloog_domain_dimension(loop1->domain);
+    dim2 = cloog_domain_dimension(loop2->domain);
+    while ((level <= dim1 && level <= dim2) ||
+	   level_is_constant(level, scalar, scaldims, nb_scattdims)) {
+	if (level_is_constant(level, scalar, scaldims, nb_scattdims)) {
+	    int cmp = cloog_loop_constant_cmp(loop1, loop2, level, scaldims,
+					    nb_scattdims, scalar);
+	    if (cmp > 0)
+		return 1;
+	    if (cmp < 0)
+		return 0;
+	    scalar += scaldims[level + scalar - 1];
+	} else {
+	    int follows = cloog_domain_follows(loop1->domain, loop2->domain,
+						level);
+	    if (follows > 0)
+		return 1;
+	    if (follows < 0)
+		return 0;
+	    level++;
+	}
+    }
+
+    return def;
+}
+
+
+/* Structure for representing the nodes in the graph being traversed
+ * using Tarjan's algorithm.
+ * index represents the order in which nodes are visited.
+ * min_index is the index of the root of a (sub)component.
+ * on_stack indicates whether the node is currently on the stack.
+ */
+struct cloog_loop_sort_node {
+    int index;
+    int min_index;
+    int on_stack;
+};
+/* Structure for representing the graph being traversed
+ * using Tarjan's algorithm.
+ * len is the number of nodes
+ * node is an array of nodes
+ * stack contains the nodes on the path from the root to the current node
+ * sp is the stack pointer
+ * index is the index of the last node visited
+ * order contains the elements of the components separated by -1
+ * op represents the current position in order
+ */
+struct cloog_loop_sort {
+    int len;
+    struct cloog_loop_sort_node *node;
+    int *stack;
+    int sp;
+    int index;
+    int *order;
+    int op;
+};
+
+/* Allocate and initialize cloog_loop_sort structure.
+ */
+static struct cloog_loop_sort *cloog_loop_sort_alloc(int len)
+{
+    struct cloog_loop_sort *s;
+    int i;
+
+    s = (struct cloog_loop_sort *)malloc(sizeof(struct cloog_loop_sort));
+    assert(s);
+    s->len = len;
+    s->node = (struct cloog_loop_sort_node *)
+			malloc(len * sizeof(struct cloog_loop_sort_node));
+    assert(s->node);
+    for (i = 0; i < len; ++i)
+	s->node[i].index = -1;
+    s->stack = (int *)malloc(len * sizeof(int));
+    assert(s->stack);
+    s->order = (int *)malloc(2 * len * sizeof(int));
+    assert(s->order);
+
+    s->sp = 0;
+    s->index = 0;
+    s->op = 0;
+
+    return s;
+}
+
+/* Free cloog_loop_sort structure.
+ */
+static void cloog_loop_sort_free(struct cloog_loop_sort *s)
+{
+    free(s->node);
+    free(s->stack);
+    free(s->order);
+    free(s);
+}
+
+
+/* Perform Tarjan's algorithm for computing the strongly connected components
+ * in the graph with the individual CloogLoops as vertices.
+ * Two CloogLoops appear in the same component if some iterations of
+ * each loop should be executed before some iterations of the other loop.
+ * If two CloogLoops have exactly the same iteration domain, then they
+ * are also placed in the same component.
+ */
+static void cloog_loop_components_tarjan(struct cloog_loop_sort *s,
+	CloogLoop **loop_array, int i, int level, int scalar, int *scaldims,
+	int nb_scattdims)
+{
+    int j;
+
+    s->node[i].index = s->index;
+    s->node[i].min_index = s->index;
+    s->node[i].on_stack = 1;
+    s->index++;
+    s->stack[s->sp++] = i;
+
+    for (j = s->len - 1; j >= 0; --j) {
+	int f;
+
+	if (j == i)
+	    continue;
+	if (s->node[j].index >= 0 &&
+		(!s->node[j].on_stack ||
+		 s->node[j].index > s->node[i].min_index))
+	    continue;
+
+	f = cloog_domain_lazy_equal(loop_array[i]->domain, loop_array[j]->domain);
+	if (!f)
+	    f = cloog_loop_follows(loop_array[i]->inner, loop_array[j]->inner,
+				level, scalar, scaldims, nb_scattdims, i > j);
+	if (!f)
+	    continue;
+
+	if (s->node[j].index < 0) {
+	    cloog_loop_components_tarjan(s, loop_array, j, level, scalar,
+					 scaldims, nb_scattdims);
+	    if (s->node[j].min_index < s->node[i].min_index)
+		s->node[i].min_index = s->node[j].min_index;
+	} else if (s->node[j].index < s->node[i].min_index)
+		s->node[i].min_index = s->node[j].index;
+    }
+
+    if (s->node[i].index != s->node[i].min_index)
+	return;
+
+    do {
+	j = s->stack[--s->sp];
+	s->node[j].on_stack = 0;
+	s->order[s->op++] = j;
+    } while (j != i);
+    s->order[s->op++] = -1;
+}
+
+
+static int qsort_index_cmp(const void *p1, const void *p2)
+{
+    return *(int *)p1 - *(int *)p2;
+}
+
+/* Sort the elements of the component starting at list.
+ * The list is terminated by a -1.
+ */
+static void sort_component(int *list)
+{
+    int len;
+
+    for (len = 0; list[len] != -1; ++len)
+	;
+
+    qsort(list, len, sizeof(int), qsort_index_cmp);
+}
+
+
+/**
+ * Call cloog_loop_generate_scalar or cloog_loop_generate_general
+ * on each of the strongly connected components in the list of CloogLoops
+ * pointed to by "loop".
+ *
+ * We use Tarjan's algorithm to find the strongly connected components.
+ * Note that this algorithm also topologically sorts the components.
+ *
+ * The components are treated separately to avoid spurious separations.
+ * The concatentation of the results may contain successive loops
+ * with the same bounds, so we try to combine such loops.
+ */
+CloogLoop *cloog_loop_generate_components(CloogLoop *loop,
+	int level, int scalar, int *scaldims, int nb_scattdims,
+	CloogOptions *options)
+{
+    int i, nb_loops;
+    CloogLoop *tmp, **tmp_next;
+    CloogLoop *res, **res_next;
+    CloogLoop **loop_array;
+    struct cloog_loop_sort *s;
+
+    if (level == 0 || !loop->next)
+	return cloog_loop_generate_general(loop, level, scalar,
+					     scaldims, nb_scattdims, options);
+
+    nb_loops = cloog_loop_count(loop);
+
+    loop_array = (CloogLoop **)malloc(nb_loops * sizeof(CloogLoop *));
+    assert(loop_array);
+
+    for (i = 0, tmp = loop; i < nb_loops; i++, tmp = tmp->next)
+	loop_array[i] = tmp;
+
+    s = cloog_loop_sort_alloc(nb_loops);
+    for (i = nb_loops - 1; i >= 0; --i) {
+	if (s->node[i].index >= 0)
+	    continue;
+	cloog_loop_components_tarjan(s, loop_array, i, level, scalar, scaldims,
+					nb_scattdims);
+    }
+
+    i = 0;
+    res = NULL;
+    res_next = &res;
+    while (nb_loops) {
+	tmp_next = &tmp;
+	sort_component(&s->order[i]);
+	while (s->order[i] != -1) {
+	    *tmp_next = loop_array[s->order[i]];
+	    tmp_next = &(*tmp_next)->next;
+	    --nb_loops;
+	    ++i;
+	}
+	++i;
+	*tmp_next = NULL;
+	*res_next = cloog_loop_generate_general(tmp, level, scalar,
+					     scaldims, nb_scattdims, options);
+    	while (*res_next)
+	    res_next = &(*res_next)->next;
+    }
+
+    cloog_loop_sort_free(s);
+
+    free(loop_array);
+
+    res = cloog_loop_combine(res);
+
+    return res;
+}
+
+
 CloogLoop *cloog_loop_generate_restricted(CloogLoop *loop,
 	int level, int scalar, int *scaldims, int nb_scattdims,
 	CloogOptions *options)
@@ -1744,8 +2008,8 @@ CloogLoop *cloog_loop_generate_restricted(CloogLoop *loop,
    */
   loop = cloog_loop_project_all(loop, level);
 
-  return cloog_loop_generate_general(loop, level, scalar,
-				      scaldims, nb_scattdims, options);
+  return cloog_loop_generate_components(loop, level, scalar, scaldims,
+					nb_scattdims, options);
 }
 
 

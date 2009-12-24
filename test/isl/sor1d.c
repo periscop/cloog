@@ -1,4 +1,4 @@
-/* Generated from /home/skimo/git/cloog/test/sor1d.cloog by CLooG 0.14.0-226-g3fc65ac gmp bits in 0.22s. */
+/* Generated from ../../../git/cloog/test/sor1d.cloog by CLooG 0.14.0-238-gb1cb779 gmp bits in 0.26s. */
 if ((M >= 1) && (N >= 3)) {
   for (glT1=-1;glT1<=floord(3*M+N-5,100);glT1++) {
     for (rp1=max(max(0,ceild(100*glT1-2*M-N+5,100)),ceild(100*glT1-N-193,300));rp1<=min(min(floord(glT1+1,3),floord(M,100)),glT1);rp1++) {
@@ -7,12 +7,10 @@ if ((M >= 1) && (N >= 3)) {
           S3(glT1-rp1,rp1-1,rp1,100*rp1-1,-200*rp1+vT1+6);
         }
         for (vP1=max(max(1,ceild(vT1-N+5,2)),100*rp1);vP1<=min(min(floord(vT1+2,2),M),100*rp1+99);vP1++) {
-          if (glT1 >= ceild(9850*rp1-49*vT1-98,50)) {
-            S1(glT1-rp1,rp1,vP1,vT1-2*vP1+4);
-          }
-          if ((rp1 <= min(floord(M-100,100),floord(vT1-197,200))) && (100*rp1 == vP1-99)) {
-            S2(glT1-rp1,rp1,rp1+1,100*rp1+99,-200*rp1+vT1-194);
-          }
+          S1(glT1-rp1,rp1,vP1,vT1-2*vP1+4);
+        }
+        if (rp1 <= min(floord(M-100,100),floord(vT1-197,200))) {
+          S2(glT1-rp1,rp1,rp1+1,100*rp1+99,-200*rp1+vT1-194);
         }
       }
     }

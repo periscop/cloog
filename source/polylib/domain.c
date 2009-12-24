@@ -584,6 +584,23 @@ void cloog_domain_sort(CloogDomain **doms, unsigned nb_doms, unsigned level,
 
 
 /**
+ * Check whether there is or may be any value of dom1 at the given level
+ * that is greater than or equal to a value of dom2 at the same level.
+ *
+ * Return
+ *	 1 is there is or may be a greater-than pair.
+ *	 0 if there is no greater-than pair, but there may be an equal-to pair
+ *	-1 if there is definitely no such pair
+ *
+ * In fact, just return 1.
+ */
+int cloog_domain_follows(CloogDomain *dom1, CloogDomain *dom2, unsigned level)
+{
+	return 1;
+}
+
+
+/**
  * cloog_domain_empty function:
  * This function allocates the memory space for a CloogDomain structure and
  * sets its polyhedron to an empty polyhedron with the same dimensions

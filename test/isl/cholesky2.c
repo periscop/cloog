@@ -1,4 +1,4 @@
-/* Generated from /home/skimo/git/cloog/test/cholesky2.cloog by CLooG 0.14.0-226-g17d80b7 gmp bits in 0.04s. */
+/* Generated from ../../../git/cloog/test/cholesky2.cloog by CLooG 0.14.0-238-gb1cb779 gmp bits in 0.04s. */
 if (M >= 1) {
   if (M >= 2) {
     for (c2=1;c2<=M-1;c2++) {
@@ -40,11 +40,11 @@ if (M >= 1) {
     if (c1%3 == 0) {
       S2((c1+3)/3,c1/3);
     }
-    if ((c1+1)%3 == 0) {
-      S6((c1+1)/3,(c1+4)/3);
-    }
     if (c1%3 == 0) {
       S2((c1+6)/3,c1/3);
+    }
+    if ((c1+1)%3 == 0) {
+      S6((c1+1)/3,(c1+4)/3);
     }
     for (c2=ceild(c1+7,3);c2<=M;c2++) {
       if ((c1+1)%3 == 0) {
