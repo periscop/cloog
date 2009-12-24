@@ -1,4 +1,4 @@
-/* Generated from /home/skimo/git/cloog/test/vivien.cloog by CLooG 0.14.0-225-g6e2d019 gmp bits in 0.25s. */
+/* Generated from /home/skimo/git/cloog/test/vivien.cloog by CLooG 0.14.0-234-g701a13d gmp bits in 0.25s. */
 if (n >= 0) {
   for (p1=-54*n+4;p1<=4;p1++) {
     if (p1%2 == 0) {
@@ -28,6 +28,12 @@ if (n >= 0) {
     S3(2);
     S2(3,1);
   }
+  if (n == 3) {
+    S4(2,3);
+    S5(2,3,1);
+    S6(2,3);
+    S1(4);
+  }
   if (n >= 4) {
     S4(2,3);
     S4(1,4);
@@ -36,15 +42,15 @@ if (n >= 0) {
     S1(4);
     S6(1,4);
   }
-  if (n == 3) {
-    S4(2,3);
-    S5(2,3,1);
-    S6(2,3);
-    S1(4);
-  }
   if (n == 4) {
     S2(4,1);
     S2(3,2);
+  }
+  if (n == 4) {
+    S4(2,4);
+    S5(2,4,1);
+    S6(2,4);
+    S1(5);
   }
   for (p1=11;p1<=min(13,2*n+2);p1++) {
     if (p1 == 12) {
@@ -79,12 +85,6 @@ if (n >= 0) {
     S3(3);
     S2(5,1);
     S2(4,2);
-  }
-  if (n == 4) {
-    S4(2,4);
-    S5(2,4,1);
-    S6(2,4);
-    S1(5);
   }
   for (p1=14;p1<=2*n+2;p1++) {
     p2 = floord(-p1+5,4);
