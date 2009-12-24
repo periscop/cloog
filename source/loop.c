@@ -916,6 +916,17 @@ CloogLoop * cloog_loop_merge(CloogLoop * loop, CloogOptions * options)
 }
 
 
+static int cloog_loop_count(CloogLoop *loop)
+{
+    int nb_loops;
+
+    for (nb_loops = 0; loop; loop = loop->next)
+	nb_loops++;
+
+    return  nb_loops;
+}
+
+
 /**
  * cloog_loop_sort function:
  * Adaptation from LoopGen 0.4 by F. Quillere. This function sorts a list of
@@ -924,7 +935,8 @@ CloogLoop * cloog_loop_merge(CloogLoop * loop, CloogOptions * options)
  * - September 16th 2005: inclusion of cloog_loop_number (October 29th 2001).
  */ 
 CloogLoop *cloog_loop_sort(CloogLoop *loop, int level)
-{ CloogLoop * res, * now, * temp, ** loop_array ;
+{
+  CloogLoop *res, *now, **loop_array;
   CloogDomain **doms;
   int i, nb_loops=0, * permut ;
 
@@ -933,11 +945,7 @@ CloogLoop *cloog_loop_sort(CloogLoop *loop, int level)
     return loop;
   
   /* We will need to know how many loops are in the list. */
-  temp = loop ;
-  while (temp != NULL)
-  { nb_loops ++ ;
-    temp = temp->next ;
-  }
+  nb_loops = cloog_loop_count(loop);
 
   /* If there is only one loop, it's the end. */
   if (nb_loops == 1)
