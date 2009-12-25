@@ -1163,6 +1163,12 @@ CloogLoop * cloog_loop_stop(CloogLoop * loop, CloogDomain * context)
 }
 
 
+static int level_is_constant(int level, int scalar, int *scaldims, int nb_scattdims)
+{
+  return level && (level+scalar <= nb_scattdims) && (scaldims[level+scalar-1]);
+}
+
+
 /**
  * Compare the constant dimensions of loops 'l1' and 'l2' starting at 'scalar'
  * and return -1 if the vector of constant dimensions of 'l1' is smaller
@@ -1182,7 +1188,7 @@ int cloog_loop_constant_cmp(CloogLoop *l1, CloogLoop *l2, int level,
   CloogBlock *b1, *b2;
   b1 = l1->inner->block;
   b2 = l2->inner->block;
-  while (level + scalar <= nb_scattdims && scaldims[level+scalar-1]) {
+  while (level_is_constant(level, scalar, scaldims, nb_scattdims)) {
     int cmp = cloog_int_cmp(b1->scaldims[scalar], b2->scaldims[scalar]);
     if (cmp)
 	return cmp;
@@ -1716,7 +1722,7 @@ CloogLoop *cloog_loop_generate(CloogLoop *loop, CloogDomain *context,
    * current dimension is scalar (simplified processing) or not (general
    * processing).
    */
-  if (level && (level+scalar <= nb_scattdims) && (scaldims[level+scalar-1]))
+  if (level_is_constant(level, scalar, scaldims, nb_scattdims))
     res = cloog_loop_generate_scalar(res, level, scalar,
 				     scaldims, nb_scattdims, options);
   else
