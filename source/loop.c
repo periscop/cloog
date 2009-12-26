@@ -1704,6 +1704,31 @@ CloogLoop *cloog_loop_block(CloogLoop *loop, int *scaldims, int nb_scattdims)
 }
 
 
+CloogLoop *cloog_loop_generate_restricted(CloogLoop *loop,
+	int level, int scalar, int *scaldims, int nb_scattdims,
+	CloogOptions *options)
+{
+  /*
+   * 2. Compute the projection of each polyhedron onto the outermost
+   *    loop variable and the parameters.
+   */
+  loop = cloog_loop_project_all(loop, level);
+
+  /* To save both time and memory, we switch here depending on whether the
+   * current dimension is scalar (simplified processing) or not (general
+   * processing).
+   */
+  if (level_is_constant(level, scalar, scaldims, nb_scattdims))
+    loop = cloog_loop_generate_scalar(loop, level, scalar,
+				     scaldims, nb_scattdims, options);
+  else
+    loop = cloog_loop_generate_general(loop, level, scalar,
+				      scaldims, nb_scattdims, options);
+
+  return loop;
+}
+
+
 /**
  * cloog_loop_generate function:
  * Adaptation from LoopGen 0.4 by F. Quillere. This function implements the
@@ -1744,24 +1769,8 @@ CloogLoop *cloog_loop_generate(CloogLoop *loop, CloogDomain *context,
   if (!loop)
     return NULL;
 
-  /*
-   * 2. Compute the projection of each polyhedron onto the outermost
-   *    loop variable and the parameters.
-   */
-  loop = cloog_loop_project_all(loop, level);
-
-  /* To save both time and memory, we switch here depending on whether the
-   * current dimension is scalar (simplified processing) or not (general
-   * processing).
-   */
-  if (level_is_constant(level, scalar, scaldims, nb_scattdims))
-    loop = cloog_loop_generate_scalar(loop, level, scalar,
-				     scaldims, nb_scattdims, options);
-  else
-    loop = cloog_loop_generate_general(loop, level, scalar,
-				      scaldims, nb_scattdims, options);
-
-  return loop;
+  return cloog_loop_generate_restricted(loop, level, scalar, scaldims,
+  				nb_scattdims, options);
 }
 
 
