@@ -1288,7 +1288,7 @@ int level, * scaldims, nb_scattdims, scalar ;
  * - July    31th 2002: (debug) no more parasite loops (REALLY hard !). 
  * - October 30th 2005: extraction from cloog_loop_generate_general.
  */
-CloogLoop *cloog_loop_generate_backtrack(CloogLoop *loop, CloogDomain *context,
+CloogLoop *cloog_loop_generate_backtrack(CloogLoop *loop,
 	int level, CloogOptions *options)
 {
   CloogDomain * domain ;
@@ -1347,8 +1347,6 @@ CloogLoop *cloog_loop_generate_backtrack(CloogLoop *loop, CloogDomain *context,
  * Quillere algorithm for polyhedron scanning from step 3 to 5.
  * (see the Quillere paper).
  * - loop is the loop for which we have to generate a scanning code,
- * - context is the context of the current loop (constraints on parameter and/or
- *   on outer loop counters),
  * - level is the current non-scalar dimension,
  * - scalar is the current scalar dimension,
  * - scaldims is the boolean array saying whether a dimension is scalar or not,
@@ -1366,7 +1364,7 @@ CloogLoop *cloog_loop_generate_backtrack(CloogLoop *loop, CloogDomain *context,
  *                        be a list of polyhedra (especially if stop option is
  *                        used): cloog_loop_add_list instead of cloog_loop_add.
  */ 
-CloogLoop *cloog_loop_generate_general(CloogLoop *loop, CloogDomain *context,
+CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
 	int level, int scalar, int *scaldims, int nb_scattdims,
 	CloogOptions *options)
 {
@@ -1441,7 +1439,7 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop, CloogDomain *context,
   if ((!options->nobacktrack) && level &&
       ((level+scalar < options->l) || (options->l < 0)) &&
       ((options->f <= level+scalar) && !(options->f < 0)))
-  res = cloog_loop_generate_backtrack(res, context, level, options);
+  res = cloog_loop_generate_backtrack(res, level, options);
   
   /* Pray for my new paper to be accepted somewhere since the following stuff
    * is really amazing :-) !
@@ -1451,7 +1449,7 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop, CloogDomain *context,
    * Later again: OK, I get my academic position, but still I have not enough
    * time to fix and clean this part... Pray again :-) !!!
    */
-  /* res = cloog_loop_unisolate(res,context,level) ;*/
+  /* res = cloog_loop_unisolate(res,level) ;*/
 
   return(res) ;
 }
@@ -1468,8 +1466,6 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop, CloogDomain *context,
  * for the vector of scalar dimension that begins at dimension 'level+scalar'
  * and finish to the first non-scalar dimension.
  * - loop is the loop for which we have to generate a scanning code,
- * - context is the context of the current loop (constraints on parameter and/or
- *   on outer loop counters),
  * - level is the current non-scalar dimension,
  * - scalar is the current scalar dimension,
  * - scaldims is the boolean array saying whether a dimension is scalar or not,
@@ -1478,7 +1474,7 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop, CloogDomain *context,
  **
  * - September  2nd 2005: First version.
  */ 
-CloogLoop *cloog_loop_generate_scalar(CloogLoop *loop, CloogDomain *context,
+CloogLoop *cloog_loop_generate_scalar(CloogLoop *loop,
 	int level, int scalar, int *scaldims, int nb_scattdims,
 	CloogOptions *options)
 { CloogLoop * res, * now, * temp, * l, * end, * next, * ref ;
@@ -1505,7 +1501,7 @@ CloogLoop *cloog_loop_generate_scalar(CloogLoop *loop, CloogDomain *context,
     /* For the next dimension, scalar value is updated by adding the scalar
      * vector size, which is stored at scaldims[level+scalar-1].
      */
-    l = cloog_loop_generate_general(temp,context,level,
+    l = cloog_loop_generate_general(temp, level,
                                     scalar+scaldims[level+scalar-1],
 	                            scaldims, nb_scattdims, options);
 
@@ -1713,11 +1709,11 @@ CloogLoop *cloog_loop_generate(CloogLoop *loop, CloogDomain *context,
    * processing).
    */
   if (level && (level+scalar <= nb_scattdims) && (scaldims[level+scalar-1]))
-  res = cloog_loop_generate_scalar(res,context,level,scalar,
-                                   scaldims, nb_scattdims, options);
+    res = cloog_loop_generate_scalar(res, level, scalar,
+				     scaldims, nb_scattdims, options);
   else
-  res = cloog_loop_generate_general(res,context,level,scalar,
-                                    scaldims, nb_scattdims, options);
+    res = cloog_loop_generate_general(res, level, scalar,
+				      scaldims, nb_scattdims, options);
 
   return res ;
 }
