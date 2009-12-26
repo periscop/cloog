@@ -1222,6 +1222,8 @@ static int level_is_constant(int level, int scalar, int *scaldims, int nb_scattd
  * and return -1 if the vector of constant dimensions of 'l1' is smaller
  * than that of 'l2', 0 if they are the same and +1 if that of 'l1' is
  * greater than that of 'l2'.
+ * This function should be called on the innermost loop (the loop
+ * containing a block).
  * \param l1 Loop to be compared with l2.
  * \param l2 Loop to be compared with l1.
  * \param level Current non-scalar dimension.
@@ -1234,8 +1236,8 @@ int cloog_loop_constant_cmp(CloogLoop *l1, CloogLoop *l2, int level,
 	int *scaldims, int nb_scattdims, int scalar)
 {
   CloogBlock *b1, *b2;
-  b1 = l1->inner->block;
-  b2 = l2->inner->block;
+  b1 = l1->block;
+  b2 = l2->block;
   while (level_is_constant(level, scalar, scaldims, nb_scattdims)) {
     int cmp = cloog_int_cmp(b1->scaldims[scalar], b2->scaldims[scalar]);
     if (cmp)
@@ -1517,6 +1519,11 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
 }
 
 
+CloogLoop *cloog_loop_generate_restricted(CloogLoop *loop,
+	int level, int scalar, int *scaldims, int nb_scattdims,
+	CloogOptions *options);
+
+
 /**
  * cloog_loop_generate_scalar function:
  * This function applies the simplified code generation scheme in the trivial
@@ -1563,7 +1570,7 @@ CloogLoop *cloog_loop_generate_scalar(CloogLoop *loop,
     /* For the next dimension, scalar value is updated by adding the scalar
      * vector size, which is stored at scaldims[level+scalar-1].
      */
-    l = cloog_loop_generate_general(temp, level,
+    l = cloog_loop_generate_restricted(temp, level,
                                     scalar+scaldims[level+scalar-1],
 	                            scaldims, nb_scattdims, options);
 
@@ -1708,24 +1715,21 @@ CloogLoop *cloog_loop_generate_restricted(CloogLoop *loop,
 	int level, int scalar, int *scaldims, int nb_scattdims,
 	CloogOptions *options)
 {
+  /* To save both time and memory, we switch here depending on whether the
+   * current dimension is scalar (simplified processing) or not (general
+   * processing).
+   */
+  if (level_is_constant(level, scalar, scaldims, nb_scattdims))
+    return cloog_loop_generate_scalar(loop, level, scalar,
+                                   scaldims, nb_scattdims, options);
   /*
    * 2. Compute the projection of each polyhedron onto the outermost
    *    loop variable and the parameters.
    */
   loop = cloog_loop_project_all(loop, level);
 
-  /* To save both time and memory, we switch here depending on whether the
-   * current dimension is scalar (simplified processing) or not (general
-   * processing).
-   */
-  if (level_is_constant(level, scalar, scaldims, nb_scattdims))
-    loop = cloog_loop_generate_scalar(loop, level, scalar,
-				     scaldims, nb_scattdims, options);
-  else
-    loop = cloog_loop_generate_general(loop, level, scalar,
+  return cloog_loop_generate_general(loop, level, scalar,
 				      scaldims, nb_scattdims, options);
-
-  return loop;
 }
 
 
