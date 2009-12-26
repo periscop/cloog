@@ -1240,14 +1240,8 @@ int level, * scaldims, nb_scattdims, scalar ;
 int cloog_loop_scalar_eq(l1, l2, level, scaldims, nb_scattdims, scalar)
 CloogLoop * l1, * l2 ;
 int level, * scaldims, nb_scattdims, scalar ;
-{ while ((scalar < l1->inner->block->nb_scaldims) && scaldims[level+scalar-1])
-  { if (cloog_int_eq(l1->inner->block->scaldims[scalar],
-		     l2->inner->block->scaldims[scalar]))
-    scalar ++ ;
-    else
-    return 0 ;
-  }
-  return 1 ;
+{
+  return cloog_loop_constant_cmp(l1, l2, level, scaldims, nb_scattdims, scalar) == 0;
 }
 
 
