@@ -1,13 +1,7 @@
 #ifndef CLOOG_STATE_H
 #define CLOOG_STATE_H
 
-#if defined(CLOOG_POLYLIB)
-#include <cloog/polylib/backend.h>
-#elif defined(CLOOG_ISL)
-#include <cloog/isl/backend.h>
-#else
 struct cloogbackend;
-#endif
 typedef struct cloogbackend CloogBackend;
 
 #if defined(__cplusplus)

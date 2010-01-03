@@ -20,19 +20,21 @@ extern "C"
  *  Matrix;
  */
 
-typedef Matrix CloogConstraintSet;
+struct cloogconstraintset {
+	Matrix M;
+};
 
 struct cloogequalities {
 	CloogConstraintSet	*constraints;
 	int			*types;
 };
-typedef struct cloogequalities CloogEqualities;
 
 struct cloogconstraint {
 	CloogConstraintSet	*set;
 	Value			**line;
 };
-typedef struct cloogconstraint CloogConstraint;
+
+CloogConstraintSet *cloog_constraint_set_from_polylib_matrix(Matrix *M);
 
 
 /******************************************************************************

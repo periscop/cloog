@@ -139,7 +139,8 @@ Matrix * cloog_domain_domain2polylib_matrix(CloogDomain * domain)
 
 CloogConstraintSet *cloog_domain_constraints(CloogDomain *domain)
 {
-	return cloog_domain_domain2polylib_matrix(domain);
+	return cloog_constraint_set_from_polylib_matrix(
+			cloog_domain_domain2polylib_matrix(domain));
 }
 
 

@@ -8,7 +8,9 @@ extern "C"
   {
 #endif 
 
-typedef struct isl_basic_set CloogConstraintSet;
+struct cloogconstraintset {
+	struct isl_basic_set bset;
+};
 
 struct cloogequalities {
 	int			  n;
@@ -16,9 +18,13 @@ struct cloogequalities {
 	CloogConstraintSet	**constraints;
 	int			 *types;
 };
-typedef struct cloogequalities CloogEqualities;
 
-typedef struct isl_constraint *CloogConstraint;
+struct cloogconstraint {
+	struct isl_constraint isl;
+};
+
+CloogConstraintSet *cloog_constraint_set_from_isl_basic_set(struct isl_basic_set *bset);
+CloogConstraint *cloog_constraint_from_isl_constraint(struct isl_constraint *constraint);
 
 #if defined(__cplusplus)
   }

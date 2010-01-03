@@ -37,7 +37,7 @@ static int clast_reduction_cmp(struct clast_reduction *r1,
 
 static int clast_equal_add(CloogEqualities *equal,
 				CloogConstraintSet *constraints,
-				int level, CloogConstraint constraint,
+				int level, CloogConstraint *constraint,
 				CloogInfos *infos);
 
 static struct clast_stmt *clast_equal(int level, CloogInfos *infos);
@@ -46,10 +46,10 @@ static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
 					CloogInfos *infos);
 static void insert_guard(CloogConstraintSet *constraints, int level,
 			  struct clast_stmt ***next, CloogInfos *infos);
-static int insert_modulo_guard(CloogConstraint upper,
-				CloogConstraint lower, int level,
+static int insert_modulo_guard(CloogConstraint *upper,
+				CloogConstraint *lower, int level,
 			        struct clast_stmt ***next, CloogInfos *infos);
-static int insert_equation(CloogConstraint upper, CloogConstraint lower,
+static int insert_equation(CloogConstraint *upper, CloogConstraint *lower,
 			 int level, struct clast_stmt ***next, CloogInfos *infos);
 static int insert_for(CloogConstraintSet *constraints, int level,
 			struct clast_stmt ***next, CloogInfos *infos);
@@ -505,7 +505,7 @@ static int clast_equal_allow(CloogEqualities *equal, int level, int line,
  */
 static int clast_equal_add(CloogEqualities *equal,
 				CloogConstraintSet *constraints,
-				int level, CloogConstraint constraint,
+				int level, CloogConstraint *constraint,
 				CloogInfos *infos)
 {
     cloog_equal_add(equal, constraints, level, constraint,
@@ -537,7 +537,7 @@ static struct clast_stmt *clast_equal(int level, CloogInfos *infos)
   struct clast_stmt *a = NULL;
   struct clast_stmt **next = &a;
   CloogEqualities *equal = infos->equal;
-  CloogConstraint equal_constraint;
+  CloogConstraint *equal_constraint;
 
   for (i=infos->names->nb_scattering;i<level-1;i++)
   { if (cloog_equal_type(equal, i+1)) {
@@ -573,7 +573,7 @@ static struct clast_stmt *clast_equal(int level, CloogInfos *infos)
  * - November 2nd 2001: first version. 
  * - June    27th 2003: 64 bits version ready.
  */
-struct clast_expr *clast_bound_from_constraint(CloogConstraint constraint,
+struct clast_expr *clast_bound_from_constraint(CloogConstraint *constraint,
 					       int level, CloogNames *names)
 { 
   int i, sign, nb_elts=0, len;
@@ -727,7 +727,7 @@ static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
 				       CloogInfos *infos)
 { int n;
   struct clast_reduction *r;
-  CloogConstraint constraint;
+  CloogConstraint *constraint;
   
   n = 0;
   for (constraint = cloog_constraint_first(constraints);
@@ -773,7 +773,7 @@ static void insert_extra_modulo_guards(CloogConstraintSet *constraints,
     int i;
     int nb_iter;
     int total_dim;
-    CloogConstraint upper, lower;
+    CloogConstraint *upper, *lower;
 
     total_dim = cloog_constraint_set_total_dimension(constraints);
     nb_iter = cloog_constraint_set_n_iterators(constraints,
@@ -838,7 +838,7 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
   int i, guarded, minmax=-1, nb_and = 0, nb_iter ;
   int total_dim;
   CloogConstraintSet *copy;
-  CloogConstraint j, l;
+  CloogConstraint *j, *l;
   struct clast_guard *g;
 
   if (constraints == NULL)
@@ -933,7 +933,7 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
  * The constant is assumed to have been reduced prior to calling
  * this function.
  */
-static int constant_modulo_guard_is_satisfied(CloogConstraint lower,
+static int constant_modulo_guard_is_satisfied(CloogConstraint *lower,
 	cloog_int_t bound, cloog_int_t cst)
 {
     if (cloog_constraint_is_valid(lower))
@@ -947,7 +947,7 @@ static int constant_modulo_guard_is_satisfied(CloogConstraint lower,
  * depending on whether lower represents a valid constraint.
  */
 static void insert_computed_modulo_guard(struct clast_reduction *r,
-	CloogConstraint lower, cloog_int_t mod, cloog_int_t bound,
+	CloogConstraint *lower, cloog_int_t mod, cloog_int_t bound,
 	struct clast_stmt ***next)
 {
     struct clast_expr *e;
@@ -988,8 +988,8 @@ static void insert_computed_modulo_guard(struct clast_reduction *r,
  *   the number of parameters in matrix (nb_par), and the arrays of iterator
  *   names and parameters (iters and params). 
  */
-static int insert_modulo_guard(CloogConstraint upper,
-				CloogConstraint lower, int level,
+static int insert_modulo_guard(CloogConstraint *upper,
+				CloogConstraint *lower, int level,
 				struct clast_stmt ***next, CloogInfos *infos)
 {
   int i, nb_elts = 0, len, len2, nb_iter, in_stride = 0, nb_par;
@@ -1150,7 +1150,7 @@ static int insert_modulo_guard(CloogConstraint upper,
  * - July 14th 2003: (debug) no more print the constant in the modulo guard when
  *                   it was previously included in a stride calculation.
  */
-static int insert_equation(CloogConstraint upper, CloogConstraint lower,
+static int insert_equation(CloogConstraint *upper, CloogConstraint *lower,
 			    int level, struct clast_stmt ***next, CloogInfos *infos)
 {
   struct clast_expr *e;
@@ -1354,7 +1354,7 @@ static void insert_loop(CloogLoop * loop, int level,
     int equality = 0;
     CloogConstraintSet *constraints, *temp;
     struct clast_stmt **top = *next;
-    CloogConstraint i, j;
+    CloogConstraint *i, *j;
     int empty_loop = 0;
 
     /* It can happen that loop be NULL when an input polyhedron is empty. */

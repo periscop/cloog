@@ -38,16 +38,12 @@
 #ifndef CLOOG_CONSTRAINTS_H
 #define CLOOG_CONSTRAINTS_H
 
-#if defined(CLOOG_POLYLIB)
-#include <cloog/polylib/constraintset.h>
-#elif defined(CLOOG_ISL)
-#include <cloog/isl/constraintset.h>
-#else
+struct cloogconstraint;
+typedef struct cloogconstraint CloogConstraint;
 struct cloogconstraintset;
 typedef struct cloogconstraintset CloogConstraintSet;
 struct cloogequalities;
 typedef struct cloogequalities CloogEqualities;
-#endif
 
 #if defined(__cplusplus)
 extern "C" 
@@ -78,48 +74,44 @@ int           cloog_constraint_set_n_iterators(CloogConstraintSet *constraints,
 CloogConstraintSet *cloog_constraint_set_copy(CloogConstraintSet *);
 CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *, CloogEqualities *, int, int);
 
-#if defined(CLOOG_POLYLIB) || defined(CLOOG_ISL)
-
-CloogConstraintSet *cloog_constraint_set_for_reduction(CloogConstraint upper,
-	       CloogConstraint lower);
+CloogConstraintSet *cloog_constraint_set_for_reduction(CloogConstraint *upper,
+	       CloogConstraint *lower);
 CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	int level, CloogEqualities *equal, int nb_par, cloog_int_t *bound);
-CloogConstraint cloog_constraint_first(CloogConstraintSet *constraints);
-int             cloog_constraint_is_valid(CloogConstraint constraint);
-CloogConstraint cloog_constraint_next(CloogConstraint constraint);
-CloogConstraint cloog_constraint_copy(CloogConstraint constraint);
-void            cloog_constraint_release(CloogConstraint constraint);
-CloogConstraint cloog_constraint_invalid(void);
-int             cloog_constraint_total_dimension(CloogConstraint constraint);
+CloogConstraint *cloog_constraint_first(CloogConstraintSet *constraints);
+int              cloog_constraint_is_valid(CloogConstraint *constraint);
+CloogConstraint *cloog_constraint_next(CloogConstraint *constraint);
+CloogConstraint *cloog_constraint_copy(CloogConstraint *constraint);
+void             cloog_constraint_release(CloogConstraint *constraint);
+CloogConstraint *cloog_constraint_invalid(void);
+int              cloog_constraint_total_dimension(CloogConstraint *constraint);
 
-CloogConstraint cloog_equal_constraint(CloogEqualities *equal, int j);
-void            cloog_equal_add(CloogEqualities *equal,
+CloogConstraint *cloog_equal_constraint(CloogEqualities *equal, int j);
+void             cloog_equal_add(CloogEqualities *equal,
 				  CloogConstraintSet *constraints,
-				  int level, CloogConstraint line, int nb_par);
+				  int level, CloogConstraint *line, int nb_par);
 
-CloogConstraint cloog_constraint_set_defining_equality(
+CloogConstraint *cloog_constraint_set_defining_equality(
 			CloogConstraintSet *constraints, int level);
-CloogConstraint cloog_constraint_set_defining_inequalities(
+CloogConstraint *cloog_constraint_set_defining_inequalities(
 			CloogConstraintSet *constraints,
-			int level, CloogConstraint *lower, int nb_parameters);
-int           cloog_constraint_involves(CloogConstraint constraint, int v);
-int           cloog_constraint_is_lower_bound(CloogConstraint constraint, int v);
-int           cloog_constraint_is_upper_bound(CloogConstraint constraint, int v);
-int           cloog_constraint_is_equality(CloogConstraint constraint);
-void          cloog_constraint_constant_get(CloogConstraint constraint,
+			int level, CloogConstraint **lower, int nb_parameters);
+int           cloog_constraint_involves(CloogConstraint *constraint, int v);
+int           cloog_constraint_is_lower_bound(CloogConstraint *constraint, int v);
+int           cloog_constraint_is_upper_bound(CloogConstraint *constraint, int v);
+int           cloog_constraint_is_equality(CloogConstraint *constraint);
+void          cloog_constraint_constant_get(CloogConstraint *constraint,
 			cloog_int_t *val);
-void          cloog_constraint_coefficient_get(CloogConstraint constraint,
+void          cloog_constraint_coefficient_get(CloogConstraint *constraint,
 			int var, cloog_int_t *val);
-void          cloog_constraint_coefficient_set(CloogConstraint constraint,
+void          cloog_constraint_coefficient_set(CloogConstraint *constraint,
 			int var, cloog_int_t val);
-void          cloog_constraint_clear(CloogConstraint constraint);
-void          cloog_constraint_copy_coefficients(CloogConstraint constraint,
+void          cloog_constraint_clear(CloogConstraint *constraint);
+void          cloog_constraint_copy_coefficients(CloogConstraint *constraint,
 			cloog_int_t *dst);
 
-struct clast_expr *cloog_constraint_variable_expr(CloogConstraint constraint,
+struct clast_expr *cloog_constraint_variable_expr(CloogConstraint *constraint,
 			int level, CloogNames *names);
-
-#endif
 
 #if defined(__cplusplus)
   }

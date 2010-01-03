@@ -47,6 +47,12 @@
 #define ALLOCN(type,n) (type*)malloc((n)*sizeof(type))
 
 
+CloogConstraintSet *cloog_constraint_set_from_polylib_matrix(Matrix *M)
+{
+	return (CloogConstraintSet *)M;
+}
+
+
 /******************************************************************************
  *                              PolyLib interface                             *
  ******************************************************************************/
@@ -82,13 +88,13 @@ void cloog_polylib_matrix_free(Matrix * matrix)
 
 void cloog_constraint_set_free(CloogConstraintSet *constraints)
 {
-	cloog_polylib_matrix_free(constraints);
+	cloog_polylib_matrix_free(&constraints->M);
 }
 
 int cloog_constraint_set_contains_level(CloogConstraintSet *constraints,
 			int level, int nb_parameters)
 {
-	return constraints->NbColumns - 2 - nb_parameters >= level;
+	return constraints->M.NbColumns - 2 - nb_parameters >= level;
 }
 
 /* Check if the variable at position level is defined by an
@@ -98,18 +104,19 @@ int cloog_constraint_set_contains_level(CloogConstraintSet *constraints,
  * PolyLib can give more than one equality, we use just the first one
  * (this is a PolyLib problem, but all equalities are equivalent).
  */
-CloogConstraint cloog_constraint_set_defining_equality(CloogConstraintSet *matrix, int level)
+CloogConstraint *cloog_constraint_set_defining_equality(CloogConstraintSet *constraints, int level)
 {
-	CloogConstraint constraint;
+	CloogConstraint *constraint = ALLOC(CloogConstraint);
 	int i;
 
-	constraint.set = matrix;
-	for (i = 0; i < matrix->NbRows; i++)
-		if (value_zero_p(matrix->p[i][0]) &&
-		    value_notzero_p(matrix->p[i][level])) {
-			constraint.line = &matrix->p[i];
+	constraint->set = constraints;
+	for (i = 0; i < constraints->M.NbRows; i++)
+		if (value_zero_p(constraints->M.p[i][0]) &&
+		    value_notzero_p(constraints->M.p[i][level])) {
+			constraint->line = &constraints->M.p[i];
 			return constraint;
 		    }
+	free(constraint);
 	return cloog_constraint_invalid();
 }
 
@@ -145,17 +152,16 @@ static int Vector_Opposite(Value *p1, Value *p2, unsigned len)
  * guards corresponding to the other constraints, and this has not
  * been implemented yet.
  */
-CloogConstraint cloog_constraint_set_defining_inequalities(CloogConstraintSet *matrix,
-	int level, CloogConstraint *lower, int nb_par)
+CloogConstraint *cloog_constraint_set_defining_inequalities(CloogConstraintSet *constraints,
+	int level, CloogConstraint **lower, int nb_par)
 {
 	int i, j, k;
 	Value m;
+	Matrix *matrix = &constraints->M;
 	unsigned len = matrix->NbColumns - 2;
 	unsigned nb_iter = len - nb_par;
-	CloogConstraint constraint;
+	CloogConstraint *constraint;
 
-	constraint.set = matrix;
-	lower->set = matrix;
 	for (i = 0; i < matrix->NbRows; i++) {
 		if (value_zero_p(matrix->p[i][level]))
 			continue;
@@ -196,12 +202,16 @@ CloogConstraint cloog_constraint_set_defining_inequalities(CloogConstraintSet *m
 			for (k = j+1; k < matrix->NbRows; ++k)
 				if (value_notzero_p(matrix->p[k][level]))
 					return cloog_constraint_invalid();
+			*lower = ALLOC(CloogConstraint);
+			constraint = ALLOC(CloogConstraint);
+			(*lower)->set = constraints;
+			constraint->set = constraints;
 			if (value_pos_p(matrix->p[i][level])) {
-				lower->line = &matrix->p[i];
-				constraint.line = &matrix->p[j];
+				(*lower)->line = &matrix->p[i];
+				constraint->line = &matrix->p[j];
 			} else {
-				lower->line = &matrix->p[j];
-				constraint.line = &matrix->p[i];
+				(*lower)->line = &matrix->p[j];
+				constraint->line = &matrix->p[i];
 			}
 			return constraint;
 		}
@@ -211,7 +221,7 @@ CloogConstraint cloog_constraint_set_defining_inequalities(CloogConstraintSet *m
 
 int cloog_constraint_set_total_dimension(CloogConstraintSet *constraints)
 {
-	return constraints->NbColumns - 2;
+	return constraints->M.NbColumns - 2;
 }
 
 int cloog_constraint_set_n_iterators(CloogConstraintSet *constraint, int nb_par)
@@ -224,9 +234,9 @@ int cloog_equal_total_dimension(CloogEqualities *equal)
 	return cloog_constraint_set_total_dimension(equal->constraints);
 }
 
-int cloog_constraint_total_dimension(CloogConstraint constraint)
+int cloog_constraint_total_dimension(CloogConstraint *constraint)
 {
-	return cloog_constraint_set_total_dimension(constraint.set);
+	return cloog_constraint_set_total_dimension(constraint->set);
 }
 
 /**
@@ -366,7 +376,8 @@ CloogEqualities *cloog_equal_alloc(int n, int nb_levels,
     int i;
     CloogEqualities *equal = ALLOC(CloogEqualities);
 
-    equal->constraints = cloog_polylib_matrix_alloc(n, nb_levels + nb_parameters + 1);
+    equal->constraints = cloog_constraint_set_from_polylib_matrix(
+		cloog_polylib_matrix_alloc(n, nb_levels + nb_parameters + 1));
     equal->types = ALLOCN(int, n);
     for (i = 0; i < n; ++i)
 	equal->types[i] = EQTYPE_NONE;
@@ -375,14 +386,14 @@ CloogEqualities *cloog_equal_alloc(int n, int nb_levels,
 
 void cloog_equal_free(CloogEqualities *equal)
 {
-    cloog_polylib_matrix_free(equal->constraints);
+    cloog_polylib_matrix_free(&equal->constraints->M);
     free(equal->types);
     free(equal);
 }
 
 int cloog_equal_count(CloogEqualities *equal)
 {
-    return equal->constraints->NbRows;
+    return equal->constraints->M.NbRows;
 }
 
 CloogConstraintSet *cloog_equal_constraints(CloogEqualities *equal)
@@ -412,12 +423,12 @@ CloogConstraintSet *cloog_equal_constraints(CloogEqualities *equal)
  *                      ONE_TIME_LOOP is -1, an invalid read was possible.
  * - October 19th 2005: Removal of the once-time-loop specific processing.
  */
-static int cloog_constraint_equal_type(CloogConstraint constraint, int level)
+static int cloog_constraint_equal_type(CloogConstraint *constraint, int level)
 { 
   int i, one=0 ;
   Value * expr ;
     
-  expr = *constraint.line;
+  expr = *constraint->line;
   
   if (value_notone_p(expr[level]) && value_notmone_p(expr[level]))
     return EQTYPE_EXAFFINE;
@@ -425,7 +436,7 @@ static int cloog_constraint_equal_type(CloogConstraint constraint, int level)
   /* There is only one non null factor, and it must be +1 or -1 for
    * iterators or parameters.
    */ 
-  for (i=1;i<=constraint.set->NbColumns-2;i++)
+  for (i = 1;i <= constraint->set->M.NbColumns-2; i++)
   if (value_notzero_p(expr[i]) && (i != level))
   { if ((value_notone_p(expr[i]) && value_notmone_p(expr[i])) || (one != 0))
     return EQTYPE_EXAFFINE ;
@@ -434,7 +445,7 @@ static int cloog_constraint_equal_type(CloogConstraint constraint, int level)
   }
   /* if the constant factor is non null, it must be alone. */
   if (one != 0)
-  { if (value_notzero_p(expr[constraint.set->NbColumns-1]))
+  { if (value_notzero_p(expr[constraint->set->M.NbColumns-1]))
     return EQTYPE_EXAFFINE ;
   }
   else
@@ -478,22 +489,22 @@ static void cloog_equal_update(CloogEqualities *equal, int level, int nb_par)
   { /* if the corresponding iterator is inside the current equality and is equal
      * to something,
      */
-    if (value_notzero_p(equal->constraints->p[level-1][i+1]) && equal->types[i])
+    if (value_notzero_p(equal->constraints->M.p[level-1][i+1]) && equal->types[i])
     { /* Compute the Greatest Common Divisor. */ 
-      Gcd(equal->constraints->p[level-1][i+1],
-	  equal->constraints->p[i][i+1], &gcd);
+      Gcd(equal->constraints->M.p[level-1][i+1],
+	  equal->constraints->M.p[i][i+1], &gcd);
       
       /* Compute the factors to apply to each row vector element. */
-      value_division(factor_level, equal->constraints->p[i][i+1], gcd);
-      value_division(factor_outer, equal->constraints->p[level-1][i+1], gcd);
+      value_division(factor_level, equal->constraints->M.p[i][i+1], gcd);
+      value_division(factor_outer, equal->constraints->M.p[level-1][i+1], gcd);
             
       /* Now update the row 'level'. */
       /* - the iterators, up to level, */
       for (j=1;j<=level;j++)
       { value_multiply(temp_level, factor_level,
-			equal->constraints->p[level-1][j]);
-        value_multiply(temp_outer, factor_outer, equal->constraints->p[i][j]);
-        value_substract(equal->constraints->p[level-1][j], temp_level, temp_outer);
+			equal->constraints->M.p[level-1][j]);
+        value_multiply(temp_outer, factor_outer, equal->constraints->M.p[i][j]);
+        value_substract(equal->constraints->M.p[level-1][j], temp_level, temp_outer);
       }
       /* - between last useful iterator (level) and the first parameter, the
        *   matrix is sparse (full of zeroes), we just do nothing there. 
@@ -501,20 +512,20 @@ static void cloog_equal_update(CloogEqualities *equal, int level, int nb_par)
        */
       for (j=0;j<nb_par+1;j++)
       { value_multiply(temp_level,factor_level,
-                       equal->constraints->p[level-1]
-					    [equal->constraints->NbColumns-j-1]);
+                       equal->constraints->M.p[level-1]
+					[equal->constraints->M.NbColumns-j-1]);
         value_multiply(temp_outer,factor_outer,
-                       equal->constraints->p[i][equal->constraints->NbColumns-j-1]);
-        value_substract(equal->constraints->p[level-1]
-					     [equal->constraints->NbColumns-j-1],
+                       equal->constraints->M.p[i][equal->constraints->M.NbColumns-j-1]);
+        value_substract(equal->constraints->M.p[level-1]
+					 [equal->constraints->M.NbColumns-j-1],
 	               temp_level,temp_outer) ;
       }
     }
   }
   
   /* Normalize (divide by GCD of all elements) the updated equality. */
-  Vector_Normalize(&(equal->constraints->p[level-1][1]),
-			equal->constraints->NbColumns-1);
+  Vector_Normalize(&(equal->constraints->M.p[level-1][1]),
+			equal->constraints->M.NbColumns-1);
 
   value_clear(gcd);
   value_clear(temp_level);
@@ -537,19 +548,20 @@ static void cloog_equal_update(CloogEqualities *equal, int level, int nb_par)
  * - July     2nd 2002: first version. 
  * - October 19th 2005: Addition of the once-time-loop specific processing.
  */
-void cloog_equal_add(CloogEqualities *equal, CloogConstraintSet *matrix,
-			int level, CloogConstraint line, int nb_par)
+void cloog_equal_add(CloogEqualities *equal, CloogConstraintSet *constraints,
+			int level, CloogConstraint *line, int nb_par)
 { 
   int j;
-  CloogConstraint i;
+  CloogConstraint *i = cloog_constraint_invalid();
+  Matrix *matrix = &constraints->M;
 
   /* If we are in the case of a loop running once, this means that the equality
    * comes from an inequality. Here we find this inequality.
    */
   if (!cloog_constraint_is_valid(line))
-  { for (i = cloog_constraint_first(matrix);
+  { for (i = cloog_constraint_first(constraints);
 	 cloog_constraint_is_valid(i); i = cloog_constraint_next(i))
-    if ((value_notzero_p(i.line[0][0]))&& (value_notzero_p(i.line[0][level])))
+    if ((value_notzero_p(i->line[0][0]))&& (value_notzero_p(i->line[0][level])))
     { line = i ;
       
       /* Since in once-time-loops, equalities derive from inequalities, we
@@ -560,16 +572,16 @@ void cloog_equal_add(CloogEqualities *equal, CloogConstraintSet *matrix,
        * parameters) the once time loop would not have been detected
        * because of floord and ceild functions.
        */
-      if (value_ne_si(i.line[0][level],1) &&
-          value_ne_si(i.line[0][level],-1) &&
-	  value_notzero_p(i.line[0][matrix->NbColumns-1])) {
+      if (value_ne_si(i->line[0][level],1) &&
+          value_ne_si(i->line[0][level],-1) &&
+	  value_notzero_p(i->line[0][matrix->NbColumns-1])) {
 	cloog_int_t denominator;
         
 	cloog_int_init(denominator);
-	cloog_int_abs(denominator, i.line[0][level]);
-	cloog_int_fdiv_q(i.line[0][matrix->NbColumns-1],
-			 i.line[0][matrix->NbColumns-1], denominator);
-	cloog_int_set_si(i.line[0][level], cloog_int_sgn(i.line[0][level]));
+	cloog_int_abs(denominator, i->line[0][level]);
+	cloog_int_fdiv_q(i->line[0][matrix->NbColumns-1],
+			 i->line[0][matrix->NbColumns-1], denominator);
+	cloog_int_set_si(i->line[0][level], cloog_int_sgn(i->line[0][level]));
 	cloog_int_clear(denominator);
       }
             
@@ -586,11 +598,13 @@ void cloog_equal_add(CloogEqualities *equal, CloogConstraintSet *matrix,
    *   (the iterators up to level, then the parameters and the scalar).
    */
   for (j=1;j<=level;j++)
-      value_assign(equal->constraints->p[level-1][j], line.line[0][j]);
+      value_assign(equal->constraints->M.p[level-1][j], line->line[0][j]);
   for (j = 0; j < nb_par + 1; j++)
-      value_assign(equal->constraints->p[level-1][equal->constraints->NbColumns-j-1],
-		   line.line[0][line.set->NbColumns-j-1]);
+      value_assign(equal->constraints->M.p[level-1][equal->constraints->M.NbColumns-j-1],
+		   line->line[0][line->set->M.NbColumns-j-1]);
   
+  if (cloog_constraint_is_valid(i))
+    cloog_constraint_release(line);
   cloog_equal_update(equal, level, nb_par);
 }
 
@@ -632,9 +646,10 @@ void cloog_equal_del(CloogEqualities *equal, int level)
  * - November 4th 2005: Complete rewriting, simpler and faster. It is no more an
  *                      adaptation from URGent. 
  */
-void cloog_constraint_set_normalize(CloogConstraintSet *matrix, int level)
+void cloog_constraint_set_normalize(CloogConstraintSet *constraints, int level)
 { int ref, i, j ;
   Value factor_i, factor_ref, temp_i, temp_ref, gcd ;
+  Matrix *matrix = &constraints->M;
     
   if (matrix == NULL)
   return ;
@@ -696,9 +711,10 @@ void cloog_constraint_set_normalize(CloogConstraintSet *matrix, int level)
  * Matrix data structure.
  * - October 26th 2005: first version.
  */
-CloogConstraintSet *cloog_constraint_set_copy(CloogConstraintSet *matrix)
+CloogConstraintSet *cloog_constraint_set_copy(CloogConstraintSet *constraints)
 { int i, j ;
   Matrix * copy ;
+  Matrix *matrix = &constraints->M;
 
   copy = cloog_polylib_matrix_alloc(matrix->NbRows,matrix->NbColumns) ;
   
@@ -706,7 +722,7 @@ CloogConstraintSet *cloog_constraint_set_copy(CloogConstraintSet *matrix)
   for (j=0;j<matrix->NbColumns;j++)
   value_assign(copy->p[i][j],matrix->p[i][j]) ;
   
-  return copy ;
+  return cloog_constraint_set_from_polylib_matrix(copy);
 }
 
 
@@ -788,10 +804,10 @@ Value *cloog_equal_vector_simplify(CloogEqualities *equal, Value *vector,
   { /* if the coefficient in not null, and there exists a useful equality */
     if ((value_notzero_p(simplified[i])) && equal->types[i-1])
     { /* Compute the Greatest Common Divisor. */ 
-      Gcd(simplified[i], equal->constraints->p[i-1][i], &gcd);
+      Gcd(simplified[i], equal->constraints->M.p[i-1][i], &gcd);
       
       /* Compute the factors to apply to each row vector element. */
-      value_division(factor_vector, equal->constraints->p[i-1][i], gcd);
+      value_division(factor_vector, equal->constraints->M.p[i-1][i], gcd);
       value_division(factor_equal,simplified[i],gcd) ;
       
       /* We are simplifying an inequality: factor_vector must not be <0. */
@@ -804,7 +820,7 @@ Value *cloog_equal_vector_simplify(CloogEqualities *equal, Value *vector,
       /* - the iterators, up to the current level, */
       for (j=1;j<=length-nb_par-2;j++)
       { value_multiply(temp_vector,factor_vector,simplified[j]) ;
-        value_multiply(temp_equal, factor_equal, equal->constraints->p[i-1][j]);
+        value_multiply(temp_equal, factor_equal, equal->constraints->M.p[i-1][j]);
         value_substract(simplified[j],temp_vector,temp_equal) ;
       }
       /* - between last useful iterator (i) and the first parameter, the equal
@@ -814,7 +830,7 @@ Value *cloog_equal_vector_simplify(CloogEqualities *equal, Value *vector,
       for (j=0;j<nb_par+1;j++)
       { value_multiply(temp_vector,factor_vector,simplified[length-1-j]) ;
         value_multiply(temp_equal,factor_equal,
-		 equal->constraints->p[i-1][equal->constraints->NbColumns-j-1]);
+	     equal->constraints->M.p[i-1][equal->constraints->M.NbColumns-j-1]);
         value_substract(simplified[length-1-j],temp_vector,temp_equal) ;
       }
     }
@@ -848,11 +864,12 @@ Value *cloog_equal_vector_simplify(CloogEqualities *equal, Value *vector,
  **
  * - November 4th 2005: first version.
  */
-CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *matrix,
+CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *constraints,
 	CloogEqualities *equal, int level, int nb_par)
 { int i, j, k ;
   Value * vector ;
   Matrix * simplified ;
+  Matrix *matrix = &constraints->M;
   
   if (matrix == NULL)
   return NULL ;
@@ -887,7 +904,7 @@ CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *matrix,
     }
   }
   
-  return simplified ;
+  return cloog_constraint_set_from_polylib_matrix(simplified);
 }
 
 
@@ -895,7 +912,7 @@ CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *matrix,
  * Return clast_expr corresponding to the variable "level" (1 based) in
  * the given constraint.
  */
-struct clast_expr *cloog_constraint_variable_expr(CloogConstraint constraint,
+struct clast_expr *cloog_constraint_variable_expr(CloogConstraint *constraint,
 	int level, CloogNames *names)
 {
 	int total_dim, nb_iter;
@@ -916,49 +933,49 @@ struct clast_expr *cloog_constraint_variable_expr(CloogConstraint constraint,
 /**
  * Return true if constraint c involves variable v (zero-based).
  */
-int cloog_constraint_involves(CloogConstraint constraint, int v)
+int cloog_constraint_involves(CloogConstraint *constraint, int v)
 {
-	return value_notzero_p(constraint.line[0][1+v]);
+	return value_notzero_p(constraint->line[0][1+v]);
 }
 
-int cloog_constraint_is_lower_bound(CloogConstraint constraint, int v)
+int cloog_constraint_is_lower_bound(CloogConstraint *constraint, int v)
 {
-	return value_pos_p(constraint.line[0][1+v]);
+	return value_pos_p(constraint->line[0][1+v]);
 }
 
-int cloog_constraint_is_upper_bound(CloogConstraint constraint, int v)
+int cloog_constraint_is_upper_bound(CloogConstraint *constraint, int v)
 {
-	return value_neg_p(constraint.line[0][1+v]);
+	return value_neg_p(constraint->line[0][1+v]);
 }
 
-int cloog_constraint_is_equality(CloogConstraint constraint)
+int cloog_constraint_is_equality(CloogConstraint *constraint)
 {
-	return value_zero_p(constraint.line[0][0]);
+	return value_zero_p(constraint->line[0][0]);
 }
 
-void cloog_constraint_clear(CloogConstraint constraint)
+void cloog_constraint_clear(CloogConstraint *constraint)
 {
 	int k;
 
-	for (k = 1; k <= constraint.set->NbColumns - 2; k++)
-		value_set_si(constraint.line[0][k], 0);
+	for (k = 1; k <= constraint->set->M.NbColumns - 2; k++)
+		value_set_si(constraint->line[0][k], 0);
 }
 
-void cloog_constraint_coefficient_get(CloogConstraint constraint,
+void cloog_constraint_coefficient_get(CloogConstraint *constraint,
 			int var, Value *val)
 {
-	value_assign(*val, constraint.line[0][1+var]);
+	value_assign(*val, constraint->line[0][1+var]);
 }
 
-void cloog_constraint_coefficient_set(CloogConstraint constraint,
+void cloog_constraint_coefficient_set(CloogConstraint *constraint,
 			int var, Value val)
 {
-	value_assign(constraint.line[0][1+var], val);
+	value_assign(constraint->line[0][1+var], val);
 }
 
-void cloog_constraint_constant_get(CloogConstraint constraint, cloog_int_t *val)
+void cloog_constraint_constant_get(CloogConstraint *constraint, cloog_int_t *val)
 {
-	value_assign(*val, constraint.line[0][constraint.set->NbColumns-1]);
+	value_assign(*val, constraint->line[0][constraint->set->M.NbColumns-1]);
 }
 
 /**
@@ -966,23 +983,20 @@ void cloog_constraint_constant_get(CloogConstraint constraint, cloog_int_t *val)
  * i.e., first the coefficients of the variables, then the coefficients
  * of the parameters and finally the constant.
  */
-void cloog_constraint_copy_coefficients(CloogConstraint constraint,
+void cloog_constraint_copy_coefficients(CloogConstraint *constraint,
 					cloog_int_t *dst)
 {
-	Vector_Copy(constraint.line[0]+1, dst, constraint.set->NbColumns-1);
+	Vector_Copy(constraint->line[0]+1, dst, constraint->set->M.NbColumns-1);
 }
 
-CloogConstraint cloog_constraint_invalid(void)
+CloogConstraint *cloog_constraint_invalid(void)
 {
-	CloogConstraint c;
-	c.set = NULL;
-	c.line = NULL;
-	return c;
+	return NULL;
 }
 
-int cloog_constraint_is_valid(CloogConstraint constraint)
+int cloog_constraint_is_valid(CloogConstraint *constraint)
 {
-	return constraint.set != NULL && constraint.line != NULL;
+	return constraint != NULL;
 }
 
 /**
@@ -994,13 +1008,14 @@ int cloog_constraint_is_valid(CloogConstraint constraint)
  * the upper bound.  The reduction will not change the stride so there
  * will be no need to recompute the bound on the modulo expression.
  */
-CloogConstraintSet *cloog_constraint_set_for_reduction(CloogConstraint upper,
-	 CloogConstraint lower)
+CloogConstraintSet *cloog_constraint_set_for_reduction(CloogConstraint *upper,
+	 CloogConstraint *lower)
 {
 	CloogConstraintSet *set;
 
-	set = cloog_polylib_matrix_alloc(1, upper.set->NbColumns);
-	Vector_Copy(upper.line[0], set->p[0], set->NbColumns);
+	set = cloog_constraint_set_from_polylib_matrix(
+		cloog_polylib_matrix_alloc(1, upper->set->M.NbColumns));
+	Vector_Copy(upper->line[0], set->M.p[0], set->M.NbColumns);
 	return set;
 }
 
@@ -1066,7 +1081,7 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
   struct cloog_vec *line_vector2;
   cloog_int_t *line, *line2, val, x, y, g;
 
-  len = constraints->NbColumns;
+  len = constraints->M.NbColumns;
   len2 = cloog_equal_total_dimension(equal) + 2;
   nb_iter = len - 2 - nb_par;
 
@@ -1078,7 +1093,7 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
   line_vector2 = cloog_vec_alloc(len2);
   line2 = line_vector2->p;
 
-  line = constraints->p[0];
+  line = constraints->M.p[0];
   if (cloog_int_is_pos(line[level]))
     cloog_seq_neg(line+1, line+1, len-1);
   cloog_int_neg(line[level], line[level]);
@@ -1098,7 +1113,7 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
      * with smaller index.
      */
     for (j = level-1; j >= 0; --j) {
-      CloogConstraint equal_constraint;
+      CloogConstraint *equal_constraint;
       if (cloog_equal_type(equal, j+1) != EQTYPE_EXAFFINE)
 	continue;
       equal_constraint = cloog_equal_constraint(equal, j);
@@ -1156,40 +1171,44 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
   return constraints;
 }
 
-CloogConstraint cloog_constraint_first(CloogConstraintSet *constraints)
+CloogConstraint *cloog_constraint_first(CloogConstraintSet *constraints)
 {
-	CloogConstraint c;
-	if (constraints->NbRows == 0)
+	CloogConstraint *c;
+	if (constraints->M.NbRows == 0)
 		return cloog_constraint_invalid();
-	c.set = constraints;
-	c.line = &constraints->p[0];
+	c = ALLOC(CloogConstraint);
+	c->set = constraints;
+	c->line = &constraints->M.p[0];
 	return c;
 }
 
-CloogConstraint cloog_constraint_next(CloogConstraint constraint)
+CloogConstraint *cloog_constraint_next(CloogConstraint *constraint)
 {
-	CloogConstraint c = constraint;
-	c.line++;
-	if (c.line == c.set->p + c.set->NbRows) {
-		c.line = NULL;
-		c.set = NULL;
+	constraint->line++;
+	if (constraint->line == constraint->set->M.p + constraint->set->M.NbRows) {
+		cloog_constraint_release(constraint);
+		return NULL;
 	}
-	return c;
-}
-
-CloogConstraint cloog_constraint_copy(CloogConstraint constraint)
-{
 	return constraint;
 }
 
-void cloog_constraint_release(CloogConstraint constraint)
+CloogConstraint *cloog_constraint_copy(CloogConstraint *constraint)
 {
+	CloogConstraint *c = ALLOC(CloogConstraint);
+	c->set = constraint->set;
+	c->line = constraint->line;
+	return c;
 }
 
-CloogConstraint cloog_equal_constraint(CloogEqualities *equal, int j)
+void cloog_constraint_release(CloogConstraint *constraint)
 {
-	CloogConstraint c;
-	c.set = equal->constraints;
-	c.line = &equal->constraints->p[j];
+	free(constraint);
+}
+
+CloogConstraint *cloog_equal_constraint(CloogEqualities *equal, int j)
+{
+	CloogConstraint *c = ALLOC(CloogConstraint);
+	c->set = equal->constraints;
+	c->line = &equal->constraints->M.p[j];
 	return c;
 }

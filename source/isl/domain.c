@@ -37,7 +37,8 @@ int cloog_scattering_fully_specified(CloogScattering *scattering,
 CloogConstraintSet *cloog_domain_constraints(CloogDomain *domain)
 {
 	assert(domain->set.n == 1);
-	return isl_basic_set_copy(domain->set.p[0]);
+	return cloog_constraint_set_from_isl_basic_set(
+					isl_basic_set_copy(domain->set.p[0]));
 }
 
 
