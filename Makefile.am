@@ -51,8 +51,7 @@ isl/libisl.la: FORCE
 	cd isl; $(MAKE) $(AM_MAKEFLAGS) libisl.la
 
 bin_PROGRAMS = cloog
-lib_LTLIBRARIES = @CLOOG_LIBRARIES@
-EXTRA_LTLIBRARIES = libcloog-polylib.la libcloog-isl.la
+lib_LTLIBRARIES = libcloog-isl.la
 
 if NEED_GET_MEMORY_FUNCTIONS
 GET_MEMORY_FUNCTIONS=source/mp_get_memory_functions.c
@@ -73,19 +72,9 @@ SOURCES_CORE = \
 	source/statement.c \
 	source/version.c
 
-# avoid -I$(top_builddir)/include/cloog ending up in DEFAULT_INCLUDES
-# as that may result in polylib/matrix.h confusion
 DEFAULT_INCLUDES = -I.
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 AM_CFLAGS = $(CFLAGS_WARN)
-libcloog_polylib_la_CPPFLAGS = @POLYLIB_CPPFLAGS@
-libcloog_polylib_la_LDFLAGS = -rpath $(libdir) @POLYLIB_LDFLAGS@
-libcloog_polylib_la_LIBADD = @POLYLIB_LIBS@
-libcloog_polylib_la_SOURCES = \
-	$(SOURCES_CORE) \
-	source/polylib/domain.c \
-	source/matrix/constraintset.c \
-	source/polylib/backend.c
 libcloog_isl_la_CPPFLAGS = @ISL_CPPFLAGS@
 libcloog_isl_la_LDFLAGS = -rpath $(libdir) @ISL_LDFLAGS@
 libcloog_isl_la_LIBADD = @ISL_LIBS@ $(ISL_LA)
@@ -94,8 +83,8 @@ libcloog_isl_la_SOURCES = \
 	source/isl/domain.c \
 	source/isl/constraints.c \
 	source/isl/backend.c
-LDADD = libcloog-@BACKEND@.la
-cloog_DEPENDENCIES = libcloog-@BACKEND@.la
+LDADD = libcloog-isl.la
+cloog_DEPENDENCIES = libcloog-isl.la
 cloog_SOURCES = source/cloog.c
 
 pkginclude_HEADERS = \
@@ -119,13 +108,6 @@ pkgmatrixincludedir = $(pkgincludedir)/matrix
 pkgmatrixinclude_HEADERS = \
 	include/cloog/matrix/constraintset.h
 
-pkgpolylibincludedir = $(pkgincludedir)/polylib
-pkgpolylibinclude_HEADERS = \
-	include/cloog/polylib/cloog.h \
-	include/cloog/polylib/domain.h
-nodist_pkgpolylibinclude_HEADERS = \
-	include/cloog/polylib/backend.h
-
 pkgislincludedir = $(pkgincludedir)/isl
 pkgislinclude_HEADERS = \
 	include/cloog/isl/backend.h \
@@ -136,7 +118,12 @@ pkgislinclude_HEADERS = \
 version.h: @GIT_INDEX@
 	echo '#define CLOOG_HEAD "'`$(top_builddir)/genversion.sh`'"' > $@
 
-EXTRA_DIST = autoconf/Doxyfile.in doc/cloog.texi doc/images examples
+EXTRA_DIST = \
+	autoconf/Doxyfile.in \
+	source/matrix/constraintset.c \
+	doc/cloog.texi \
+	doc/images \
+	examples
 
 install-data-local:
 	@test -z "$(pkgconfig_libdir)" || $(mkdir_p) "$(DESTDIR)$(pkgconfig_libdir)"

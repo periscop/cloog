@@ -44,8 +44,6 @@ AC_INIT(source/cloog.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE(cloog, 0.14.0)
-dnl default version
-BITS="64"
 
 dnl /**************************************************************************
 dnl  *                              Checking                                  *
@@ -84,31 +82,17 @@ dnl /**************************************************************************
 dnl  *                             Option setting                             *
 dnl  **************************************************************************/
 
-MP_BITS="MP"
-MP_DFLAGS=-DLINEAR_VALUE_IS_MP
-
 AC_CHECK_HEADERS([sys/resource.h],
 	[AC_DEFINE([CLOOG_RUSAGE], [], [Print time required to generate code])])
 
-AC_ARG_WITH(bits,
-	    [AS_HELP_STRING([--with-bits=32|64|gmp],
-			    [integer type to use])],
-	    [ BITS=$withval ])
-
-AX_SUBMODULE(isl,no|system|build|bundled,bundled)
-if test "$with_isl" != "no"; then
-	BITS="gmp"
-fi
+AX_SUBMODULE(isl,system|build|bundled,bundled)
+BITS="gmp"
 
 dnl /**************************************************************************
 dnl  *                            Where is GMP?                               *
 dnl  **************************************************************************/
 
-gmp_module_default=no
-if test "$BITS" = "gmp"; then
-	gmp_module_default=system
-fi
-AX_SUBMODULE(gmp,no|system,$gmp_module_default)
+AX_SUBMODULE(gmp,system,system)
 
 need_get_memory_functions=false
 case "$with_gmp" in
@@ -136,90 +120,6 @@ esac
 AM_CONDITIONAL(NEED_GET_MEMORY_FUNCTIONS,
 		test x$need_get_memory_functions = xtrue)
 
-# all compiled libraries
-CLOOG_LIBRARIES=""
-AC_SUBST(CLOOG_LIBRARIES)
-# backend used by executables
-BACKEND=""
-AC_SUBST(BACKEND)
-
-dnl /**************************************************************************
-dnl  *                          Where is PolyLib?                             *
-dnl  **************************************************************************/
-
-AX_SUBMODULE(polylib,no|system|build,system)
-
-polylibs="64 32"
-case "$BITS" in
-    32|64|gmp)
-	polylibs=$BITS
-    ;;
-esac
-
-dnl Checking for PolyLib
-AC_SUBST(cl_cv_polylib)
-AC_SUBST(POLYLIB_CPPFLAGS)
-AC_SUBST(POLYLIB_LDFLAGS)
-AC_SUBST(POLYLIB_LIBS)
-
-AC_MSG_CHECKING(for location of PolyLib)
-if test "x$with_polylib_builddir" != "x"; then
-	with_polylib_builddir=`cd $with_polylib_builddir; pwd`
-	AC_MSG_RESULT(built in $with_polylib_builddir)
-	polylib_polylibs=`echo @polylibs@ | $with_polylib_builddir/config.status --file=-`
-	AC_MSG_NOTICE(Configured polylibs: $polylib_polylibs)
-	POLYLIB_CPPFLAGS="-I$with_polylib_builddir/include -I$polylib_srcdir/include"
-	for BITS in $polylibs; do
-		cl_cv_polylib=missing
-		for PL in $polylib_polylibs; do
-			if test "libpolylib$BITS.la" = $PL; then
-				cl_cv_polylib="polylib$BITS"
-				break;
-			fi
-		done
-		if test "$cl_cv_polylib" != "missing"; then
-			POLYLIB_LIBS="$with_polylib_builddir/lib$cl_cv_polylib.la"
-			break;
-		fi
-	done
-elif test "$with_polylib" != "no"; then
-	if test "x$with_polylib_prefix" != "x"; then
-		with_polylib_prefix=`cd $with_polylib_prefix; pwd`
-		AC_MSG_RESULT(installed in $with_polylib_exec_prefix)
-		POLYLIB_CPPFLAGS="-I$with_polylib_prefix/include"
-		POLYLIB_LDFLAGS="-L$with_polylib_exec_prefix/lib"
-		LD_LIBRARY_PATH="$with_polylib_exec_prefix/lib:$LD_LIBRARY_PATH"
-		export LD_LIBRARY_PATH
-	else
-		AC_MSG_RESULT(installed in standard location)
-	fi
-	SAVE_CPPFLAGS="$CPPFLAGS"
-	SAVE_LDFLAGS="$LDFLAGS"
-	CPPFLAGS="$POLYLIB_CPPFLAGS $CPPFLAGS"
-	LDFLAGS="$POLYLIB_LDFLAGS $LDFLAGS"
-	for BITS in $polylibs; do
-		cl_cv_polylib="polylib$BITS"
-		AC_CHECK_HEADER(polylib/$cl_cv_polylib.h,[
-			AC_CHECK_LIB($cl_cv_polylib,PolyhedronTSort,[
-				POLYLIB_LIBS="-l$cl_cv_polylib"
-				break
-			])
-		])
-		cl_cv_polylib=missing
-	done
-	CPPFLAGS="$SAVE_CPPFLAGS"
-	LDFLAGS="$SAVE_LDFLAGS"
-fi
-case "$cl_cv_polylib" in
-missing)
-	AC_MSG_WARN(Can't find PolyLib.)
-	;;
-polylib*)
-	CLOOG_LIBRARIES="$CLOOG_LIBRARIES libcloog-polylib.la"
-	BACKEND="polylib"
-	;;
-esac
-
 dnl /**************************************************************************
 dnl  *                          Where is isl?                                 *
 dnl  **************************************************************************/
@@ -244,39 +144,10 @@ system)
 	fi
 	ISL_LIBS="-lisl"
 esac
-if test "$with_isl" != "no"; then
-	CLOOG_LIBRARIES="$CLOOG_LIBRARIES libcloog-isl.la"
-	BACKEND="isl"
-fi
 AM_CONDITIONAL(BUNDLED_ISL, test $with_isl = bundled)
 
-if test -z "$BACKEND"; then
-	AC_MSG_ERROR(No backend specified or found.)
-fi
 
-
-case "$BITS" in
-	gmp)
-		cl_cv_int_type=gmp
-		;;
-	32|64)
-		AC_CHECK_SIZEOF(int,1)
-		AC_CHECK_SIZEOF(long,1)
-		AC_CHECK_SIZEOF(long long,1)
-		for cl_cv_int_type in int long long_long; do
-			eval "bits=\`expr \$ac_cv_sizeof_$cl_cv_int_type \* 8\`"
-			if test "$bits" = "$BITS"; then
-				break
-			fi
-		done
-		;;
-esac
-AH_TEMPLATE(CLOOG_INT_INT)
-AH_TEMPLATE(CLOOG_INT_LONG)
-AH_TEMPLATE(CLOOG_INT_LONG_LONG)
-AH_TEMPLATE(CLOOG_INT_GMP)
-cloog_int_macro=AS_TR_CPP(CLOOG_INT_$cl_cv_int_type)
-AC_DEFINE_UNQUOTED($cloog_int_macro)
+AC_DEFINE([CLOOG_INT_GMP], 1, [Use arbitrary precision integers])
 
 AC_SUBST(GIT_INDEX)
 if test -f $srcdir/.git/HEAD; then
@@ -290,10 +161,8 @@ dnl  **************************************************************************/
 
 
 dnl Substitutions to do in Makefile.in.
-AC_SUBST(target)
 AC_SUBST(CC)
 AC_SUBST(LN_S)
-AC_SUBST(SHEXT)
 
 AC_SUBST(prefix)
 AC_SUBST(exec_prefix)
@@ -301,11 +170,11 @@ AC_SUBST(INSTALL)
 
 AC_SUBST(BITS)
 
-PACKAGE_NAME="cloog-$BACKEND"
-PACKAGE_CFLAGS="-D$cloog_int_macro=1"
+PACKAGE_NAME="cloog-isl"
+PACKAGE_CFLAGS="-DCLOOG_INT_GMP=1"
 AX_CREATE_PKGCONFIG_INFO
 
-AC_CONFIG_FILES(Makefile test/Makefile include/cloog/polylib/backend.h)
+AC_CONFIG_FILES(Makefile test/Makefile)
 AC_CONFIG_FILES(autoconf/Doxyfile)
 AC_CONFIG_FILES(doc/Makefile)
 AC_CONFIG_FILES(source/version.c)
@@ -318,17 +187,7 @@ if test $with_isl = bundled; then
 	AC_CONFIG_SUBDIRS(isl)
 fi
 AC_CONFIG_COMMANDS_POST([
-	old_args=""
-	for arg in $ac_configure_args; do
-		case arg in
-		--with-polylib*)
-			;;
-		*)
-			old_args="$old_args $arg"
-			;;
-		esac
-	done
-	ac_configure_args="$old_args $cloog_configure_args"
+	ac_configure_args="$ac_configure_args $cloog_configure_args"
 ])
 AC_OUTPUT
 

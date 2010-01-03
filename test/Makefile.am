@@ -39,12 +39,12 @@
 
 noinst_PROGRAMS = generate_test
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
-LDADD = ../libcloog-@BACKEND@.la
+LDADD = ../libcloog-isl.la
 generate_test_SOURCES = generate_test.c
 
 FORCE:
-../libcloog-@BACKEND@.la: FORCE
-	cd ..; $(MAKE) $(AM_MAKEFLAGS) libcloog-@BACKEND@.la
+../libcloog-isl.la: FORCE
+	cd ..; $(MAKE) $(AM_MAKEFLAGS) libcloog-isl.la
 
 ROOT = ..
 
@@ -200,18 +200,14 @@ SPECIAL_OPTIONS = \
 
 EXTRA_DIST = \
 	$(CLOOGTEST_C:%=%.cloog) \
-	$(CLOOGTEST_C:%=isl/%.c) \
-	$(CLOOGTEST_C:%=polylib/%.c) \
+	$(CLOOGTEST_C:%=%.c) \
 	$(FINITE_CLOOGTEST_C:%=%.good.c) \
 	$(CLOOGTEST_FORTRAN:%=%.cloog) \
-	$(CLOOGTEST_FORTRAN:%=isl/%.f) \
-	$(CLOOGTEST_FORTRAN:%=polylib/%.f) \
+	$(CLOOGTEST_FORTRAN:%=%.f) \
 	$(CLOOGTEST_STRIDED:%=%.cloog) \
-	$(CLOOGTEST_STRIDED:%=isl/%.c) \
-	$(CLOOGTEST_STRIDED:%=polylib/%.c) \
+	$(CLOOGTEST_STRIDED:%=%.c) \
 	$(SPECIAL_TESTS:%=%.cloog) \
-	$(SPECIAL_TESTS:%=isl/%.c) \
-	$(SPECIAL_TESTS:%=polylib/%.c) \
+	$(SPECIAL_TESTS:%=%.c) \
 	$(SPECIAL_TESTS:%=%.good.c)
 
 generate:
@@ -220,21 +216,21 @@ generate:
 	@echo "              *-----------------------------------------------*/"
 	@for x in $(CLOOGTEST_C) ; do \
 		echo "Generate $$x.c" ; \
-		$(top_builddir)/cloog $(srcdir)/$$x.cloog -o $(srcdir)/@BACKEND@/$$x.c ; \
+		$(top_builddir)/cloog $(srcdir)/$$x.cloog -o $(srcdir)/$$x.c ; \
 	done ; \
 	for x in $(CLOOGTEST_FORTRAN) ; do \
 		echo "Generate $$x.f" ; \
-		$(top_builddir)/cloog $(srcdir)/$$x.cloog -o $(srcdir)/@BACKEND@/$$x.f ; \
+		$(top_builddir)/cloog $(srcdir)/$$x.cloog -o $(srcdir)/$$x.f ; \
 	done ; \
 	for x in $(CLOOGTEST_STRIDED) ; do \
 		echo "Generate $$x.c" ; \
 		$(top_builddir)/cloog $(srcdir)/$$x.cloog \
-			-strides 1 -o $(srcdir)/@BACKEND@/$$x.c ; \
+			-strides 1 -o $(srcdir)/$$x.c ; \
 	done ; \
 	for line in $(SPECIAL_OPTIONS); do echo $$line | while read x options; do \
 		echo "Generate file $$x ($$options)" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
-		    $$options > $(srcdir)/@BACKEND@/$$x.c ; \
+		    $$options > $(srcdir)/$$x.c ; \
 	done; done
 
 generate_good:
@@ -334,7 +330,7 @@ test:
 	for x in $(CLOOGTEST_C) ; do \
 		echo "Verify file $$x" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/@BACKEND@/$$x.c ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
@@ -347,7 +343,7 @@ test:
 	for x in $(CLOOGTEST_FORTRAN) ; do \
 		echo "Verify file $$x" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/@BACKEND@/$$x.f ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.f ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
@@ -361,7 +357,7 @@ test:
 		echo "Verify file $$x" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
 		-strides 1 > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/@BACKEND@/$$x.c ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
@@ -375,7 +371,7 @@ test:
 	        echo "Verify file $$x ($$options)" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
 			$$options > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/@BACKEND@/$$x.c ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ] ; then \
 			echo "!!! Error: $$x is not the same" ; \
