@@ -187,7 +187,8 @@ SPECIAL_TESTS = \
 	equality \
 	equality2 \
 	stride \
-	stride2
+	stride2 \
+	sor1d
 SPECIAL_OPTIONS = \
 	'vasilache -f 8 -l 9' \
 	'merge -f -1' \
