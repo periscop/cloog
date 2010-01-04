@@ -134,7 +134,7 @@ pkgislinclude_HEADERS = \
 version.h: @GIT_INDEX@
 	echo '#define CLOOG_HEAD "'`$(top_builddir)/genversion.sh`'"' > $@
 
-EXTRA_DIST = autoconf/Doxyfile.in doc/images examples
+EXTRA_DIST = autoconf/Doxyfile.in doc/cloog.texi doc/images examples
 
 dist-hook:
 	rm -f $(distdir)/test/Makefile
