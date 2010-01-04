@@ -85,7 +85,7 @@ dnl  **************************************************************************/
 AC_CHECK_HEADERS([sys/resource.h],
 	[AC_DEFINE([CLOOG_RUSAGE], [], [Print time required to generate code])])
 
-AX_SUBMODULE(isl,system|build|bundled,bundled)
+AX_SUBMODULE(isl,no|system|build|bundled,bundled)
 BITS="gmp"
 
 dnl /**************************************************************************
@@ -145,6 +145,7 @@ system)
 	ISL_LIBS="-lisl"
 esac
 AM_CONDITIONAL(BUNDLED_ISL, test $with_isl = bundled)
+AM_CONDITIONAL(NO_ISL, test $with_isl = no)
 
 
 AC_DEFINE([CLOOG_INT_GMP], 1, [Use arbitrary precision integers])

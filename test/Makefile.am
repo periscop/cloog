@@ -37,7 +37,12 @@
 # *                                                                           *
 # *****************************************************************************/
 
-noinst_PROGRAMS = generate_test
+if NO_ISL
+GENERATE_TEST =
+else
+GENERATE_TEST = generate_test
+endif
+noinst_PROGRAMS = $(GENERATE_TEST)
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 LDADD = ../libcloog-isl.la
 generate_test_SOURCES = generate_test.c

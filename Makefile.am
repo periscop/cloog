@@ -50,8 +50,15 @@ FORCE:
 isl/libisl.la: FORCE
 	cd isl; $(MAKE) $(AM_MAKEFLAGS) libisl.la
 
-bin_PROGRAMS = cloog
-lib_LTLIBRARIES = libcloog-isl.la
+if NO_ISL
+CLOOG =
+LIBCLOOG =
+else
+CLOOG = cloog
+LIBCLOOG = libcloog-isl.la
+endif
+bin_PROGRAMS = $(CLOOG)
+lib_LTLIBRARIES = $(LIBCLOOG)
 
 if NEED_GET_MEMORY_FUNCTIONS
 GET_MEMORY_FUNCTIONS=source/mp_get_memory_functions.c
