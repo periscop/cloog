@@ -60,6 +60,7 @@ typedef mpz_t		cloog_int_t;
 #define cloog_int_tdiv_q(r,i,j)	mpz_tdiv_q(r,i,j)
 #define cloog_int_fdiv_q(r,i,j)	mpz_fdiv_q(r,i,j)
 #define cloog_int_fdiv_r(r,i,j)	mpz_fdiv_r(r,i,j)
+#define cloog_int_cdiv_q(r,i,j)	mpz_cdiv_q(r,i,j)
 #define cloog_int_gcd(r,i,j)	mpz_gcd(r,i,j)
 
 #define cloog_int_sgn(i)	mpz_sgn(i)
@@ -115,6 +116,12 @@ typedef void (*cloog_int_print_gmp_free_t)(void *, size_t);
 					assert((j) > 0);		\
 					(r) = (i) >= 0 ? (i) % (j) :	\
 					    (j)-1 - ((-(i)+(j)-1)%(j));	\
+				} while (0)
+#define cloog_int_cdiv_q(r,i,j)	do {					\
+					assert((j) > 0);		\
+					(r) = (i) >= 0 ?		\
+					    ((i)+(j)-1) / (j) :		\
+					    -(-(i)/(j));		\
 				} while (0)
 cloog_int_t cloog_gcd(cloog_int_t a, cloog_int_t b);
 #define cloog_int_gcd(r,i,j)	(r) = cloog_gcd(i,j)
