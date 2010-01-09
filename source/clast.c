@@ -749,9 +749,22 @@ static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
       if (((max && cloog_constraint_is_lower_bound(constraint, level-1)) ||
 	   (!max && cloog_constraint_is_upper_bound(constraint, level-1))) &&
 	  (!guard || !cloog_constraint_involves(constraint, guard-1)) &&
-	  (!cloog_constraint_is_equality(constraint)))
-	r->elts[n++] = clast_bound_from_constraint(constraint, level,
+	  (!cloog_constraint_is_equality(constraint))) {
+	r->elts[n] = clast_bound_from_constraint(constraint, level,
 								infos->names);
+	if (max && !cloog_int_is_one(infos->stride[level - 1]) &&
+		   !cloog_int_is_zero(infos->stride[level - 1])) {
+	  struct clast_term *t;
+	  assert(r->elts[n]->type == clast_expr_term);
+	  t = (struct clast_term *)r->elts[n];
+	  assert(!t->var);
+	  cloog_int_sub(t->val, t->val, infos->offset[level - 1]);
+	  cloog_int_cdiv_q(t->val, t->val, infos->stride[level - 1]);
+	  cloog_int_mul(t->val, t->val, infos->stride[level - 1]);
+	  cloog_int_add(t->val, t->val, infos->offset[level - 1]);
+	}
+	n++;
+      }
 
   clast_reduction_sort(r);
   return &r->expr;

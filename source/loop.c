@@ -1162,21 +1162,8 @@ void cloog_loop_stride(CloogLoop * loop, int level)
   if (!cloog_int_is_one(stride))
   { /* Update the stride value. */
     cloog_int_set(loop->stride, stride);
-    /* The new lower bound l' is such that 
-     *      (l' + offset) % s = 0 and l <= l' <= l+(s-1)
-     * Let l' = k s - offset, then 
-     *	    k s - offset <= l + (s-1) <= k s - offset + (s-1)
-     * Or   l' = floor((l+offset+(s-1))/s) * s - offset
-     *         = (floor((l+offset-1)/s) + 1) * s - offset
-     */
-    cloog_int_add(lower, lower, offset);
-    cloog_int_sub_ui(lower, lower, 1);
-    cloog_int_fdiv_q(lower, lower, stride);
-    cloog_int_add_ui(lower, lower, 1);
-    cloog_int_mul(lower, lower, stride);
-    cloog_int_sub(lower, lower, offset);
-    loop->domain = cloog_domain_lowerbound_update(loop->domain, level, lower);
-    cloog_int_set(loop->offset, lower);
+    if (!cloog_int_is_zero(offset))
+      cloog_int_sub(loop->offset, stride, offset);
   }
   
   cloog_int_clear(stride);

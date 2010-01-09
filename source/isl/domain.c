@@ -639,21 +639,6 @@ int cloog_domain_integral_lowerbound(CloogDomain *domain, int level,
 
 
 /**
- * cloog_domain_lowerbound_update function:
- * This function updates the integral lower bound of an iterator (such as its
- * column rank in the constraint set 'domain' is 'level') into  'lower'
- * and returns the updated domain.
- */
-CloogDomain *cloog_domain_lowerbound_update(CloogDomain *domain, int level,
-						cloog_int_t lower)
-{
-	struct isl_set *set;
-	set = isl_set_lower_bound_dim(&domain->set, level-1, lower);
-	return cloog_domain_from_isl_set(set);
-}
-
-
-/**
  * cloog_domain_lazy_equal function:
  * This function returns 1 if the domains given as input are the same, 0 if it
  * is unable to decide.
