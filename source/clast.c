@@ -992,7 +992,7 @@ static int insert_modulo_guard(CloogConstraint *upper,
 				CloogConstraint *lower, int level,
 				struct clast_stmt ***next, CloogInfos *infos)
 {
-  int i, nb_elts = 0, len, len2, nb_iter, in_stride = 0, nb_par;
+  int i, nb_elts = 0, len, len2, nb_iter, nb_par;
   int constant, empty = 0;
   struct cloog_vec *line_vector;
   cloog_int_t *line, val, bound;
@@ -1053,22 +1053,10 @@ static int insert_modulo_guard(CloogConstraint *upper,
     if (i == len-1)
       continue;
 
-    /* We need to know if an element of the equality has not to be printed
-     * because of a stride that guarantees that this element can be divided by
-     * the current coefficient. Because when there is a constant element, it
-     * is included in the stride calculation (more exactly in the strided
-     * iterator new lower bound: the 'offset') and we have not to print it.
-     */
-    if (i <= nb_iter && !cloog_constraint_is_valid(lower) &&
-	cloog_int_is_divisible_by(infos->stride[i-1], line[level])) {
-      in_stride = 1;
-      continue;
-    }
-
     nb_elts++;
   }
 
-  if (nb_elts || (!cloog_int_is_zero(line[len-1]) && (!in_stride))) {
+  if (nb_elts || !cloog_int_is_zero(line[len-1])) {
     struct clast_reduction *r;
     const char *name;
 
