@@ -73,6 +73,7 @@ typedef mpz_t		cloog_int_t;
 
 #define cloog_int_is_divisible_by(i,j)	mpz_divisible_p(i,j)
 
+#define cloog_int_read(r,s)	mpz_set_str(r,s,10)
 typedef void (*cloog_int_print_gmp_free_t)(void *, size_t);
 #define cloog_int_print(out,i)						\
 	do {								\
@@ -136,6 +137,7 @@ cloog_int_t cloog_gcd(cloog_int_t a, cloog_int_t b);
 
 #define cloog_int_is_divisible_by(i,j)	((i) % (j) == 0)
 
+#define cloog_int_read(i,s)	sscanf(s, CLOOG_INT_FORMAT, &i)
 #define cloog_int_print(out,i)	fprintf(out, CLOOG_INT_FORMAT, i)
 
 #endif
