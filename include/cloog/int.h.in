@@ -161,9 +161,15 @@ struct cloog_vec {
 
 struct cloog_vec *cloog_vec_alloc(unsigned size);
 void cloog_vec_free(struct cloog_vec *vec);
+
+int cloog_seq_first_non_zero(cloog_int_t *p, unsigned len);
+void cloog_seq_cpy(cloog_int_t *dst, cloog_int_t *src, unsigned len);
 void cloog_seq_neg(cloog_int_t *dst, cloog_int_t *src, unsigned len);
 void cloog_seq_combine(cloog_int_t *dst, cloog_int_t m1, cloog_int_t *src1,
 			cloog_int_t m2, cloog_int_t *src2, unsigned len);
+void cloog_seq_gcd(cloog_int_t *p, unsigned len, cloog_int_t *gcd);
+int cloog_seq_is_neg(cloog_int_t *p1, cloog_int_t *p2, unsigned len);
+void cloog_seq_normalize(cloog_int_t *p, unsigned len);
 
 #if defined(__cplusplus)
   }
