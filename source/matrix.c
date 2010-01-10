@@ -114,6 +114,26 @@ void cloog_matrix_free(CloogMatrix * matrix)
   }
 }
 
+
+/**
+ * Print the elements of CloogMatrix M to file, with each row prefixed
+ * by prefix and suffixed by suffix.
+ */
+void cloog_matrix_print_structure(FILE *file, CloogMatrix *M,
+		const char *prefix, const char *suffix)
+{
+    int i, j;
+
+    for (i = 0; i < M->NbRows; ++i) {
+	fprintf(file, "%s", prefix);
+	for (j = 0; j < M->NbColumns; ++j) {
+	    cloog_int_print(file, M->p[i][j]);
+	    fprintf(file, " ");
+	}
+	fprintf(file, "%s\n", suffix);
+    }
+}
+
 /**
  * cloog_matrix_print function:
  * This function prints the content of a CloogMatrix structure (matrix) into a
@@ -121,18 +141,10 @@ void cloog_matrix_free(CloogMatrix * matrix)
  */
 void cloog_matrix_print(FILE* foo, CloogMatrix* m)
 {
-  int i, j;
-
   if (!m)
     fprintf(foo, "(null)\n");
 
   fprintf(foo, "%d %d\n", m->NbRows, m->NbColumns);
-  for (i = 0; i < m->NbRows; ++i) {
-    for (j = 0; j < m->NbColumns; ++j) {
-      cloog_int_print(foo, m->p[i][j]);
-      fprintf(foo, " ");
-    }
-    fprintf(foo, "\n");
-  }
+  cloog_matrix_print_structure(foo, m, "", "");
   fflush(foo);
 }
