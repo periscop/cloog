@@ -48,6 +48,7 @@ CloogMatrix *cloog_matrix_alloc (unsigned, unsigned);
 void cloog_matrix_free (CloogMatrix *);
 void cloog_matrix_print_structure(FILE *file, CloogMatrix *M,
 		const char *prefix, const char *suffix);
+CloogMatrix *cloog_matrix_read(FILE *input);
 void cloog_matrix_print(FILE*, CloogMatrix*);
 
 #if defined(__cplusplus)

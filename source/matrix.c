@@ -31,6 +31,7 @@
  *                                                                            *
  ******************************************************************************/
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "../include/cloog/cloog.h"
@@ -147,4 +148,57 @@ void cloog_matrix_print(FILE* foo, CloogMatrix* m)
   fprintf(foo, "%d %d\n", m->NbRows, m->NbColumns);
   cloog_matrix_print_structure(foo, m, "", "");
   fflush(foo);
+}
+
+
+static char *next_line(FILE *input, char *line, unsigned len)
+{
+	char *p;
+
+	do {
+		if (!(p = fgets(line, len, input)))
+			return NULL;
+		while (isspace(*p) && *p != '\n')
+			++p;
+	} while (*p == '#' || *p == '\n');
+
+	return p;
+}
+
+/**
+ * Read a matrix in PolyLib format from input.
+ */
+CloogMatrix *cloog_matrix_read(FILE *input)
+{
+	CloogMatrix *M;
+	int i, j;
+	unsigned n_row, n_col;
+	char line[1024];
+	char val[1024];
+	char *p;
+
+	if (!next_line(input, line, sizeof(line)))
+		cloog_die("Input error.\n");
+	if (sscanf(line, "%u %u", &n_row, &n_col) != 2)
+		cloog_die("Input error.\n");
+	M = cloog_matrix_alloc(n_row, n_col);
+	if (!M)
+		cloog_die("memory overflow.\n");
+	for (i = 0; i < n_row; ++i) {
+		int offset;
+		int n;
+
+		p = next_line(input, line, sizeof(line));
+		if (!p)
+			cloog_die("Input error.\n");
+		for (j = 0; j < n_col; ++j) {
+			n = sscanf(p, "%s%n", val, &offset);
+			if (!n)
+				cloog_die("Input error.\n");
+			cloog_int_read(M->p[i][j], val);
+			p += offset;
+		}
+	}
+
+	return M;
 }
