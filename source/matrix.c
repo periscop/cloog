@@ -126,6 +126,7 @@ void cloog_matrix_print(FILE* foo, CloogMatrix* m)
   if (!m)
     fprintf(foo, "(null)\n");
 
+  fprintf(foo, "%d %d\n", m->NbRows, m->NbColumns);
   for (i = 0; i < m->NbRows; ++i) {
     for (j = 0; j < m->NbColumns; ++j) {
       cloog_int_print(foo, m->p[i][j]);
