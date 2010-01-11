@@ -84,7 +84,7 @@ libcloog_polylib_la_LIBADD = @POLYLIB_LIBS@
 libcloog_polylib_la_SOURCES = \
 	$(SOURCES_CORE) \
 	source/polylib/domain.c \
-	source/polylib/constraintset.c \
+	source/matrix/constraintset.c \
 	source/polylib/backend.c
 libcloog_isl_la_CPPFLAGS = @ISL_CPPFLAGS@
 libcloog_isl_la_LDFLAGS = -rpath $(libdir) @ISL_LDFLAGS@
@@ -116,11 +116,14 @@ pkginclude_HEADERS = \
 nodist_pkginclude_HEADERS = \
 	include/cloog/int.h
 
+pkgmatrixincludedir = $(pkgincludedir)/matrix
+pkgmatrixinclude_HEADERS = \
+	include/cloog/matrix/constraintset.h
+
 pkgpolylibincludedir = $(pkgincludedir)/polylib
 pkgpolylibinclude_HEADERS = \
 	include/cloog/polylib/cloog.h \
-	include/cloog/polylib/domain.h \
-	include/cloog/polylib/constraintset.h
+	include/cloog/polylib/domain.h
 nodist_pkgpolylibinclude_HEADERS = \
 	include/cloog/polylib/backend.h
 

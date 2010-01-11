@@ -1,7 +1,5 @@
-#ifndef CLOOG_POLYLIB_CONSTRAINTSET_H
-#define CLOOG_POLYLIB_CONSTRAINTSET_H
-
-#include <cloog/polylib/backend.h>
+#ifndef CLOOG_MATRIX_CONSTRAINTSET_H
+#define CLOOG_MATRIX_CONSTRAINTSET_H
 
 #if defined(__cplusplus)
 extern "C" 
