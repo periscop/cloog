@@ -138,6 +138,13 @@ version.h: @GIT_INDEX@
 
 EXTRA_DIST = autoconf/Doxyfile.in doc/cloog.texi doc/images examples
 
+install-data-local:
+	@test -z "$(pkgconfig_libdir)" || $(mkdir_p) "$(DESTDIR)$(pkgconfig_libdir)"
+	$(INSTALL_DATA) $(pkgconfig_libfile) "$(DESTDIR)$(pkgconfig_libdir)/$(pkgconfig_libfile)"
+
+uninstall-local:
+	rm -f "$(DESTDIR)$(pkgconfig_libdir)/$(pkgconfig_libfile)"
+
 dist-hook:
 	rm -f $(distdir)/test/Makefile
 	$(top_builddir)/genversion.sh > $(distdir)/CLOOG_HEAD

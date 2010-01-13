@@ -275,7 +275,8 @@ AH_TEMPLATE(CLOOG_INT_INT)
 AH_TEMPLATE(CLOOG_INT_LONG)
 AH_TEMPLATE(CLOOG_INT_LONG_LONG)
 AH_TEMPLATE(CLOOG_INT_GMP)
-AC_DEFINE_UNQUOTED(AS_TR_CPP(CLOOG_INT_$cl_cv_int_type))
+cloog_int_macro=AS_TR_CPP(CLOOG_INT_$cl_cv_int_type)
+AC_DEFINE_UNQUOTED($cloog_int_macro)
 
 AC_SUBST(GIT_INDEX)
 if test -f $srcdir/.git/HEAD; then
@@ -299,6 +300,10 @@ AC_SUBST(exec_prefix)
 AC_SUBST(INSTALL)
 
 AC_SUBST(BITS)
+
+PACKAGE_NAME="cloog-$BACKEND"
+PACKAGE_CFLAGS="-D$cloog_int_macro=1"
+AX_CREATE_PKGCONFIG_INFO
 
 AC_CONFIG_FILES(Makefile test/Makefile include/cloog/polylib/backend.h)
 AC_CONFIG_FILES(autoconf/Doxyfile)
