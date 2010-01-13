@@ -271,6 +271,10 @@ case "$BITS" in
 		done
 		;;
 esac
+AH_TEMPLATE(CLOOG_INT_INT)
+AH_TEMPLATE(CLOOG_INT_LONG)
+AH_TEMPLATE(CLOOG_INT_LONG_LONG)
+AH_TEMPLATE(CLOOG_INT_GMP)
 AC_DEFINE_UNQUOTED(AS_TR_CPP(CLOOG_INT_$cl_cv_int_type))
 
 AC_SUBST(GIT_INDEX)
@@ -296,9 +300,6 @@ AC_SUBST(INSTALL)
 
 AC_SUBST(BITS)
 
-AC_CONFIG_HEADERS(config.h)
-AC_CONFIG_HEADERS(include/cloog/int.h)
-AC_CONFIG_HEADERS(include/cloog/options.h)
 AC_CONFIG_FILES(Makefile test/Makefile include/cloog/polylib/backend.h)
 AC_CONFIG_FILES(autoconf/Doxyfile)
 AC_CONFIG_FILES(doc/Makefile)

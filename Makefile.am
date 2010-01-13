@@ -102,6 +102,7 @@ pkginclude_HEADERS = \
 	include/cloog/block.h \
 	include/cloog/clast.h \
 	include/cloog/cloog.h \
+	include/cloog/int.h \
 	include/cloog/matrix.h \
 	include/cloog/state.h \
 	include/cloog/domain.h \
@@ -113,8 +114,6 @@ pkginclude_HEADERS = \
 	include/cloog/program.h \
 	include/cloog/statement.h \
 	include/cloog/version.h
-nodist_pkginclude_HEADERS = \
-	include/cloog/int.h
 
 pkgmatrixincludedir = $(pkgincludedir)/matrix
 pkgmatrixinclude_HEADERS = \

@@ -49,7 +49,6 @@ extern "C"
 #define CLOOG_MEMORY 
  */
 #define CLOOG_SCALARS
-#undef CLOOG_RUSAGE
 
 struct cloogoptions;
 typedef struct cloogoptions CloogOptions;
@@ -91,9 +90,7 @@ struct cloogoptions
 
   /* MISC OPTIONS */
   char * name ;   /* Name of the input file. */
-#ifdef CLOOG_RUSAGE
   float time ;    /* Time spent for code generation in seconds. */
-#endif
 #ifdef CLOOG_MEMORY
   int memory ;    /* Memory spent for code generation in kilobytes. */
 #endif

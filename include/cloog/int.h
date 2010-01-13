@@ -1,11 +1,6 @@
 #ifndef CLOOG_INT_H
 #define CLOOG_INT_H
 
-#undef CLOOG_INT_INT
-#undef CLOOG_INT_LONG
-#undef CLOOG_INT_LONG_LONG
-#undef CLOOG_INT_GMP
-
 #include <assert.h>
 #include <stdio.h>
 #if defined(CLOOG_INT_GMP)
