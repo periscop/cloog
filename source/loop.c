@@ -2070,6 +2070,9 @@ static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
   CloogLoop *simplified, *inner;
   CloogDomain * domain, * simp, * inter, * extended_context ;
 
+  if (!cloog_domain_isconvex(loop->domain))
+    loop->domain = cloog_domain_simplify_union(loop->domain);
+
   domain = loop->domain ;
   
   domain_dim = cloog_domain_dimension(domain);

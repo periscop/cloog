@@ -1,11 +1,6 @@
-! Generated from ../../../git/cloog/test/iftestf.cloog by CLooG 0.14.0-136-gb91ef26 gmp bits in 0.00s.
+! Generated from ../../../git/cloog/test/iftestf.cloog by CLooG 0.14.0-245-gd8c1718 64 bits in 0.00s.
 IF (n >= 1) THEN
   DO i=1, n
-    IF (i <= 2*m) THEN
-      S1(i)
-    END IF
-    IF (i >= MAX(m,2*m+1)) THEN
-      S1(i)
-    END IF
+    S1(i)
   END DO
 END IF
