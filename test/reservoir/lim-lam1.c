@@ -1,27 +1,25 @@
-/* Generated from ../../../git/cloog/test/./reservoir/lim-lam1.cloog by CLooG 0.14.0-136-gb91ef26 gmp bits in 0.04s. */
-S1(1,100) ;
-for (c2=-98;c2<=0;c2++) {
-  S1(1,-c2+1) ;
-  for (c4=-2*c2+3;c4<=199;c4++) {
+/* Generated from /home/skimo/git/cloog/test/./reservoir/lim-lam1.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.01s. */
+S1(1,100);
+for (c2=-98;c2<=99;c2++) {
+  if (c2 <= 0) {
+    S1(1,-c2+1);
+  }
+  if (c2 >= 1) {
+    S2(c2,1);
+  }
+  for (c4=max(2,-2*c2+3);c4<=min(199,-2*c2+200);c4++) {
     if (c4%2 == 0) {
-      S1((2*c2+c4)/2,c4/2) ;
+      S1((2*c2+c4)/2,c4/2);
     }
     if ((c4+1)%2 == 0) {
-      S2((2*c2+c4-1)/2,(c4+1)/2) ;
+      S2((2*c2+c4-1)/2,(c4+1)/2);
     }
   }
-  S1(c2+100,100) ;
-}
-for (c2=1;c2<=99;c2++) {
-  S2(c2,1) ;
-  for (c4=2;c4<=-2*c2+200;c4++) {
-    if (c4%2 == 0) {
-      S1((2*c2+c4)/2,c4/2) ;
-    }
-    if ((c4+1)%2 == 0) {
-      S2((2*c2+c4-1)/2,(c4+1)/2) ;
-    }
+  if (c2 <= 0) {
+    S1(c2+100,100);
   }
-  S2(100,-c2+101) ;
+  if (c2 >= 1) {
+    S2(100,-c2+101);
+  }
 }
-S2(100,1) ;
+S2(100,1);

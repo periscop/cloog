@@ -1555,7 +1555,7 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
    *    the example called linearity-1-1 example with and without this part
    *    for an idea.
    */
-  if ((!options->nobacktrack) && level &&
+  if (options->backtrack && level &&
       ((level+scalar < options->l) || (options->l < 0)) &&
       ((options->f <= level+scalar) && !(options->f < 0)))
   res = cloog_loop_generate_backtrack(res, level, options);

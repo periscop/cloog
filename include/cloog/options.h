@@ -99,7 +99,7 @@ struct cloogoptions
   int leaks ;     /* 1 if I want to print the allocation statistics,
                    * 0 otherwise.
 		   */
-  int nobacktrack;/* 1 if I don't want to achieve backtracking in 
+  int backtrack;  /* 1 to perform backtracking in 
                    * Quillere's algorithm, 0 otherwise.
 		   */
   int override ;  /* 1 if I want to bypass CLooG decisions on option correctness

@@ -127,7 +127,7 @@ void cloog_options_print(FILE * foo, CloogOptions * options)
   fprintf(foo,"callable    = %3d.\n",options->callable) ;
   fprintf(foo,"UNDOCUMENTED OPTIONS FOR THE AUTHOR ONLY\n") ;
   fprintf(foo,"leaks       = %3d.\n",options->leaks) ;
-  fprintf(foo,"nobacktrack = %3d.\n",options->nobacktrack) ;
+  fprintf(foo,"backtrack   = %3d.\n",options->backtrack);
   fprintf(foo,"override    = %3d.\n",options->override) ;
   fprintf(foo,"structure   = %3d.\n",options->structure) ;
   fprintf(foo,"noscalars   = %3d.\n",options->noscalars) ;
@@ -310,7 +310,7 @@ CloogOptions *cloog_options_malloc(CloogState *state)
   options->quiet       =  0;   /* Do print informational messages. */
   /* UNDOCUMENTED OPTIONS FOR THE AUTHOR ONLY */
   options->leaks       =  0 ;  /* I don't want to print allocation statistics.*/
-  options->nobacktrack =  0 ;  /* No backtrack in Quillere's algorithm.*/
+  options->backtrack   =  0;   /* Perform backtrack in Quillere's algorithm.*/
   options->override    =  0 ;  /* I don't want to override CLooG decisions.*/
   options->structure   =  0 ;  /* I don't want to print internal structure.*/
   options->noblocks    =  0 ;  /* I do want to make statement blocks.*/
@@ -379,13 +379,15 @@ void cloog_options_read(CloogState *state, int argc, char **argv,
     }
     else
     if (strcmp(argv[i],"-bipbip") == 0)/* Special option for the author only !*/
-      (*options)->nobacktrack = 1 ;
+      (*options)->backtrack = 0;
     else
     if (strcmp(argv[i],"-leaks") == 0)
     (*options)->leaks = 1 ;
     else
     if (strcmp(argv[i],"-nobacktrack") == 0)
-    (*options)->nobacktrack = 1 ;
+      (*options)->backtrack = 0;
+    else if (strcmp(argv[i], "-backtrack") == 0)
+      (*options)->backtrack = 1;
     else
     if (strcmp(argv[i],"-override") == 0)
     (*options)->override = 1 ;

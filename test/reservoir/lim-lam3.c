@@ -1,22 +1,16 @@
-/* Generated from /home/skimo/git/cloog/test/./reservoir/lim-lam3.cloog by CLooG 0.14.0-226-g17d80b7 gmp bits in 0.03s. */
+/* Generated from /home/skimo/git/cloog/test/./reservoir/lim-lam3.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.02s. */
 S4(1);
-if (M >= 2) {
-  S2(2,1);
-  S3(2,1);
-}
-if (M >= 3) {
-  S2(3,1);
-  S4(2);
-}
-for (c2=11;c2<=min(13,M+7);c2++) {
-  S2(c2-7,1);
-  if (c2 == 12) {
-    S3(3,1);
+for (c2=9;c2<=min(13,5*M-1);c2++) {
+  if (c2 <= M+7) {
+    S2(c2-7,1);
   }
-}
-for (c2=M+8;c2<=min(13,3*M+3);c2++) {
-  if (c2 == 12) {
-    S3(3,1);
+  if (c2 == 10) {
+    S4(2);
+  }
+  if (c2 <= 3*M+3) {
+    if (c2%3 == 0) {
+      S3((c2-3)/3,1);
+    }
   }
 }
 if (M == 2) {
