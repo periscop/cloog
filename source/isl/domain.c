@@ -349,7 +349,7 @@ CloogDomain *cloog_domain_read_context(CloogState *state, FILE *input)
 	struct isl_basic_set *bset;
 	struct isl_basic_set *model;
 
-	bset = isl_basic_set_read_from_file(ctx, input, 0, ISL_FORMAT_POLYLIB);
+	bset = isl_basic_set_read_from_file(ctx, input, 0);
 	assert(bset);
 	param_dim = isl_dim_set_alloc(ctx, isl_basic_set_n_dim(bset), 0);
 	model = isl_basic_set_empty(param_dim);
@@ -389,8 +389,7 @@ CloogDomain *cloog_domain_union_read(CloogState *state,
 	struct isl_ctx *ctx = state->backend->ctx;
 	struct isl_set *set;
 
-	set = isl_set_read_from_file(ctx, input, nb_parameters,
-					ISL_FORMAT_POLYLIB);
+	set = isl_set_read_from_file(ctx, input, nb_parameters);
 	return cloog_domain_from_isl_set(set);
 }
 
@@ -410,8 +409,7 @@ CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *input)
 	unsigned n_scat;
 
 	nparam = isl_set_n_param(&domain->set);
-	bset = isl_basic_set_read_from_file(ctx, input, nparam,
-						ISL_FORMAT_POLYLIB);
+	bset = isl_basic_set_read_from_file(ctx, input, nparam);
 	dim = isl_set_n_dim(&domain->set);
 	n_scat = isl_basic_set_n_dim(bset) - dim;
 	dims = isl_dim_alloc(ctx, nparam, n_scat, dim);
