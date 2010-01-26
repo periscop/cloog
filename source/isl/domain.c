@@ -402,20 +402,20 @@ CloogDomain *cloog_domain_union_read(CloogState *state,
 CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *input)
 {
 	struct isl_ctx *ctx = domain->set.ctx;
-	struct isl_basic_set *bset;
-	struct isl_basic_map *scat;
+	struct isl_set *set;
+	struct isl_map *scat;
 	struct isl_dim *dims;
 	unsigned nparam;
 	unsigned dim;
 	unsigned n_scat;
 
 	nparam = isl_set_n_param(&domain->set);
-	bset = isl_basic_set_read_from_file(ctx, input, nparam);
+	set = isl_set_read_from_file(ctx, input, nparam);
 	dim = isl_set_n_dim(&domain->set);
-	n_scat = isl_basic_set_n_dim(bset) - dim;
+	n_scat = isl_set_n_dim(set) - dim;
 	dims = isl_dim_alloc(ctx, nparam, n_scat, dim);
-	scat = isl_basic_map_from_basic_set(bset, dims);
-	return cloog_scattering_from_isl_map(isl_map_from_basic_map(scat));
+	scat = isl_map_from_set(set, dims);
+	return cloog_scattering_from_isl_map(scat);
 }
 
 /******************************************************************************
