@@ -398,6 +398,13 @@ CloogDomain *cloog_domain_union_read(CloogState *state,
 /**
  * cloog_domain_read_scattering function:
  * This function reads in a scattering function from the file input.
+ *
+ * We try to read the scattering relation as a map, but if it is
+ * specified in the original PolyLib format, then isl_map_read_from_file
+ * will treat the input as a set return a map with zero input dimensions.
+ * In this case, we need to decompose the set into a map from
+ * scattering dimensions to domain dimensions and then invert the
+ * resulting map.
  */
 CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *input)
 {
@@ -409,13 +416,16 @@ CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *input)
 	unsigned dim;
 	unsigned n_scat;
 
-	nparam = isl_set_n_param(&domain->set);
-	set = isl_set_read_from_file(ctx, input, nparam);
 	dim = isl_set_n_dim(&domain->set);
-	n_scat = isl_set_n_dim(set) - dim;
-	dims = isl_dim_alloc(ctx, nparam, n_scat, dim);
-	scat = isl_map_from_set(set, dims);
-	scat = isl_map_reverse(scat);
+	nparam = isl_set_n_param(&domain->set);
+	scat = isl_map_read_from_file(ctx, input, nparam);
+	if (isl_map_dim(scat, isl_dim_in) != dim) {
+		set = isl_set_from_map(scat);
+		n_scat = isl_set_n_dim(set) - dim;
+		dims = isl_dim_alloc(ctx, nparam, n_scat, dim);
+		scat = isl_map_from_set(set, dims);
+		scat = isl_map_reverse(scat);
+	}
 	return cloog_scattering_from_isl_map(scat);
 }
 
