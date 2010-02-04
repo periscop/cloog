@@ -1678,8 +1678,8 @@ CloogScattering *cloog_scattering_from_isl_map(struct isl_map *map);
 @noindent
 The function @code{cloog_scattering_from_isl_map} takes a
 @code{struct isl_map} as input and returns a pointer to a @code{CloogScattering}.
-The input dimensions of the @code{struct isl_map} correspond to the
-scattering dimensions, while the output dimensions correspond to the
+The outut dimensions of the @code{struct isl_map} correspond to the
+scattering dimensions, while the input dimensions correspond to the
 domain dimensions.
 The function consumes a reference to the given @code{struct isl_map}.
 

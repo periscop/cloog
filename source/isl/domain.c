@@ -415,6 +415,7 @@ CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *input)
 	n_scat = isl_set_n_dim(set) - dim;
 	dims = isl_dim_alloc(ctx, nparam, n_scat, dim);
 	scat = isl_map_from_set(set, dims);
+	scat = isl_map_reverse(scat);
 	return cloog_scattering_from_isl_map(scat);
 }
 
@@ -523,6 +524,7 @@ CloogScattering *cloog_scattering_from_cloog_matrix(CloogState *state,
 	dims = isl_dim_alloc(ctx, nb_par, nb_scat, dim);
 
 	scat = isl_basic_map_from_basic_set(bset, dims);
+	scat = isl_basic_map_reverse(scat);
 	return cloog_scattering_from_isl_map(isl_map_from_basic_map(scat));
 }
 
@@ -672,16 +674,15 @@ int cloog_scattering_lazy_block(CloogScattering *s1, CloogScattering *s2,
 	isl_int cst;
 	unsigned n_scat;
 
-	n_scat = isl_map_n_in(&s1->map);
-	if (n_scat != isl_map_n_in(&s2->map))
+	n_scat = isl_map_dim(&s1->map, isl_dim_out);
+	if (n_scat != isl_map_dim(&s2->map, isl_dim_out))
 		return 0;
 
 	dim = isl_dim_copy(s1->map.dim);
-	dim = isl_dim_range(dim);
+	dim = isl_dim_domain(dim);
 	rel = isl_map_identity(dim);
-	rel = isl_map_apply_range(isl_map_copy(&s2->map), rel);
-	rel = isl_map_reverse(rel);
-	rel = isl_map_apply_range(isl_map_copy(&s1->map), rel);
+	rel = isl_map_apply_domain(rel, isl_map_copy(&s1->map));
+	rel = isl_map_apply_range(rel, isl_map_copy(&s2->map));
 	delta = isl_map_deltas(rel);
 	isl_int_init(cst);
 	for (i = 0; i < n_scat; ++i) {
@@ -740,7 +741,7 @@ int cloog_domain_parameter_dimension(CloogDomain *domain)
 
 int cloog_scattering_dimension(CloogScattering *scatt, CloogDomain *domain)
 {
-	return isl_map_n_in(&scatt->map);
+	return isl_map_dim(&scatt->map, isl_dim_out);
 }
 
 int cloog_domain_isconvex(CloogDomain * domain)
@@ -791,7 +792,7 @@ CloogDomain *cloog_domain_simplify_union(CloogDomain *domain)
 int cloog_scattering_lazy_isscalar(CloogScattering *scatt, int dimension,
 					cloog_int_t *value)
 {
-	return isl_map_fast_input_is_fixed(&scatt->map, dimension, value);
+	return isl_map_fast_is_fixed(&scatt->map, isl_dim_out, dimension, value);
 }
 
 
@@ -817,7 +818,7 @@ CloogScattering *cloog_scattering_erase_dimension(CloogScattering *domain,
 						int dimension)
 {
 	struct isl_map *map;
-	map = isl_map_remove_inputs(isl_map_copy(&domain->map), dimension, 1);
+	map = isl_map_remove(isl_map_copy(&domain->map), isl_dim_out, dimension, 1);
 	return cloog_scattering_from_isl_map(map);
 }
 
@@ -855,6 +856,7 @@ CloogDomain *cloog_domain_scatter(CloogDomain *domain, CloogScattering *scatt)
 {
 	struct isl_map *map;
 
-	map = isl_map_intersect_range(isl_map_copy(&scatt->map), &domain->set);
+	map = isl_map_reverse(isl_map_copy(&scatt->map));
+	map = isl_map_intersect_range(map, &domain->set);
 	return cloog_domain_from_isl_set(isl_set_from_map(map));
 }
