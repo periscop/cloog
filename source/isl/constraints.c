@@ -699,19 +699,6 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	return cloog_constraint_set_from_isl_basic_set(bset);
 }
 
-CloogConstraint *cloog_constraint_first(CloogConstraintSet *constraints)
-{
-	return cloog_constraint_from_isl_constraint(
-		isl_basic_set_first_constraint(
-			isl_basic_set_copy(&constraints->bset)));
-}
-
-CloogConstraint *cloog_constraint_next(CloogConstraint *constraint)
-{
-	return cloog_constraint_from_isl_constraint(
-		isl_constraint_next(&constraint->isl));
-}
-
 CloogConstraint *cloog_constraint_copy(CloogConstraint *constraint)
 {
 	return cloog_constraint_from_isl_constraint(
@@ -723,19 +710,30 @@ void cloog_constraint_release(CloogConstraint *constraint)
 	isl_constraint_free(&constraint->isl);
 }
 
+struct cloog_isl_foreach {
+	int (*fn)(CloogConstraint *constraint, void *user);
+	void *user;
+};
+
+static int cloog_isl_foreach_cb(__isl_take isl_constraint *c, void *user)
+{
+	struct cloog_isl_foreach *data = (struct cloog_isl_foreach *)user;
+	int ret;
+
+	ret = data->fn(cloog_constraint_from_isl_constraint(c), data->user);
+
+	isl_constraint_free(c);
+
+	return ret;
+}
+
 int cloog_constraint_set_foreach_constraint(CloogConstraintSet *constraints,
 	int (*fn)(CloogConstraint *constraint, void *user), void *user)
 {
-	CloogConstraint *c;
+	struct cloog_isl_foreach data = { fn, user };
 
-	for (c = cloog_constraint_first(constraints);
-	     cloog_constraint_is_valid(c); c = cloog_constraint_next(c))
-		if (fn(c, user) < 0) {
-			cloog_constraint_release(c);
-			return -1;
-		}
-
-	return 0;
+	return isl_basic_set_foreach_constraint(&constraints->bset,
+						cloog_isl_foreach_cb, &data);
 }
 
 CloogConstraint *cloog_equal_constraint(CloogEqualities *equal, int j)
