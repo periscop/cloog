@@ -700,6 +700,81 @@ struct clast_expr *clast_bound_from_constraint(CloogConstraint *constraint,
 }
 
 
+/* Temporary structure for communication between clast_minmax and
+ * its cloog_constraint_set_foreach_constraint callback functions.
+ */
+struct clast_minmax_data {
+    int level;
+    int max;
+    int guard;
+    CloogInfos *infos;
+    int n;
+    struct clast_reduction *r;
+};
+
+
+/* Should constraint "c" be considered by clast_minmax?
+ */
+static int valid_bound(CloogConstraint *c, struct clast_minmax_data *d)
+{
+    if (d->max && !cloog_constraint_is_lower_bound(c, d->level - 1))
+	return 0;
+    if (!d->max && !cloog_constraint_is_upper_bound(c, d->level - 1))
+	return 0;
+    if (cloog_constraint_is_equality(c))
+	return 0;
+    if (d->guard && cloog_constraint_involves(c, d->guard - 1))
+	return 0;
+
+    return 1;
+}
+
+
+/* Increment n for each bound that should be considered by clast_minmax.
+ */
+static int count_bounds(CloogConstraint *c, void *user)
+{
+    struct clast_minmax_data *d = (struct clast_minmax_data *) user;
+
+    if (!valid_bound(c, d))
+	return 0;
+
+    d->n++;
+
+    return 0;
+}
+
+
+/* Add all relevant bounds to r->elts and update lower bounds
+ * based on stride information.
+ */
+static int collect_bounds(CloogConstraint *c, void *user)
+{
+    struct clast_minmax_data *d = (struct clast_minmax_data *) user;
+
+    if (!valid_bound(c, d))
+	return 0;
+
+    d->r->elts[d->n] = clast_bound_from_constraint(c, d->level,
+							    d->infos->names);
+    if (d->max && !cloog_int_is_one(d->infos->stride[d->level - 1]) &&
+		  !cloog_int_is_zero(d->infos->stride[d->level - 1])) {
+	struct clast_term *t;
+	assert(d->r->elts[d->n]->type == clast_expr_term);
+	t = (struct clast_term *)d->r->elts[d->n];
+	assert(!t->var);
+	cloog_int_sub(t->val, t->val, d->infos->offset[d->level - 1]);
+	cloog_int_cdiv_q(t->val, t->val, d->infos->stride[d->level - 1]);
+	cloog_int_mul(t->val, t->val, d->infos->stride[d->level - 1]);
+	cloog_int_add(t->val, t->val, d->infos->offset[d->level - 1]);
+    }
+
+    d->n++;
+
+    return 0;
+}
+
+
 /**
  * clast_minmax function:
  * This function returns a clast_expr containing the printing of a minimum or a
@@ -725,49 +800,22 @@ struct clast_expr *clast_bound_from_constraint(CloogConstraint *constraint,
 static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
 				       int level, int max, int guard,
 				       CloogInfos *infos)
-{ int n;
-  struct clast_reduction *r;
-  CloogConstraint *constraint;
+{
+    struct clast_minmax_data data = { level, max, guard, infos };
   
-  n = 0;
-  for (constraint = cloog_constraint_first(constraints);
-       cloog_constraint_is_valid(constraint);
-       constraint = cloog_constraint_next(constraint))
-      if (((max && cloog_constraint_is_lower_bound(constraint, level-1)) ||
-	   (!max && cloog_constraint_is_upper_bound(constraint, level-1))) &&
-	  (!guard || !cloog_constraint_involves(constraint, guard-1)) &&
-	  (!cloog_constraint_is_equality(constraint)))
-	n++;
-  if (!n)
-    return NULL;
-  r = new_clast_reduction(max ? clast_red_max : clast_red_min, n);
+    data.n = 0;
 
-  n = 0;
-  for (constraint = cloog_constraint_first(constraints);
-       cloog_constraint_is_valid(constraint);
-       constraint = cloog_constraint_next(constraint))
-      if (((max && cloog_constraint_is_lower_bound(constraint, level-1)) ||
-	   (!max && cloog_constraint_is_upper_bound(constraint, level-1))) &&
-	  (!guard || !cloog_constraint_involves(constraint, guard-1)) &&
-	  (!cloog_constraint_is_equality(constraint))) {
-	r->elts[n] = clast_bound_from_constraint(constraint, level,
-								infos->names);
-	if (max && !cloog_int_is_one(infos->stride[level - 1]) &&
-		   !cloog_int_is_zero(infos->stride[level - 1])) {
-	  struct clast_term *t;
-	  assert(r->elts[n]->type == clast_expr_term);
-	  t = (struct clast_term *)r->elts[n];
-	  assert(!t->var);
-	  cloog_int_sub(t->val, t->val, infos->offset[level - 1]);
-	  cloog_int_cdiv_q(t->val, t->val, infos->stride[level - 1]);
-	  cloog_int_mul(t->val, t->val, infos->stride[level - 1]);
-	  cloog_int_add(t->val, t->val, infos->offset[level - 1]);
-	}
-	n++;
-      }
+    cloog_constraint_set_foreach_constraint(constraints, count_bounds, &data);
 
-  clast_reduction_sort(r);
-  return &r->expr;
+    if (!data.n)
+	return NULL;
+    data.r = new_clast_reduction(max ? clast_red_max : clast_red_min, data.n);
+
+    data.n = 0;
+    cloog_constraint_set_foreach_constraint(constraints, collect_bounds, &data);
+
+    clast_reduction_sort(data.r);
+    return &data.r->expr;
 }
 
 
@@ -818,6 +866,110 @@ static void insert_extra_modulo_guards(CloogConstraintSet *constraints,
 }
 
 
+static int clear_lower_bound_at_level(CloogConstraint *c, void *user)
+{
+    int level = *(int *)user;
+
+    if (cloog_constraint_is_lower_bound(c, level - 1))
+	cloog_constraint_clear(c);
+
+    return 0;
+}
+
+
+static int clear_upper_bound_at_level(CloogConstraint *c, void *user)
+{
+    int level = *(int *)user;
+
+    if (cloog_constraint_is_upper_bound(c, level - 1))
+	cloog_constraint_clear(c);
+
+    return 0;
+}
+
+
+/* Temporary structure for communication between insert_guard and
+ * its cloog_constraint_set_foreach_constraint callback function.
+ */
+struct clast_guard_data {
+    int level;
+    CloogInfos *infos;
+    int n;
+    int i;
+    int nb_iter;
+    CloogConstraintSet *copy;
+    struct clast_guard *g;
+};
+
+
+/* Insert a guard, if necesessary, for constraint j.
+ */
+static int insert_guard_constraint(CloogConstraint *j, void *user)
+{
+    struct clast_guard_data *d = (struct clast_guard_data *) user;
+    int minmax = -1;
+    struct clast_expr *v;
+    struct clast_term *t;
+
+    if (!cloog_constraint_involves(j, d->i - 1))
+	return 0;
+
+    if (d->level && d->nb_iter >= d->level &&
+	    cloog_constraint_involves(j, d->level - 1))
+	return 0;
+
+    v = cloog_constraint_variable_expr(j, d->i, d->infos->names);
+    d->g->eq[d->n].LHS = &(t = new_clast_term(d->infos->state->one, v))->expr;
+    if (!d->level || cloog_constraint_is_equality(j)) {
+	/* put the "denominator" in the LHS */
+	cloog_constraint_coefficient_get(j, d->i - 1, &t->val);
+	cloog_constraint_coefficient_set(j, d->i - 1, d->infos->state->one);
+	if (cloog_int_is_neg(t->val)) {
+	    cloog_int_neg(t->val, t->val);
+	    cloog_constraint_coefficient_set(j, d->i - 1, d->infos->state->negone);
+	}
+	if (d->level || cloog_constraint_is_equality(j))
+	    d->g->eq[d->n].sign = 0;
+	else if (cloog_constraint_is_lower_bound(j, d->i - 1))
+	    d->g->eq[d->n].sign = 1;
+	else
+	    d->g->eq[d->n].sign = -1;
+	d->g->eq[d->n].RHS = clast_bound_from_constraint(j, d->i, d->infos->names);
+    } else {
+	int guarded;
+
+	if (cloog_constraint_is_lower_bound(j, d->i - 1)) {
+	    minmax = 1;
+	    d->g->eq[d->n].sign = 1;
+	} else {
+	    minmax = 0;
+	    d->g->eq[d->n].sign = -1;
+	}
+	  
+	guarded = (d->nb_iter >= d->level) ? d->level : 0 ;
+	d->g->eq[d->n].RHS = clast_minmax(d->copy, d->i,minmax,guarded,d->infos);
+    }
+    d->n++;
+
+    /* 'elimination' of the current constraint, this avoid to use one
+     * constraint more than once. The current line is always eliminated,
+     * and the next lines if they are in a min or a max.
+     */
+    cloog_constraint_clear(j);
+	
+    if (minmax == -1)
+	return 0;
+    if (minmax == 1)
+	cloog_constraint_set_foreach_constraint(d->copy,
+					    clear_lower_bound_at_level, &d->i);
+    else if (minmax == 0)
+	cloog_constraint_set_foreach_constraint(d->copy,
+					    clear_upper_bound_at_level, &d->i);
+
+    return 0;
+}
+
+
 /**
  * insert_guard function:
  * This function inserts a guard in the clast.
@@ -848,96 +1000,39 @@ static void insert_extra_modulo_guards(CloogConstraintSet *constraints,
 static void insert_guard(CloogConstraintSet *constraints, int level,
 			 struct clast_stmt ***next, CloogInfos *infos)
 { 
-  int i, guarded, minmax=-1, nb_and = 0, nb_iter ;
-  int total_dim;
-  CloogConstraintSet *copy;
-  CloogConstraint *j, *l;
-  struct clast_guard *g;
+    int total_dim;
+    struct clast_guard_data data = { level, infos, 0 };
 
-  if (constraints == NULL)
-    return;
+    if (!constraints)
+	return;
 
-    copy = cloog_constraint_set_copy(constraints);
+    data.copy = cloog_constraint_set_copy(constraints);
 
-    insert_extra_modulo_guards(copy, level, next, infos);
+    insert_extra_modulo_guards(data.copy, level, next, infos);
   
     total_dim = cloog_constraint_set_total_dimension(constraints);
-    g = new_clast_guard(2 * total_dim);
+    data.g = new_clast_guard(2 * total_dim);
 
     /* Well, it looks complicated because I wanted to have a particular, more
      * readable, ordering, obviously this function may be far much simpler !
      */
-    nb_iter = cloog_constraint_set_n_iterators(constraints,
+    data.nb_iter = cloog_constraint_set_n_iterators(constraints,
 						infos->names->nb_parameters);
  
-    nb_and = 0 ;
     /* We search for guard parts. */
-    for (i = 1; i <= total_dim; i++)
-      for (j = cloog_constraint_first(copy); cloog_constraint_is_valid(j);
-	   j = cloog_constraint_next(j))
-	if (cloog_constraint_involves(j, i-1) &&
-	    (!level || (nb_iter < level) ||
-	     !cloog_constraint_involves(j, level-1))) {
-	  struct clast_expr *v;
-	  struct clast_term *t;
+    for (data.i = 1; data.i <= total_dim; data.i++)
+	cloog_constraint_set_foreach_constraint(data.copy,
+						insert_guard_constraint, &data);
 
-	  v = cloog_constraint_variable_expr(j, i, infos->names);
-	  g->eq[nb_and].LHS = &(t = new_clast_term(infos->state->one, v))->expr;
-	  if (!level || cloog_constraint_is_equality(j)) {
-	    /* put the "denominator" in the LHS */
-	    cloog_constraint_coefficient_get(j, i-1, &t->val);
-	    cloog_constraint_coefficient_set(j, i-1, infos->state->one);
-	    if (cloog_int_is_neg(t->val)) {
-	      cloog_int_neg(t->val, t->val);
-	      cloog_constraint_coefficient_set(j, i-1, infos->state->negone);
-	    }
-	    if (level || cloog_constraint_is_equality(j))
-	      g->eq[nb_and].sign = 0;
-	    else if (cloog_constraint_is_lower_bound(j, i-1))
-	      g->eq[nb_and].sign = 1;
-	    else
-	      g->eq[nb_and].sign = -1;
-	    g->eq[nb_and].RHS = clast_bound_from_constraint(j, i, infos->names);
-	  } else {
-	    if (cloog_constraint_is_lower_bound(j, i-1)) {
-		minmax = 1;
-		g->eq[nb_and].sign = 1;
-	    } else {
-		minmax = 0;
-		g->eq[nb_and].sign = -1;
-	    }
-	  
-	    guarded = (nb_iter >= level) ? level : 0 ;
-	    g->eq[nb_and].RHS = clast_minmax(copy,i,minmax,guarded,infos) ;
-	  }
-	  nb_and ++ ;
+    cloog_constraint_set_free(data.copy);
 
-	  /* 'elimination' of the current constraint, this avoid to use one
-	   * constraint more than once. The current line is always eliminated,
-	   * and the next lines if they are in a min or a max.
-	   */
-	  cloog_constraint_clear(j);
-	
-	  if (minmax == -1)
-	    continue;
-	  l = cloog_constraint_copy(j);
-	  for (l = cloog_constraint_next(l); cloog_constraint_is_valid(l);
-	       l = cloog_constraint_next(l))
-	    if (((minmax == 1) && cloog_constraint_is_lower_bound(l, i-1)) ||
-		((minmax == 0) && cloog_constraint_is_upper_bound(l, i-1)))
-	      cloog_constraint_clear(l);
-	}
-	cloog_constraint_set_free(copy);
-  
-  g->n = nb_and;
-  if (nb_and) {
-    clast_guard_sort(g);
-    **next = &g->stmt;
-    *next = &g->then;
-  } else
-    free_clast_stmt(&g->stmt);
-  
-  return;
+    data.g->n = data.n;
+    if (data.n) {
+	clast_guard_sort(data.g);
+	**next = &data.g->stmt;
+	*next = &data.g->then;
+    } else
+	free_clast_stmt(&data.g->stmt);
 }
 
 /**
@@ -983,6 +1078,115 @@ static void insert_computed_modulo_guard(struct clast_reduction *r,
     *next = &g->then;
 }
 
+
+/* Temporary structure for communication between insert_modulo_guard and
+ * its cloog_constraint_set_foreach_constraint callback function.
+ */
+struct clast_modulo_guard_data {
+    CloogConstraint *lower;
+    int level;
+    struct clast_stmt ***next;
+    CloogInfos *infos;
+    int empty;
+    cloog_int_t val, bound;
+};
+
+
+/* Insert a modulo guard for constraint c.
+ */
+static int insert_modulo_guard_constraint(CloogConstraint *c, void *user)
+{
+    struct clast_modulo_guard_data *d = (struct clast_modulo_guard_data *) user;
+    int level = d->level;
+    CloogInfos *infos = d->infos;
+    int i, nb_elts = 0, len, len2, nb_iter, nb_par;
+    int constant;
+    struct cloog_vec *line_vector;
+    cloog_int_t *line;
+
+    len = cloog_constraint_total_dimension(c) + 2;
+    len2 = cloog_equal_total_dimension(infos->equal) + 2;
+    nb_par = infos->names->nb_parameters;
+    nb_iter = len - 2 - nb_par;
+
+    line_vector = cloog_vec_alloc(len);
+    line = line_vector->p;
+    cloog_constraint_copy_coefficients(c, line + 1);
+
+    if (cloog_int_is_pos(line[level]))
+	cloog_seq_neg(line + 1, line + 1, len - 1);
+    cloog_int_neg(line[level], line[level]);
+    assert(cloog_int_is_pos(line[level]));
+
+    nb_elts = 0;
+    for (i = 1; i <= len-1; ++i) {
+	if (i == level)
+	    continue;
+	cloog_int_fdiv_r(line[i], line[i], line[level]);
+	if (cloog_int_is_zero(line[i]))
+	    continue;
+	if (i == len-1)
+	    continue;
+
+	nb_elts++;
+    }
+
+    if (nb_elts || !cloog_int_is_zero(line[len-1])) {
+	struct clast_reduction *r;
+	const char *name;
+
+	r = new_clast_reduction(clast_red_sum, nb_elts + 1);
+	nb_elts = 0;
+
+	/* First, the modulo guard : the iterators... */
+	for (i=1;i<=nb_iter;i++) {
+	  if (i == level || cloog_int_is_zero(line[i]))
+	    continue;
+	  if (cloog_int_is_divisible_by(infos->stride[i-1], line[level])) {
+	    cloog_int_addmul(line[len-1], line[i], infos->offset[i-1]);
+	    cloog_int_fdiv_r(line[len-1], line[len-1], line[level]);
+	    continue;
+	  }
+
+	  name = cloog_names_name_at_level(infos->names, i);
+
+	  r->elts[nb_elts++] = &new_clast_term(line[i],
+				    &new_clast_name(name)->expr)->expr;
+	}
+
+	/* ...the parameters... */
+	for (i=nb_iter+1;i<=len-2;i++) {
+	  if (cloog_int_is_zero(line[i]))
+	    continue;
+
+	  name = infos->names->parameters[i-nb_iter-1] ;
+	  r->elts[nb_elts++] = &new_clast_term(line[i],
+				    &new_clast_name(name)->expr)->expr;
+	}
+
+	constant = nb_elts == 0;
+	/* ...the constant. */
+	if (!cloog_int_is_zero(line[len-1]))
+	  r->elts[nb_elts++] = &new_clast_term(line[len-1], NULL)->expr;
+
+	/* our initial computation may have been an overestimate */
+	r->n = nb_elts;
+
+	if (constant) {
+	  d->empty = !constant_modulo_guard_is_satisfied(d->lower, d->bound,
+							 line[len - 1]);
+	  free_clast_reduction(r);
+	} else
+	  insert_computed_modulo_guard(r, d->lower, line[level], d->bound,
+					d->next);
+    }
+
+    cloog_vec_free(line_vector);
+
+    return -1;
+}
+
+
 /**
  * insert_modulo_guard:
  * This function inserts a modulo guard corresponding to an equality
@@ -1005,125 +1209,44 @@ static int insert_modulo_guard(CloogConstraint *upper,
 				CloogConstraint *lower, int level,
 				struct clast_stmt ***next, CloogInfos *infos)
 {
-  int i, nb_elts = 0, len, len2, nb_iter, nb_par;
-  int constant, empty = 0;
-  struct cloog_vec *line_vector;
-  cloog_int_t *line, val, bound;
+  int nb_par;
   CloogConstraintSet *set;
+  struct clast_modulo_guard_data data = { lower, level, next, infos, 0 };
 
-  cloog_int_init(val);
-  cloog_constraint_coefficient_get(upper, level-1, &val);
-  if (cloog_int_is_one(val) || cloog_int_is_neg_one(val)) {
-    cloog_int_clear(val);
+  cloog_int_init(data.val);
+  cloog_constraint_coefficient_get(upper, level-1, &data.val);
+  if (cloog_int_is_one(data.val) || cloog_int_is_neg_one(data.val)) {
+    cloog_int_clear(data.val);
     return 1;
   }
 
-  len = cloog_constraint_total_dimension(upper) + 2;
-  len2 = cloog_equal_total_dimension(infos->equal) + 2;
   nb_par = infos->names->nb_parameters;
-  nb_iter = len - 2 - nb_par;
 
-  cloog_int_init(bound);
+  cloog_int_init(data.bound);
   /* Check if would be emitting the redundant constraint mod(e,m) <= m-1 */
   if (cloog_constraint_is_valid(lower)) {
-    cloog_constraint_constant_get(upper, &val);
-    cloog_constraint_constant_get(lower, &bound);
-    cloog_int_add(bound, val, bound);
-    cloog_constraint_coefficient_get(lower, level-1, &val);
-    cloog_int_sub_ui(val, val, 1);
-    if (cloog_int_eq(val, bound)) {
-      cloog_int_clear(val);
-      cloog_int_clear(bound);
+    cloog_constraint_constant_get(upper, &data.val);
+    cloog_constraint_constant_get(lower, &data.bound);
+    cloog_int_add(data.bound, data.val, data.bound);
+    cloog_constraint_coefficient_get(lower, level-1, &data.val);
+    cloog_int_sub_ui(data.val, data.val, 1);
+    if (cloog_int_eq(data.val, data.bound)) {
+      cloog_int_clear(data.val);
+      cloog_int_clear(data.bound);
       return 1;
     }
   }
 
   set = cloog_constraint_set_for_reduction(upper, lower);
-  set = cloog_constraint_set_reduce(set, level, infos->equal, nb_par, &bound);
-  upper = cloog_constraint_first(set);
-  if (!cloog_constraint_is_valid(upper)) {
-    cloog_int_clear(val);
-    cloog_int_clear(bound);
-    cloog_constraint_set_free(set);
-    return 1;
-  }
+  set = cloog_constraint_set_reduce(set, level, infos->equal, nb_par, &data.bound);
+  cloog_constraint_set_foreach_constraint(set,
+					insert_modulo_guard_constraint, &data);
 
-  line_vector = cloog_vec_alloc(len);
-  line = line_vector->p;
-  cloog_constraint_copy_coefficients(upper, line+1);
-  if (cloog_int_is_pos(line[level]))
-    cloog_seq_neg(line+1, line+1, len-1);
-  cloog_int_neg(line[level], line[level]);
-  assert(cloog_int_is_pos(line[level]));
-
-  nb_elts = 0;
-  for (i = 1; i <= len-1; ++i) {
-    if (i == level)
-      continue;
-    cloog_int_fdiv_r(line[i], line[i], line[level]);
-    if (cloog_int_is_zero(line[i]))
-      continue;
-    if (i == len-1)
-      continue;
-
-    nb_elts++;
-  }
-
-  if (nb_elts || !cloog_int_is_zero(line[len-1])) {
-    struct clast_reduction *r;
-    const char *name;
-
-    r = new_clast_reduction(clast_red_sum, nb_elts+1);
-    nb_elts = 0;
-
-    /* First, the modulo guard : the iterators... */
-    for (i=1;i<=nb_iter;i++) {
-      if (i == level || cloog_int_is_zero(line[i]))
-	continue;
-      if (cloog_int_is_divisible_by(infos->stride[i-1], line[level])) {
-	cloog_int_addmul(line[len-1], line[i], infos->offset[i-1]);
-	cloog_int_fdiv_r(line[len-1], line[len-1], line[level]);
-	continue;
-      }
-
-      name = cloog_names_name_at_level(infos->names, i);
-
-      r->elts[nb_elts++] = &new_clast_term(line[i],
-				&new_clast_name(name)->expr)->expr;
-    }
-
-    /* ...the parameters... */
-    for (i=nb_iter+1;i<=len-2;i++) {
-      if (cloog_int_is_zero(line[i]))
-	continue;
-
-      name = infos->names->parameters[i-nb_iter-1] ;
-      r->elts[nb_elts++] = &new_clast_term(line[i],
-				&new_clast_name(name)->expr)->expr;
-    }
-
-    constant = nb_elts == 0;
-    /* ...the constant. */
-    if (!cloog_int_is_zero(line[len-1]))
-      r->elts[nb_elts++] = &new_clast_term(line[len-1], NULL)->expr;
-
-    /* our initial computation may have been an overestimate */
-    r->n = nb_elts;
-
-    if (constant) {
-      empty = !constant_modulo_guard_is_satisfied(lower, bound, line[len-1]);
-      free_clast_reduction(r);
-    } else
-      insert_computed_modulo_guard(r, lower, line[level], bound, next);
-  }
-
-  cloog_constraint_release(upper);
   cloog_constraint_set_free(set);
-  cloog_vec_free(line_vector);
-  cloog_int_clear(val);
-  cloog_int_clear(bound);
+  cloog_int_clear(data.val);
+  cloog_int_clear(data.bound);
 
-  return !empty;
+  return !data.empty;
 }
 
 

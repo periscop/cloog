@@ -49,6 +49,10 @@
 #define ALLOCN(type,n) (type*)malloc((n)*sizeof(type))
 
 
+CloogConstraint *cloog_constraint_first(CloogConstraintSet *constraints);
+CloogConstraint *cloog_constraint_next(CloogConstraint *constraint);
+
+
 CloogConstraintSet *cloog_constraint_set_from_cloog_matrix(CloogMatrix *M)
 {
 	return (CloogConstraintSet *)M;
@@ -1007,6 +1011,21 @@ CloogConstraint *cloog_constraint_copy(CloogConstraint *constraint)
 void cloog_constraint_release(CloogConstraint *constraint)
 {
 	free(constraint);
+}
+
+int cloog_constraint_set_foreach_constraint(CloogConstraintSet *constraints,
+	int (*fn)(CloogConstraint *constraint, void *user), void *user)
+{
+	CloogConstraint *c;
+
+	for (c = cloog_constraint_first(constraints);
+	     cloog_constraint_is_valid(c); c = cloog_constraint_next(c))
+		if (fn(c, user) < 0) {
+			cloog_constraint_release(c);
+			return -1;
+		}
+
+	return 0;
 }
 
 CloogConstraint *cloog_equal_constraint(CloogEqualities *equal, int j)

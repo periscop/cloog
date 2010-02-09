@@ -78,9 +78,9 @@ CloogConstraintSet *cloog_constraint_set_for_reduction(CloogConstraint *upper,
 	       CloogConstraint *lower);
 CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	int level, CloogEqualities *equal, int nb_par, cloog_int_t *bound);
-CloogConstraint *cloog_constraint_first(CloogConstraintSet *constraints);
+int cloog_constraint_set_foreach_constraint(CloogConstraintSet *constraints,
+	int (*fn)(CloogConstraint *constraint, void *user), void *user);
 int              cloog_constraint_is_valid(CloogConstraint *constraint);
-CloogConstraint *cloog_constraint_next(CloogConstraint *constraint);
 CloogConstraint *cloog_constraint_copy(CloogConstraint *constraint);
 void             cloog_constraint_release(CloogConstraint *constraint);
 CloogConstraint *cloog_constraint_invalid(void);

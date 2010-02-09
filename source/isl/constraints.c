@@ -601,6 +601,22 @@ CloogConstraintSet *cloog_constraint_set_for_reduction(CloogConstraint *upper,
 	return cloog_constraint_set_from_isl_basic_set(bset);
 }
 
+
+static int add_constant_term(CloogConstraint *c, void *user)
+{
+	isl_int *bound = (isl_int *)user;
+	isl_int v;
+
+	isl_int_init(v);
+
+	cloog_constraint_constant_get(c, &v);
+	isl_int_add(*bound, *bound, v);
+
+	isl_int_clear(v);
+
+	return 0;
+}
+
 /**
  * Reduce the modulo guard expressed by "contraints" using equalities
  * found in outer nesting levels (stored in "equal").
@@ -635,9 +651,7 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	struct isl_div *div;
 	unsigned constraints_dim;
 	int pos;
-	isl_int v;
 	struct isl_basic_set *bset = &constraints->bset;
-	CloogConstraint *cc;
 
 	dim = set_cloog_dim_to_isl_dim(constraints, level - 1);
 	if (dim.type != isl_dim_set)
@@ -677,15 +691,10 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 					bset->ctx->negone);
 	bset = isl_basic_set_add_constraint(bset, c);
 
-	isl_int_init(v);
 	isl_int_set_si(*bound, 0);
 	constraints = cloog_constraint_set_from_isl_basic_set(bset);
-	for (cc = cloog_constraint_first(constraints);
-	     cloog_constraint_is_valid(cc); cc = cloog_constraint_next(cc)) {
-		cloog_constraint_constant_get(cc, &v);
-		isl_int_add(*bound, *bound, v);
-	}
-	isl_int_clear(v);
+	cloog_constraint_set_foreach_constraint(constraints,
+						add_constant_term, bound);
 
 	return cloog_constraint_set_from_isl_basic_set(bset);
 }
@@ -712,6 +721,21 @@ CloogConstraint *cloog_constraint_copy(CloogConstraint *constraint)
 void cloog_constraint_release(CloogConstraint *constraint)
 {
 	isl_constraint_free(&constraint->isl);
+}
+
+int cloog_constraint_set_foreach_constraint(CloogConstraintSet *constraints,
+	int (*fn)(CloogConstraint *constraint, void *user), void *user)
+{
+	CloogConstraint *c;
+
+	for (c = cloog_constraint_first(constraints);
+	     cloog_constraint_is_valid(c); c = cloog_constraint_next(c))
+		if (fn(c, user) < 0) {
+			cloog_constraint_release(c);
+			return -1;
+		}
+
+	return 0;
 }
 
 CloogConstraint *cloog_equal_constraint(CloogEqualities *equal, int j)
