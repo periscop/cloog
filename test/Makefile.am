@@ -73,6 +73,7 @@ FINITE_CLOOGTEST_C =                   \
 	classen                        \
 	constbound                     \
 	darte                          \
+	dealII                         \
 	donotsimp                      \
 	dot                            \
 	dot2                           \
