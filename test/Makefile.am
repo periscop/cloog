@@ -71,6 +71,7 @@ FINITE_CLOOGTEST_C =                   \
 	cholesky                       \
 	cholesky2                      \
 	classen                        \
+	classen2                       \
 	constbound                     \
 	darte                          \
 	dealII                         \

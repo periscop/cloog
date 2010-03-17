@@ -902,6 +902,16 @@ struct clast_guard_data {
 };
 
 
+static int guard_count_bounds(CloogConstraint *c, void *user)
+{
+    struct clast_guard_data *d = (struct clast_guard_data *) user;
+
+    d->n++;
+
+    return 0;
+}
+
+
 /* Insert a guard, if necesessary, for constraint j.
  */
 static int insert_guard_constraint(CloogConstraint *j, void *user)
@@ -1009,9 +1019,12 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
     data.copy = cloog_constraint_set_copy(constraints);
 
     insert_extra_modulo_guards(data.copy, level, next, infos);
+
+    cloog_constraint_set_foreach_constraint(constraints,
+						guard_count_bounds, &data);
   
-    total_dim = cloog_constraint_set_total_dimension(constraints);
-    data.g = new_clast_guard(2 * total_dim);
+    data.g = new_clast_guard(data.n);
+    data.n = 0;
 
     /* Well, it looks complicated because I wanted to have a particular, more
      * readable, ordering, obviously this function may be far much simpler !
@@ -1020,6 +1033,7 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 						infos->names->nb_parameters);
  
     /* We search for guard parts. */
+    total_dim = cloog_constraint_set_total_dimension(constraints);
     for (data.i = 1; data.i <= total_dim; data.i++)
 	cloog_constraint_set_foreach_constraint(data.copy,
 						insert_guard_constraint, &data);
