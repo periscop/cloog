@@ -35,6 +35,8 @@ static int clast_binary_cmp(struct clast_binary *b1, struct clast_binary *b2);
 static int clast_reduction_cmp(struct clast_reduction *r1, 
 				 struct clast_reduction *r2);
 
+static struct clast_expr *clast_expr_copy(struct clast_expr *e);
+
 static int clast_equal_add(CloogEqualities *equal,
 				CloogConstraintSet *constraints,
 				int level, CloogConstraint *constraint,
@@ -459,6 +461,40 @@ static int qsort_eq_cmp(const void *p1, const void *p2)
 static void clast_guard_sort(struct clast_guard *g)
 {
     qsort(&g->eq[0], g->n, sizeof(struct clast_equation), qsort_eq_cmp);
+}
+
+
+/**
+ * Construct a (deep) copy of an expression clast.
+ */
+static struct clast_expr *clast_expr_copy(struct clast_expr *e)
+{
+    if (!e)
+	return NULL;
+    switch (e->type) {
+    case clast_expr_name: {
+	struct clast_name* n = (struct clast_name*) e;
+	return &new_clast_name(n->name)->expr;
+    }
+    case clast_expr_term: {
+	struct clast_term* t = (struct clast_term*) e;
+	return &new_clast_term(t->val, clast_expr_copy(t->var))->expr;
+    }
+    case clast_expr_red: {
+	int i;
+	struct clast_reduction *r = (struct clast_reduction*) e;
+	struct clast_reduction *r2 = new_clast_reduction(r->type, r->n);
+	for (i = 0; i < r->n; ++i)
+	    r2->elts[i] = clast_expr_copy(r->elts[i]);
+	return &r2->expr;
+    }
+    case clast_expr_bin: {
+	struct clast_binary *b = (struct clast_binary*) e;
+	return &new_clast_binary(b->type, clast_expr_copy(b->LHS), b->RHS)->expr;
+    }
+    default:
+	assert(0);
+    }
 }
 
 
@@ -1265,6 +1301,34 @@ static int insert_modulo_guard(CloogConstraint *upper,
 
 
 /**
+ * We found an equality or a pair of inequalities identifying
+ * a loop with a single iteration, but the user wants us to generate
+ * a loop anyway, so we do it here.
+ */
+static int insert_equation_as_loop(CloogConstraint *upper,
+		CloogConstraint *lower, int level, struct clast_stmt ***next,
+		CloogInfos *infos)
+{
+    const char *iterator = cloog_names_name_at_level(infos->names, level);
+    struct clast_expr *e1, *e2;
+    struct clast_for *f;
+
+    e2 = clast_bound_from_constraint(upper, level, infos->names);
+    if (!cloog_constraint_is_valid(lower))
+	e1 = clast_expr_copy(e2);
+    else
+	e1 = clast_bound_from_constraint(lower, level, infos->names);
+    f = new_clast_for(iterator, e1, e2, infos->stride[level-1]);
+    **next = &f->stmt;
+    *next = &f->body;
+
+    cloog_constraint_release(lower);
+    cloog_constraint_release(upper);
+    return 1;
+}
+
+
+/**
  * insert_equation function:
  * This function inserts an equality 
  * constraint according to an element in the clast.
@@ -1293,6 +1357,9 @@ static int insert_equation(CloogConstraint *upper, CloogConstraint *lower,
 {
   struct clast_expr *e;
   struct clast_assignment *ass;
+
+  if (!infos->options->otl)
+    return insert_equation_as_loop(upper, lower, level, next, infos);
 
   if (!insert_modulo_guard(upper, lower, level, next, infos)) {
     cloog_constraint_release(lower);

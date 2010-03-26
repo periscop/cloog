@@ -201,6 +201,7 @@ SPECIAL_OPTIONS = \
 	'merge -f -1' \
 	'equality -f -1 -l 2 -override' \
 	'equality2 -f -1 -l 4 -esp 1 -override' \
+	'otl -block 1 -esp 0 -otl 0' \
 	'stride -f -1 -strides 1' \
 	'stride2 -f -1 -strides 1' \
 	'sor1d -f -1'
