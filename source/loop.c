@@ -851,42 +851,9 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
 
 
 /**
- * cloog_loop_merge_list
- * Merge two lists of CloogLoops.  The new list contains the
- * elements of the two lists in the same order, but they may
- * be interleaved.
- * In particular, if the elements of a and b are ordered
- * according to the inner loops of the order list, then so are the elements
- * in the new list.
- */
-static CloogLoop *cloog_loop_merge_inner_list(CloogLoop *a, CloogLoop *b, 
-					      CloogLoop *order)
-{
-  CloogLoop *loop, **next;
-  next = &loop;
-
-  for ( ; order && (a||b); order = order->next) {
-    if (a && order->inner->block == a->block) {
-      *next = a;
-      a = a->next;
-      next = &(*next)->next;
-      continue;
-    }
-    if (b && order->inner->block == b->block) {
-      *next = b;
-      b = b->next;
-      next = &(*next)->next;
-    }
-  }
-  return loop;
-}
-
-/**
  * cloog_loop_merge function:
  * This function is the 'soft' version of loop_separate if we are looking for
- * a code much simpler (and less efficicient). Here we merge loops if they have
- * common parts in the iteration space (if the intersection of their domains is
- * not empty), and let them isolated otherwise. This function returns the new
+ * a code much simpler (and less efficicient).  This function returns the new
  * CloogLoop list.
  * - October 29th 2001: first version. 
  * - July 3rd->11th 2003: memory leaks hunt and correction.
@@ -894,70 +861,38 @@ static CloogLoop *cloog_loop_merge_inner_list(CloogLoop *a, CloogLoop *b,
  */ 
 CloogLoop * cloog_loop_merge(CloogLoop * loop, CloogOptions * options)
 {
-  CloogLoop * res, * merge, * now, * Q, * P, * new_inner, * next, * old ;
-  CloogDomain * new_domain, * temp ;
+    CloogLoop *res, *new_inner, *old;
+    CloogDomain *new_domain, *temp;
 
-  if (loop == NULL)
-  return loop ;
+    if (loop == NULL)
+	return loop;
 
-  if (loop->next == NULL)
-    return cloog_loop_disjoint(loop);
+    if (loop->next == NULL)
+	return cloog_loop_disjoint(loop);
 
-  /* First loop is added to the target list. */
-  res = cloog_loop_alloc(loop->state, loop->domain, loop->state->one,
-			 loop->state->zero, loop->block, loop->inner, NULL);
-  old = loop ;
-  /* Now the domain is in 'res' and it will be freed. */
-  loop->domain = NULL ;
-  
-  /* And one by one, we see if we have to merge or to add the other loops. */
-  while((loop = loop->next) != NULL)
-  { merge = NULL ;
-    P = cloog_loop_alloc(loop->state, loop->domain, loop->state->one,
-			 loop->state->zero, loop->block, loop->inner, NULL);
-    Q = res ;
-    /* Now the domain is in 'P' and it will be freed. */
-    loop->domain = NULL ;
-        
-    /* For each loop in the target list, if the intersection with the new loop
-     * is empty, we can add the new loop directly, otherwise, we can merge then
-     * add the fusion.
-     */
-    while (Q != NULL)
-    { temp = cloog_domain_intersection(Q->domain,P->domain) ;
-      next = Q->next ;
-      if (cloog_domain_isempty(temp))
-      { cloog_domain_free(temp) ;
-        cloog_loop_add_disjoint(&merge,&now,Q) ;
-      }
-      else 
-      { cloog_domain_free(temp) ;
-        new_inner = cloog_loop_merge_inner_list(Q->inner, P->inner, old);
-        temp = cloog_domain_union(P->domain,Q->domain) ;
-	if (options->sh)
-	  new_domain = cloog_domain_simple_convex(temp);
-	else
-	  new_domain = cloog_domain_convex(temp);
-        cloog_domain_free(temp) ;
-        /* Q and P are no more used (but their content yes !).*/
-        cloog_loop_free_parts(P, 0, 0, 0, 0);
-        cloog_loop_free_parts(Q, 0, 0, 0, 0);
-        P = cloog_loop_alloc(loop->state, new_domain, loop->state->one,
-			     loop->state->zero, NULL, new_inner, NULL);
-      }
-      Q = next ;
+    old = loop;
+    temp = loop->domain;
+    loop->domain = NULL;
+    new_inner = loop->inner;
+
+    for (loop = loop->next; loop; loop = loop->next) {
+	temp = cloog_domain_union(temp, loop->domain);
+	loop->domain = NULL;
+	new_inner = cloog_loop_concat(new_inner, loop->inner);
     }
 
-    /* If there was merging, add it, otherwise add the loop lonely.
-     * DEBUG : ici pas besoin de s'assurer que P->next est NULL (possible que
-     * non si pas de fusion) car le dernier loop etudie a loop->next = NULL.
-     */
-    cloog_loop_add_disjoint(&merge,&now,P) ;
-    res = merge ;
-  }  
-  cloog_loop_free_parts(old,0,0,0,1) ;
+    if (options->sh)
+	new_domain = cloog_domain_simple_convex(temp);
+    else
+	new_domain = cloog_domain_convex(temp);
+    cloog_domain_free(temp);
 
-  return (res);
+    res = cloog_loop_alloc(old->state, new_domain, old->state->one,
+			   old->state->zero, NULL, new_inner, NULL);
+
+    cloog_loop_free_parts(old, 0, 0, 0, 1);
+
+    return res;
 }
 
 
