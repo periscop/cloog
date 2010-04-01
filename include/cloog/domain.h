@@ -76,6 +76,8 @@ CloogDomain * cloog_domain_difference(CloogDomain *, CloogDomain *) ;
 void          cloog_domain_sort(CloogDomain**,unsigned,unsigned,int *);
 int cloog_domain_follows(CloogDomain *dom1, CloogDomain *dom2, unsigned level);
 CloogDomain * cloog_domain_empty(CloogDomain *model);
+int cloog_domain_is_bounded(CloogDomain *dim, unsigned level);
+CloogDomain *cloog_domain_bound_splitter(CloogDomain *dom, int level);
 
 
 /******************************************************************************

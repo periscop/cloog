@@ -850,6 +850,15 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
 }
 
 
+static CloogDomain *bounding_domain(CloogDomain *dom, CloogOptions *options)
+{
+    if (options->sh)
+	return cloog_domain_simple_convex(dom);
+    else
+	return cloog_domain_convex(dom);
+}
+
+
 /**
  * cloog_loop_merge function:
  * This function is the 'soft' version of loop_separate if we are looking for
@@ -859,7 +868,7 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
  * - July 3rd->11th 2003: memory leaks hunt and correction.
  * - June      22nd 2005: Adaptation for GMP.
  */ 
-CloogLoop * cloog_loop_merge(CloogLoop * loop, CloogOptions * options)
+CloogLoop *cloog_loop_merge(CloogLoop *loop, int level, CloogOptions *options)
 {
     CloogLoop *res, *new_inner, *old;
     CloogDomain *new_domain, *temp;
@@ -881,14 +890,52 @@ CloogLoop * cloog_loop_merge(CloogLoop * loop, CloogOptions * options)
 	new_inner = cloog_loop_concat(new_inner, loop->inner);
     }
 
-    if (options->sh)
-	new_domain = cloog_domain_simple_convex(temp);
-    else
-	new_domain = cloog_domain_convex(temp);
-    cloog_domain_free(temp);
+    new_domain = bounding_domain(temp, options);
 
-    res = cloog_loop_alloc(old->state, new_domain, old->state->one,
-			   old->state->zero, NULL, new_inner, NULL);
+    if (level > 0 && !cloog_domain_is_bounded(new_domain, level) &&
+	    	     cloog_domain_is_bounded(temp, level)) {
+	CloogDomain *splitter, *t2;
+
+	cloog_domain_free(new_domain);
+	splitter = cloog_domain_bound_splitter(temp, level);
+
+	res = NULL;
+	while (!cloog_domain_isconvex(splitter)) {
+	    CloogDomain *first, *rest;
+	    first = cloog_domain_cut_first(splitter, &rest);
+	    splitter = rest;
+	    t2 = cloog_domain_intersection(first, temp);
+	    cloog_domain_free(first);
+
+	    new_domain = bounding_domain(t2, options);
+	    cloog_domain_free(t2);
+
+	    if (cloog_domain_isempty(new_domain)) {
+		cloog_domain_free(new_domain);
+		continue;
+	    }
+	    res = cloog_loop_alloc(old->state, new_domain, old->state->one,
+				   old->state->zero, NULL,
+				   cloog_loop_copy(new_inner), res);
+	}
+
+	t2 = cloog_domain_intersection(splitter, temp);
+	cloog_domain_free(splitter);
+
+	new_domain = bounding_domain(t2, options);
+	cloog_domain_free(t2);
+
+	if (cloog_domain_isempty(new_domain)) {
+	    cloog_domain_free(new_domain);
+	    cloog_loop_free(new_inner);
+	} else
+	    res = cloog_loop_alloc(old->state, new_domain, old->state->one,
+				   old->state->zero, NULL, new_inner, res);
+    } else {
+	res = cloog_loop_alloc(old->state, new_domain, old->state->one,
+			       old->state->zero, NULL, new_inner, NULL);
+    }
+    cloog_domain_free(temp);
 
     cloog_loop_free_parts(old, 0, 0, 0, 1);
 
@@ -1367,7 +1414,7 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
 
   /* 3. Separate all projections into disjoint polyhedra. */
   res = ((options->f > level+scalar) || (options->f < 0)) ?
-        cloog_loop_merge(loop, options) : cloog_loop_separate(loop);
+        cloog_loop_merge(loop, level, options) : cloog_loop_separate(loop);
     
   /* 3b. -correction- sort the loops to determine their textual order. */
   res = cloog_loop_sort(res, level);

@@ -193,6 +193,7 @@ SPECIAL_TESTS = \
 	merge \
 	equality \
 	equality2 \
+	param-split \
 	stride \
 	stride2 \
 	sor1d
@@ -202,6 +203,7 @@ SPECIAL_OPTIONS = \
 	'equality -f -1 -l 2 -override' \
 	'equality2 -f -1 -l 4 -esp 1 -override' \
 	'otl -block 1 -esp 0 -otl 0' \
+	'param-split -f -1' \
 	'stride -f -1 -strides 1' \
 	'stride2 -f -1 -strides 1' \
 	'sor1d -f -1'

@@ -268,6 +268,15 @@ CloogDomain *cloog_domain_empty(CloogDomain *template)
 }
 
 
+/**
+ * Return 1 if the specified dimension has both an upper and a lower bound.
+ */
+int cloog_domain_is_bounded(CloogDomain *dom, unsigned level)
+{
+	return isl_set_dim_is_bounded(&dom->set, isl_dim_set, level - 1);
+}
+
+
 /******************************************************************************
  *                          Structure display function                        *
  ******************************************************************************/
@@ -645,6 +654,78 @@ int cloog_domain_integral_lowerbound(CloogDomain *domain, int level,
 int cloog_domain_lazy_equal(CloogDomain *d1, CloogDomain *d2)
 {
 	return isl_set_fast_is_equal(&d1->set, &d2->set);
+}
+
+struct cloog_bound_split {
+	isl_set *set;
+	int level;
+	int lower;
+	int upper;
+};
+
+static int constraint_bound_split(__isl_take isl_constraint *c, void *user)
+{
+	struct cloog_bound_split *cbs = (struct cloog_bound_split *)user;
+	isl_int v;
+	int i;
+	int handle = 0;
+
+	isl_int_init(v);
+	isl_constraint_get_coefficient(c, isl_dim_set, cbs->level - 1, &v);
+	if (!cbs->lower && isl_int_is_pos(v))
+		cbs->lower = handle = 1;
+	else if (!cbs->upper && isl_int_is_neg(v))
+		cbs->upper = handle = 1;
+	if (handle) {
+		for (i = 0; i < isl_set_dim(cbs->set, isl_dim_param); ++i) {
+			isl_constraint_get_coefficient(c, isl_dim_param, i, &v);
+			if (isl_int_is_zero(v))
+				continue;
+			cbs->set = isl_set_split_dims(cbs->set,
+							isl_dim_param, i, 1);
+		}
+	}
+	isl_int_clear(v);
+	isl_constraint_free(c);
+
+	return (cbs->lower && cbs->upper) ? -1 : 0;
+}
+
+static int basic_set_bound_split(__isl_take isl_basic_set *bset, void *user)
+{
+	struct cloog_bound_split *cbs = (struct cloog_bound_split *)user;
+	int r;
+
+	cbs->lower = 0;
+	cbs->upper = 0;
+	r = isl_basic_set_foreach_constraint(bset, constraint_bound_split, cbs);
+	isl_basic_set_free(bset);
+	return ((!cbs->lower || !cbs->upper) && r < 0) ? -1 : 0;
+}
+
+/**
+ * Return a union of sets S_i such that the convex hull of "dom",
+ * when intersected with one the sets S_i, will have an upper and
+ * lower bound for the dimension at "level" (provided "dom" itself
+ * has such bounds for the dimensions).
+ *
+ * We currently take a very simple approach.  For each of the basic
+ * sets in "dom" we pick a lower and an upper bound and split the
+ * range of any parameter involved in these two bounds in a
+ * nonnegative and a negative part.  This ensures that the symbolic
+ * constant in these two constraints are themselves bounded and
+ * so there will be at least one upper and one lower bound
+ * in the convex hull.
+ */
+CloogDomain *cloog_domain_bound_splitter(CloogDomain *dom, int level)
+{
+	struct cloog_bound_split cbs;
+	int r;
+	cbs.level = level;
+	cbs.set = isl_set_universe_like(&dom->set);
+	r = isl_set_foreach_basic_set(&dom->set, basic_set_bound_split, &cbs);
+	assert(r == 0);
+	return cloog_domain_from_isl_set(cbs.set);
 }
 
 
