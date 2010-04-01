@@ -474,7 +474,7 @@ void cloog_loop_add_disjoint(start, now, loop)
 CloogLoop ** start, ** now, * loop ;
 {
   CloogLoop * sep, * inner ;
-  CloogDomain *domain, *seen, *seen_before, *temp, *rest;
+  CloogDomain *domain, *seen, *temp, *rest;
   CloogBlock * block ;
   
   if (cloog_domain_isconvex(loop->domain))
@@ -523,10 +523,7 @@ CloogLoop ** start, ** now, * loop ;
 	break;
       }
        
-      seen_before = seen;
-      seen = cloog_domain_union(seen_before, domain);
-      cloog_domain_free(domain);
-      cloog_domain_free(seen_before);
+      seen = cloog_domain_union(seen, domain);
     }
     cloog_domain_free(rest);
     cloog_domain_free(seen);
@@ -746,7 +743,7 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
 { int lazy_equal=0, disjoint = 0;
   CloogLoop * new_loop, * new_inner, * res, * now, * temp, * Q, 
             * inner, * old /*, * previous, * next*/  ;
-  CloogDomain * UQ, * old_UQ, * domain ;
+  CloogDomain *UQ, *domain;
   
   if (loop == NULL)
   return NULL ;
@@ -838,11 +835,11 @@ CloogLoop * cloog_loop_separate(CloogLoop * loop)
     
     loop->inner = NULL ;
 
-    old_UQ = UQ ;
     if (loop->next != NULL)
-    UQ = cloog_domain_union(UQ,loop->domain) ;
+      UQ = cloog_domain_union(UQ, cloog_domain_copy(loop->domain));
+    else
+      cloog_domain_free(UQ);
 
-    cloog_domain_free(old_UQ) ;
     cloog_loop_free_parts(res,1,0,0,1) ;
 
     res = temp ;
@@ -943,8 +940,8 @@ CloogLoop * cloog_loop_merge(CloogLoop * loop, CloogOptions * options)
 	  new_domain = cloog_domain_convex(temp);
         cloog_domain_free(temp) ;
         /* Q and P are no more used (but their content yes !).*/
-        cloog_loop_free_parts(P,1,0,0,0) ;
-        cloog_loop_free_parts(Q,1,0,0,0) ;
+        cloog_loop_free_parts(P, 0, 0, 0, 0);
+        cloog_loop_free_parts(Q, 0, 0, 0, 0);
         P = cloog_loop_alloc(loop->state, new_domain, loop->state->one,
 			     loop->state->zero, NULL, new_inner, NULL);
       }

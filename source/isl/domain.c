@@ -132,11 +132,12 @@ CloogDomain *cloog_domain_simplify(CloogDomain *dom1, CloogDomain *dom2)
  * cloog_domain_union function:
  * This function returns a new polyhedral domain which is the union of
  * two polyhedral domains (dom1) U (dom2).
+ * Frees dom1 and dom2;
  */
 CloogDomain *cloog_domain_union(CloogDomain *dom1, CloogDomain *dom2)
 {
 	struct isl_set *set;
-	set = isl_set_union(isl_set_copy(&dom1->set), isl_set_copy(&dom2->set));
+	set = isl_set_union(&dom1->set, &dom2->set);
 	return cloog_domain_from_isl_set(set);
 }
 
