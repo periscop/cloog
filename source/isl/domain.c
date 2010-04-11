@@ -121,9 +121,7 @@ CloogDomain *cloog_domain_simple_convex(CloogDomain *domain)
 CloogDomain *cloog_domain_simplify(CloogDomain *dom1, CloogDomain *dom2)
 {
 	struct isl_set *set;
-	assert(dom2->set.n == 1);
-	set = isl_set_gist(isl_set_copy(&dom1->set),
-				isl_basic_set_copy(dom2->set.p[0]));
+	set = isl_set_gist(isl_set_copy(&dom1->set), isl_set_copy(&dom2->set));
 	return cloog_domain_from_isl_set(set);
 }
 
