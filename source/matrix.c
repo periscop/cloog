@@ -165,22 +165,31 @@ static char *next_line(FILE *input, char *line, unsigned len)
 	return p;
 }
 
-/**
- * Read a matrix in PolyLib format from input.
- */
 CloogMatrix *cloog_matrix_read(FILE *input)
 {
-	CloogMatrix *M;
-	int i, j;
 	unsigned n_row, n_col;
 	char line[1024];
-	char val[1024];
-	char *p;
 
 	if (!next_line(input, line, sizeof(line)))
 		cloog_die("Input error.\n");
 	if (sscanf(line, "%u %u", &n_row, &n_col) != 2)
 		cloog_die("Input error.\n");
+	
+	return cloog_matrix_read_of_size(input, n_row, n_col);
+}
+
+/**
+ * Read a matrix in PolyLib format from input.
+ */
+CloogMatrix *cloog_matrix_read_of_size(FILE *input,
+	unsigned n_row, unsigned n_col)
+{
+	CloogMatrix *M;
+	int i, j;
+	char line[1024];
+	char val[1024];
+	char *p;
+
 	M = cloog_matrix_alloc(n_row, n_col);
 	if (!M)
 		cloog_die("memory overflow.\n");

@@ -49,6 +49,8 @@ void cloog_matrix_free (CloogMatrix *);
 void cloog_matrix_print_structure(FILE *file, CloogMatrix *M,
 		const char *prefix, const char *suffix);
 CloogMatrix *cloog_matrix_read(FILE *input);
+CloogMatrix *cloog_matrix_read_of_size(FILE *input,
+		unsigned n_row, unsigned n_col);
 void cloog_matrix_print(FILE*, CloogMatrix*);
 
 #if defined(__cplusplus)

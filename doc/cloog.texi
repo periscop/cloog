@@ -507,13 +507,14 @@ called a @emph{program}. The input file respects the grammar below
 @example
 File             ::= Program
 Program          ::= Context Statements Scattering
-Context          ::= Language      Domain         Naming
+Context          ::= Language      Domain_union   Naming
 Statements       ::= Nb_statements Statement_list Naming
-Scattering       ::= Nb_functions  Domain_list    Naming
+Scatterings      ::= Nb_functions  Scattering_list Naming
 Naming           ::= Option Name_list
 Name_list        ::= _String   Name_list      | (void)
 Statement_list   ::= Statement Statement_list | (void)
 Domain_list      ::= _Domain   Domain_list    | (void)
+Scattering_list  ::= Domain_union Scattering_list | (void)
 Statement        ::= Iteration_domain 0 0 0
 Iteration_domain ::= Domain_union
 Domain_union     ::= Nb_domains Domain_list
@@ -523,6 +524,9 @@ Nb_statements    ::= _Integer
 Nb_domains       ::= _Integer
 Nb_functions     ::= _Integer
 @end example
+
+Note: if there is only one domain in a @samp{Domain_union},
+i.e., if @samp{Nb_domains} is 1, then this 1 may be omitted.
 
 @itemize @bullet
 @item  @samp{Context} represents the informations that are
@@ -557,11 +561,11 @@ Nb_functions     ::= _Integer
        The iterator name of the outermost loop will be @samp{i}, and the
        iterator name of the loop at level @math{n+1} directly follows the 
        iterator name of the loop at level @math{n} in ASCII code. 
-@item  @samp{Scattering} represents the informations on scattering functions.
+@item  @samp{Scatterings} represents the informations on scattering functions.
        @samp{Nb_functions} is the number of functions (it must be
        equal to the number of statements or 0 if there is no scattering
-       function). The function themselves are represented through
-       @samp{Domain_list}.
+       function). The functions themselves are represented through
+       @samp{Scattering_list}.
        @samp{Naming} sets the scattering dimension names. If the naming option
        @samp{Option} is 1, the scattering dimension names will be read on the
        next line.

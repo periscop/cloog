@@ -122,6 +122,7 @@ FINITE_CLOOGTEST_C =                   \
 	thomasset                      \
 	tiling                         \
 	uday_scalars		       \
+	union			       \
 	vivien                         \
 	vivien2                        \
 	walters                        \
