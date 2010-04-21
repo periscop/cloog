@@ -345,17 +345,13 @@ void cloog_scattering_list_free(CloogScatteringList *list)
 CloogDomain *cloog_domain_read_context(CloogState *state, FILE *input)
 {
 	struct isl_ctx *ctx = state->backend->ctx;
-	struct isl_dim *param_dim;
-	struct isl_basic_set *bset;
-	struct isl_basic_set *model;
+	isl_set *set;
 
-	bset = isl_basic_set_read_from_file(ctx, input, 0);
-	assert(bset);
-	param_dim = isl_dim_set_alloc(ctx, isl_basic_set_n_dim(bset), 0);
-	model = isl_basic_set_empty(param_dim);
-	bset = isl_basic_set_from_underlying_set(bset, model);
+	set = isl_set_read_from_file(ctx, input, 0);
+	set = isl_set_move_dims(set, isl_dim_param, 0,
+				isl_dim_set, 0, isl_set_dim(set, isl_dim_set));
 
-	return cloog_domain_from_isl_set(isl_set_from_basic_set(bset));
+	return cloog_domain_from_isl_set(set);
 }
 
 
@@ -365,15 +361,11 @@ CloogDomain *cloog_domain_read_context(CloogState *state, FILE *input)
  */
 CloogDomain *cloog_domain_from_context(CloogDomain *context)
 {
-	struct isl_dim *dim;
-	struct isl_basic_set *model;
-	struct isl_set *ctx_set = &context->set;
-	struct isl_set *set;
+	isl_set *set = &context->set;
 
-	dim = isl_dim_set_alloc(ctx_set->ctx, 0, isl_set_n_param(ctx_set));
-	model = isl_basic_set_empty(dim);
-	ctx_set = isl_set_to_underlying_set(ctx_set);
-	set = isl_set_from_underlying_set(ctx_set, model);
+	set = isl_set_move_dims(set, isl_dim_set, 0,
+			    isl_dim_param, 0, isl_set_dim(set, isl_dim_param));
+
 	return cloog_domain_from_isl_set(set);
 }
 
@@ -408,9 +400,7 @@ CloogDomain *cloog_domain_union_read(CloogState *state,
 CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *input)
 {
 	struct isl_ctx *ctx = domain->set.ctx;
-	struct isl_set *set;
 	struct isl_map *scat;
-	struct isl_dim *dims;
 	unsigned nparam;
 	unsigned dim;
 	unsigned n_scat;
@@ -419,11 +409,9 @@ CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *input)
 	nparam = isl_set_n_param(&domain->set);
 	scat = isl_map_read_from_file(ctx, input, nparam);
 	if (isl_map_dim(scat, isl_dim_in) != dim) {
-		set = isl_set_from_map(scat);
-		n_scat = isl_set_n_dim(set) - dim;
-		dims = isl_dim_alloc(ctx, nparam, n_scat, dim);
-		scat = isl_map_from_set(set, dims);
-		scat = isl_map_reverse(scat);
+		n_scat = isl_map_dim(scat, isl_dim_out) - dim;
+		scat = isl_map_move_dims(scat, isl_dim_in, 0,
+					isl_dim_out, n_scat, dim);
 	}
 	return cloog_scattering_from_isl_map(scat);
 }
