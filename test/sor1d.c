@@ -1,8 +1,8 @@
-/* Generated from ../../../git/cloog/test/sor1d.cloog by CLooG 0.14.0-238-gb1cb779 gmp bits in 0.26s. */
+/* Generated from ../../../git/cloog/test/sor1d.cloog by CLooG 0.14.0-278-gcf1f323 gmp bits in 0.11s. */
 if ((M >= 1) && (N >= 3)) {
   for (glT1=-1;glT1<=floord(3*M+N-5,100);glT1++) {
     for (rp1=max(max(0,ceild(100*glT1-2*M-N+5,100)),ceild(100*glT1-N-193,300));rp1<=min(min(floord(glT1+1,3),floord(M,100)),glT1);rp1++) {
-      for (vT1=max(max(max(max(ceild(-50*glT1+9850*rp1-98,49),ceild(19700*rp1-197,99)),100*glT1-100*rp1),200*rp1-3),200*rp1-N+1);vT1<=min(min(min(2*M+N-5,100*glT1-100*rp1+99),200*rp1+N+193),100*glT1-100*rp1+N+95);vT1++) {
+      for (vT1=max(max(100*glT1-100*rp1,200*rp1-3),200*rp1-N+1);vT1<=min(min(min(2*M+N-5,100*glT1-100*rp1+99),200*rp1+N+193),100*glT1-100*rp1+N+95);vT1++) {
         if (rp1 >= max(1,ceild(vT1-N+7,200))) {
           S3(glT1-rp1,rp1-1,rp1,100*rp1-1,-200*rp1+vT1+6);
         }
