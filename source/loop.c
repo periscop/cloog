@@ -734,6 +734,61 @@ CloogLoop *cloog_loop_combine(CloogLoop *loop)
 }
 
 /**
+ * Remove loops from list that have an empty domain.
+ */
+CloogLoop *cloog_loop_remove_empty_domain_loops(CloogLoop *loop)
+{
+    CloogLoop *l, *res, *next, **res_next;
+
+    res = NULL;
+    res_next = &res;
+    for (l = loop; l; l = next) {
+	next = l->next;
+	if (cloog_domain_isempty(l->domain))
+	    cloog_loop_free_parts(l, 1, 1, 1, 0);
+	else {
+	    *res_next = l;
+	    res_next = &(*res_next)->next;
+	}
+    }
+    res_next = NULL;
+
+    return res;
+}
+
+CloogLoop *cloog_loop_decompose_inner(CloogLoop *loop,
+	int level, int scalar, int *scaldims, int nb_scattdims);
+
+/* For each loop with only one inner loop, replace the domain
+ * of the loop with the projection of the domain of the inner
+ * loop.  To increase the number of loops with a single inner
+ * we first decompose the inner loops into strongly connected
+ * components.
+ */
+CloogLoop *cloog_loop_specialize(CloogLoop *loop,
+	int level, int scalar, int *scaldims, int nb_scattdims)
+{
+    int dim;
+    CloogLoop *l;
+
+    loop = cloog_loop_decompose_inner(loop, level, scalar,
+					scaldims, nb_scattdims);
+
+    for (l = loop; l; l = l->next) {
+	if (l->inner->next)
+	    continue;
+	if (!cloog_domain_isconvex(l->inner->domain))
+	    continue;
+
+	dim = cloog_domain_dimension(l->domain);
+	cloog_domain_free(l->domain);
+	l->domain = cloog_domain_project(l->inner->domain, dim);
+    }
+
+    return cloog_loop_remove_empty_domain_loops(loop);
+}
+
+/**
  * cloog_loop_separate function:
  * This function implements the Quillere algorithm for separation of multiple
  * loops: for a given set of polyhedra (loop), it computes a set of disjoint
@@ -1425,15 +1480,23 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
   CloogLoop * res, * now, * temp, * l, * new_loop, * inner, * now2, * end,
             * next, * into ;
   CloogDomain * domain ;
+  int separate = 0;
 
   /* 3. Separate all projections into disjoint polyhedra. */
-  res = ((options->f > level+scalar) || (options->f < 0)) ?
-        cloog_loop_merge(loop, level, options) : cloog_loop_separate(loop);
+  if ((options->f > level+scalar) || (options->f < 0))
+    res = cloog_loop_merge(loop, level, options);
+  else {
+    res = cloog_loop_separate(loop);
+    separate = 1;
+  }
     
   /* 3b. -correction- sort the loops to determine their textual order. */
   res = cloog_loop_sort(res, level);
 
   res = cloog_loop_restrict_inner(res);
+
+  if (separate)
+    res = cloog_loop_specialize(res, level, scalar, scaldims, nb_scattdims);
   
   /* 4. Recurse for each loop with the current domain as context. */
   temp = res ;
@@ -2008,6 +2071,71 @@ CloogLoop *cloog_loop_generate_components(CloogLoop *loop,
     res = cloog_loop_combine(res);
 
     return res;
+}
+
+
+/* For each loop in the list "loop", decompose the list of
+ * inner loops into strongly connected components and put
+ * the components into separate loops at the top level.
+ */
+CloogLoop *cloog_loop_decompose_inner(CloogLoop *loop,
+	int level, int scalar, int *scaldims, int nb_scattdims)
+{
+    CloogLoop *l, *tmp;
+    CloogLoop **loop_array;
+    int i, n_loops, max_loops = 0;
+    struct cloog_loop_sort *s;
+
+    for (l = loop; l; l = l->next) {
+	n_loops = cloog_loop_count(l->inner);
+	if (max_loops < n_loops)
+	    max_loops = n_loops;
+    }
+
+    if (max_loops <= 1)
+	return loop;
+
+    loop_array = (CloogLoop **)malloc(max_loops * sizeof(CloogLoop *));
+    assert(loop_array);
+
+    for (l = loop; l; l = l->next) {
+	int n;
+
+	for (i = 0, tmp = l->inner; tmp; i++, tmp = tmp->next)
+	    loop_array[i] = tmp;
+	n_loops = i;
+	if (n_loops <= 1)
+	    continue;
+
+	s = cloog_loop_sort_alloc(n_loops);
+	for (i = n_loops - 1; i >= 0; --i) {
+	    if (s->node[i].index >= 0)
+		continue;
+	    cloog_loop_components_tarjan(s, loop_array, i, level, scalar,
+				scaldims, nb_scattdims, &cloog_loop_follows);
+	}
+
+	n = extract_component(loop_array, s->order, &l->inner);
+	n_loops -= n;
+	i = n + 1;
+	while (n_loops) {
+	    CloogLoop *inner;
+
+	    n = extract_component(loop_array, &s->order[i], &inner);
+	    n_loops -= n;
+	    i += n + 1;
+	    tmp = cloog_loop_alloc(l->state, cloog_domain_copy(l->domain),
+			l->stride, l->offset, l->block, inner, l->next);
+	    l->next = tmp;
+	    l = tmp;
+	}
+
+	cloog_loop_sort_free(s);
+    }
+
+    free(loop_array);
+
+    return loop;
 }
 
 
