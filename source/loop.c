@@ -1809,16 +1809,43 @@ static void cloog_loop_sort_free(struct cloog_loop_sort *s)
 }
 
 
+/* Check whether for any fixed iteration of the outer loops,
+ * there is an iteration of loop1 that is lexicographically greater
+ * than an iteration of loop2, where the iteration domains are
+ * available in the inner loops of the arguments.
+ *
+ * By using this functions to detect components, we ensure that
+ * two CloogLoops appear in the same component if some iterations of
+ * each loop should be executed before some iterations of the other loop.
+ * Since we also want two CloogLoops that have exactly the same
+ * iteration domain at the current level to be placed in the same component,
+ * we first check if these domains are indeed the same.
+ */
+static int inner_loop_follows(CloogLoop *loop1, CloogLoop *loop2,
+	int level, int scalar, int *scaldims, int nb_scattdims, int def)
+{
+    int f;
+
+    f = cloog_domain_lazy_equal(loop1->domain, loop2->domain);
+    if (!f)
+	f = cloog_loop_follows(loop1->inner, loop2->inner,
+				level, scalar, scaldims, nb_scattdims, def);
+
+    return f;
+}
+
+
 /* Perform Tarjan's algorithm for computing the strongly connected components
  * in the graph with the individual CloogLoops as vertices.
- * Two CloogLoops appear in the same component if some iterations of
- * each loop should be executed before some iterations of the other loop.
- * If two CloogLoops have exactly the same iteration domain, then they
- * are also placed in the same component.
+ * Two CloopLoops appear in the same component if they both (indirectly)
+ * "follow" each other, where the following relation is determined
+ * by the follows function.
  */
 static void cloog_loop_components_tarjan(struct cloog_loop_sort *s,
 	CloogLoop **loop_array, int i, int level, int scalar, int *scaldims,
-	int nb_scattdims)
+	int nb_scattdims,
+	int (*follows)(CloogLoop *loop1, CloogLoop *loop2,
+	    int level, int scalar, int *scaldims, int nb_scattdims, int def))
 {
     int j;
 
@@ -1838,16 +1865,14 @@ static void cloog_loop_components_tarjan(struct cloog_loop_sort *s,
 		 s->node[j].index > s->node[i].min_index))
 	    continue;
 
-	f = cloog_domain_lazy_equal(loop_array[i]->domain, loop_array[j]->domain);
-	if (!f)
-	    f = cloog_loop_follows(loop_array[i]->inner, loop_array[j]->inner,
+	f = follows(loop_array[i], loop_array[j],
 				level, scalar, scaldims, nb_scattdims, i > j);
 	if (!f)
 	    continue;
 
 	if (s->node[j].index < 0) {
 	    cloog_loop_components_tarjan(s, loop_array, j, level, scalar,
-					 scaldims, nb_scattdims);
+					 scaldims, nb_scattdims, follows);
 	    if (s->node[j].min_index < s->node[i].min_index)
 		s->node[i].min_index = s->node[j].min_index;
 	} else if (s->node[j].index < s->node[i].min_index)
@@ -1924,7 +1949,7 @@ CloogLoop *cloog_loop_generate_components(CloogLoop *loop,
 	if (s->node[i].index >= 0)
 	    continue;
 	cloog_loop_components_tarjan(s, loop_array, i, level, scalar, scaldims,
-					nb_scattdims);
+					nb_scattdims, &inner_loop_follows);
     }
 
     i = 0;
