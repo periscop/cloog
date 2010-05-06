@@ -624,6 +624,16 @@ CloogLoop *cloog_loop_restrict_all(CloogLoop *loop, CloogDomain *context)
     return res;
 }
 
+CloogLoop *cloog_loop_restrict_inner(CloogLoop *loop)
+{
+    CloogLoop *l;
+
+    for (l = loop; l; l = l->next)
+	l->inner = cloog_loop_restrict_all(l->inner, l->domain);
+
+    return loop;
+}
+
 /**
  * cloog_loop_project function:
  * This function returns the projection of (loop) on the (level) first
@@ -1380,6 +1390,10 @@ int cloog_loop_more(CloogLoop *loop, int level, int scalar, int nb_scattdims)
 	 cloog_domain_dimension(loop->domain) >= level;
 }
  
+CloogLoop *cloog_loop_generate_restricted_or_stop(CloogLoop *loop,
+	CloogDomain *context,
+	int level, int scalar, int *scaldims, int nb_scattdims,
+	CloogOptions *options);
 
 /**
  * cloog_loop_generate_general function:
@@ -1418,6 +1432,8 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
     
   /* 3b. -correction- sort the loops to determine their textual order. */
   res = cloog_loop_sort(res, level);
+
+  res = cloog_loop_restrict_inner(res);
   
   /* 4. Recurse for each loop with the current domain as context. */
   temp = res ;
@@ -1440,8 +1456,8 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
 	next = end->next ;
         end->next = NULL ;
 
-        l = cloog_loop_generate(inner,domain,level+1,scalar,
-	                        scaldims, nb_scattdims, options);
+        l = cloog_loop_generate_restricted_or_stop(inner, domain,
+			level + 1, scalar, scaldims, nb_scattdims, options);
         
 	if (l != NULL)
         cloog_loop_add_list(&into,&now,l) ;
@@ -2017,6 +2033,20 @@ CloogLoop *cloog_loop_generate_restricted(CloogLoop *loop,
 }
 
 
+CloogLoop *cloog_loop_generate_restricted_or_stop(CloogLoop *loop,
+	CloogDomain *context,
+	int level, int scalar, int *scaldims, int nb_scattdims,
+	CloogOptions *options)
+{
+  /* If the user asked to stop code generation at this level, let's stop. */
+  if ((options->stop >= 0) && (level+scalar >= options->stop+1))
+    return cloog_loop_stop(loop,context) ;
+  
+  return cloog_loop_generate_restricted(loop, level, scalar, scaldims,
+  				nb_scattdims, options);
+}
+
+
 /**
  * cloog_loop_generate function:
  * Adaptation from LoopGen 0.4 by F. Quillere. This function implements the
@@ -2047,18 +2077,14 @@ CloogLoop *cloog_loop_generate(CloogLoop *loop, CloogDomain *context,
 	int level, int scalar, int *scaldims, int nb_scattdims,
 	CloogOptions *options)
 {
-  /* If the user asked to stop code generation at this level, let's stop. */
-  if ((options->stop >= 0) && (level+scalar >= options->stop+1))
-  return cloog_loop_stop(loop,context) ;
-  
   /* 1. Replace each polyhedron by its intersection with the context.
    */
   loop = cloog_loop_restrict_all(loop, context);
   if (!loop)
     return NULL;
 
-  return cloog_loop_generate_restricted(loop, level, scalar, scaldims,
-  				nb_scattdims, options);
+  return cloog_loop_generate_restricted_or_stop(loop, context,
+			      level, scalar, scaldims, nb_scattdims, options);
 }
 
 
