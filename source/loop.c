@@ -1909,6 +1909,26 @@ static void sort_component(int *list)
     qsort(list, len, sizeof(int), qsort_index_cmp);
 }
 
+/* Given an array of indices "list" into the "loop_array" array,
+ * terminated by -1, construct a linked list of the corresponding
+ * entries and put the result in *res.
+ * The value returned is the number of CloogLoops in the (linked) list
+ */
+static int extract_component(CloogLoop **loop_array, int *list, CloogLoop **res)
+{
+    int i = 0;
+
+    sort_component(list);
+    while (list[i] != -1) {
+	*res = loop_array[list[i]];
+	res = &(*res)->next;
+	++i;
+    }
+    *res = NULL;
+
+    return i;
+}
+
 
 /**
  * Call cloog_loop_generate_scalar or cloog_loop_generate_general
@@ -1927,7 +1947,7 @@ CloogLoop *cloog_loop_generate_components(CloogLoop *loop,
 	CloogOptions *options)
 {
     int i, nb_loops;
-    CloogLoop *tmp, **tmp_next;
+    CloogLoop *tmp;
     CloogLoop *res, **res_next;
     CloogLoop **loop_array;
     struct cloog_loop_sort *s;
@@ -1956,16 +1976,9 @@ CloogLoop *cloog_loop_generate_components(CloogLoop *loop,
     res = NULL;
     res_next = &res;
     while (nb_loops) {
-	tmp_next = &tmp;
-	sort_component(&s->order[i]);
-	while (s->order[i] != -1) {
-	    *tmp_next = loop_array[s->order[i]];
-	    tmp_next = &(*tmp_next)->next;
-	    --nb_loops;
-	    ++i;
-	}
-	++i;
-	*tmp_next = NULL;
+	int n = extract_component(loop_array, &s->order[i], &tmp);
+	i += n + 1;
+	nb_loops -= n;
 	*res_next = cloog_loop_generate_general(tmp, level, scalar,
 					     scaldims, nb_scattdims, options);
     	while (*res_next)
