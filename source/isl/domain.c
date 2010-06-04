@@ -25,12 +25,7 @@ CloogScattering *cloog_scattering_from_isl_map(struct isl_map *map)
 int cloog_scattering_fully_specified(CloogScattering *scattering,
 				      CloogDomain *domain)
 {
-	int i;
-	int scattering_dim = cloog_scattering_dimension(scattering, domain);
-	for (i = 0; i < scattering->map.n; ++i)
-		if (scattering->map.p[i]->n_eq < scattering_dim)
-			return 0;
-	return 1;
+	return isl_map_is_single_valued(&scattering->map);
 }
 
 
