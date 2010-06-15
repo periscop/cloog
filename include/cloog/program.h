@@ -80,7 +80,7 @@ typedef struct cloogprogram CloogProgram ;
 void cloog_program_print_structure(FILE *, CloogProgram *, int) ;
 void cloog_program_print(FILE *, CloogProgram *) ;
 void cloog_program_pprint(FILE *, CloogProgram *, CloogOptions *) ;
-void cloog_program_dump_cloog(FILE *, CloogProgram *) ;
+void cloog_program_dump_cloog(FILE *, CloogProgram *, CloogScatteringList *);
 
 
 /******************************************************************************

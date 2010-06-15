@@ -146,18 +146,22 @@ int level ;
  * cloog_program_dump_cloog function:
  * This function dumps a CloogProgram structure supposed to be completely
  * filled in a CLooG input file (foo possibly stdout) such as CLooG can
- * rebuild almost exactly the data structure from the input file (the number
- * of scattering functions is lost since they are included inside the
- * iteration domains, this can only lead to a less beautiful pretty printing).
- * WARNING: this function do not respect CloogDomain as an object.
- * - June     27th 2003: first version.
- * - May      15th 2005: (debug) several patches by Kristof Beyls.
- * - November 16th 2005: adaptation for CLooG 0.14.0 structures.
+ * rebuild almost exactly the data structure from the input file.
+ *
+ * If the scattering is already applied, the scattering parameter is supposed to
+ * be NULL. In this case the number of scattering functions is lost, since they
+ * are included inside the iteration domains. This can only lead to a less
+ * beautiful pretty printing.
+ *
+ * In case the scattering is not yet applied it can be passed to this function
+ * and will be included in the CLooG input file dump.
  */
-void cloog_program_dump_cloog(FILE * foo, CloogProgram * program)
+void cloog_program_dump_cloog(FILE * foo, CloogProgram * program,
+                              CloogScatteringList *scattering)
 {
   int i;
   CloogLoop * loop ;
+  CloogScatteringList *tmp_scatt;
 
   fprintf(foo,
   "# CLooG -> CLooG\n"
@@ -205,14 +209,38 @@ void cloog_program_dump_cloog(FILE * foo, CloogProgram * program)
     loop = loop->next ;
   }
   fprintf(foo,"\n1 # Iterator name(s)\n") ;
-  for (i=0;i<program->names->nb_scattering;i++)
-    fprintf(foo,"%s ",program->names->scattering[i]);
+
+  /* Scattering already applied? In this case print the scattering names as
+   * additional iterator names. */
+  if (!scattering)
+    for (i = 0; i < program->names->nb_scattering; i++)
+      fprintf(foo, "%s ", program->names->scattering[i]);
   for (i=0;i<program->names->nb_iterators;i++)
     fprintf(foo,"%s ",program->names->iterators[i]);
   fprintf(foo,"\n\n") ;
 
-  /* Scattering functions (none since included inside domains). */
-  fprintf(foo,"# No scattering functions.\n0\n\n") ;
+  /* Exit, if scattering is already applied. */
+  if (!scattering) {
+    fprintf(foo, "# No scattering functions.\n0\n\n");
+    return;
+  }
+
+  /* Scattering relations. */
+  fprintf(foo, "# --------------------- SCATTERING --------------------\n");
+
+  i = 0;
+  for (tmp_scatt = scattering; tmp_scatt; tmp_scatt = tmp_scatt->next)
+    i++;
+
+  fprintf(foo, "%d # Scattering functions", i);
+
+  for (tmp_scatt = scattering; tmp_scatt; tmp_scatt = tmp_scatt->next)
+    cloog_scattering_print_constraints(foo, tmp_scatt->scatt, 1);
+
+  fprintf(foo, "\n1 # Scattering dimension name(s)\n");
+
+  for (i = 0; i < program->names->nb_scattering; i++)
+    fprintf(foo, "%s ", program->names->scattering[i]);
 }
 
 
