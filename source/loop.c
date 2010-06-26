@@ -1154,25 +1154,25 @@ CloogLoop *cloog_loop_nest(CloogLoop *loop, CloogDomain *context, int level)
  */
 void cloog_loop_stride(CloogLoop * loop, int level)
 { int first_search ;
-  cloog_int_t stride, ref_offset, offset, potential, lower;
+  cloog_int_t stride, ref_offset, offset, potential;
   CloogLoop * inner ;
+
+  if (!cloog_domain_can_stride(loop->domain, level))
+    return;
 
   cloog_int_init(stride);
   cloog_int_init(ref_offset);
   cloog_int_init(offset);
   cloog_int_init(potential);
-  cloog_int_init(lower);
 
   cloog_int_set_si(ref_offset, 0);
   cloog_int_set_si(offset, 0);
-  cloog_int_set_si(lower, 0);
 
   /* Default stride. */
   cloog_int_set_si(stride, 1);
   first_search = 1 ;
   inner = loop->inner ;
     
-  if (cloog_domain_integral_lowerbound(loop->domain,level,&lower))
   while (inner != NULL)
   { /* If the minimun stride has not been found yet, find the stride. */
     if ((first_search) || (!cloog_int_is_one(stride)))
@@ -1214,7 +1214,6 @@ void cloog_loop_stride(CloogLoop * loop, int level)
   cloog_int_clear(ref_offset);
   cloog_int_clear(offset);
   cloog_int_clear(potential);
-  cloog_int_clear(lower);
 }
 
 

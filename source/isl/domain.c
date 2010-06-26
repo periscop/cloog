@@ -642,16 +642,14 @@ void cloog_domain_stride(CloogDomain *domain, int strided_level,
 
 
 /**
- * cloog_domain_integral_lowerbound function:
- * This function returns 1 if the lower bound of an iterator (such as its
- * column rank in the constraint set 'domain' is 'level') is integral,
- * 0 otherwise. If the lower bound is actually integral, the function fills
- * the 'lower' field with the lower bound value.
+ * Return 1 if CLooG is allowed to perform stride detection on level "level"
+ * and 0 otherwise.
+ * Currently, stride detection should only be performed when the lower
+ * bound at the given level is a constant.
  */
-int cloog_domain_integral_lowerbound(CloogDomain *domain, int level,
-					cloog_int_t *lower)
+int cloog_domain_can_stride(CloogDomain *domain, int level)
 {
-	return isl_set_fast_dim_has_fixed_lower_bound(&domain->set, level-1, lower);
+	return isl_set_fast_dim_has_fixed_lower_bound(&domain->set, level-1, NULL);
 }
 
 
