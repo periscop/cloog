@@ -720,6 +720,11 @@ static int cloog_isl_foreach_cb(__isl_take isl_constraint *c, void *user)
 	struct cloog_isl_foreach *data = (struct cloog_isl_foreach *)user;
 	int ret;
 
+	if (isl_constraint_is_div_constraint(c)) {
+		isl_constraint_free(c);
+		return 0;
+	}
+
 	ret = data->fn(cloog_constraint_from_isl_constraint(c), data->user);
 
 	isl_constraint_free(c);
