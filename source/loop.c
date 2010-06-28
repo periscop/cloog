@@ -1208,6 +1208,8 @@ void cloog_loop_stride(CloogLoop * loop, int level)
     cloog_int_set(loop->stride, stride);
     if (!cloog_int_is_zero(offset))
       cloog_int_sub(loop->offset, stride, offset);
+    loop->domain = cloog_domain_stride_lower_bound(loop->domain, level,
+						    loop->stride, loop->offset);
   }
   
   cloog_int_clear(stride);

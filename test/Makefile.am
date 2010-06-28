@@ -184,6 +184,7 @@ CLOOGTEST_STRIDED =                    \
 	nul_lcpc		       \
 	multi-stride		       \
 	multi-stride2		       \
+	stride3                        \
 	reservoir/bastoul3	       \
 	reservoir/stride	       \
 	reservoir/stride2

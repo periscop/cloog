@@ -781,6 +781,33 @@ static int count_bounds(CloogConstraint *c, void *user)
 }
 
 
+/* Update the given lower bound based on stride information.
+ * In some backends, the lower bounds are updated from within
+ * cloog_loop_stride, but other backends leave the updating to
+ * this function.  In the later case, the original lower bound
+ * is known to be a constant.
+ * If the bound turns out not to be a constant, we know we
+ * are in the former case and nothing needs to be done.
+ * If the bound has already been updated and it just happens
+ * to be a constant, then this function performs an identity
+ * operation on the constant.
+ */
+static void update_lower_bound(struct clast_expr *expr, int level,
+	CloogInfos *infos)
+{
+    struct clast_term *t;
+    if (expr->type != clast_expr_term)
+	return;
+    t = (struct clast_term *)expr;
+    if (t->var)
+	return;
+    cloog_int_sub(t->val, t->val, infos->offset[level - 1]);
+    cloog_int_cdiv_q(t->val, t->val, infos->stride[level - 1]);
+    cloog_int_mul(t->val, t->val, infos->stride[level - 1]);
+    cloog_int_add(t->val, t->val, infos->offset[level - 1]);
+}
+
+
 /* Add all relevant bounds to r->elts and update lower bounds
  * based on stride information.
  */
@@ -795,14 +822,7 @@ static int collect_bounds(CloogConstraint *c, void *user)
 							    d->infos->names);
     if (d->max && !cloog_int_is_one(d->infos->stride[d->level - 1]) &&
 		  !cloog_int_is_zero(d->infos->stride[d->level - 1])) {
-	struct clast_term *t;
-	assert(d->r->elts[d->n]->type == clast_expr_term);
-	t = (struct clast_term *)d->r->elts[d->n];
-	assert(!t->var);
-	cloog_int_sub(t->val, t->val, d->infos->offset[d->level - 1]);
-	cloog_int_cdiv_q(t->val, t->val, d->infos->stride[d->level - 1]);
-	cloog_int_mul(t->val, t->val, d->infos->stride[d->level - 1]);
-	cloog_int_add(t->val, t->val, d->infos->offset[d->level - 1]);
+	update_lower_bound(d->r->elts[d->n], d->level, d->infos);
     }
 
     d->n++;

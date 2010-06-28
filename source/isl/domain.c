@@ -5,6 +5,8 @@
 #include <ctype.h>
 #include <cloog/isl/cloog.h>
 #include <isl_list.h>
+#include <isl_constraint.h>
+#include <isl_div.h>
 
 CloogDomain *cloog_domain_from_isl_set(struct isl_set *set)
 {
@@ -641,15 +643,212 @@ void cloog_domain_stride(CloogDomain *domain, int strided_level,
 }
 
 
+struct cloog_can_stride {
+	int level;
+	int can_stride;
+};
+
+static int constraint_can_stride(__isl_take isl_constraint *c, void *user)
+{
+	struct cloog_can_stride *ccs = (struct cloog_can_stride *)user;
+	int i;
+	isl_int v;
+	unsigned n_div;
+
+	isl_int_init(v);
+	isl_constraint_get_coefficient(c, isl_dim_set, ccs->level - 1, &v);
+	if (isl_int_is_pos(v)) {
+		n_div = isl_constraint_dim(c, isl_dim_div);
+		for (i = 0; i < n_div; ++i) {
+			isl_constraint_get_coefficient(c, isl_dim_div, i, &v);
+			if (!isl_int_is_zero(v))
+				break;
+		}
+		if (i < n_div)
+			ccs->can_stride = 0;
+	}
+	isl_int_clear(v);
+	isl_constraint_free(c);
+
+	return 0;
+}
+
+static int basic_set_can_stride(__isl_take isl_basic_set *bset, void *user)
+{
+	struct cloog_can_stride *ccs = (struct cloog_can_stride *)user;
+	int r;
+
+	r = isl_basic_set_foreach_constraint(bset, constraint_can_stride, ccs);
+	isl_basic_set_free(bset);
+	return r;
+}
+
+
 /**
  * Return 1 if CLooG is allowed to perform stride detection on level "level"
  * and 0 otherwise.
- * Currently, stride detection should only be performed when the lower
- * bound at the given level is a constant.
+ * Currently, stride detection is only allowed when none of the lower
+ * bound constraint involve any existentially quantified variables.
+ * The reason is that the current isl interface does not make it
+ * easy to construct an integer division that depends on other integer
+ * divisions.
+ * By not allowing existentially quantified variables in the constraints,
+ * we can ignore them in cloog_domain_stride_lower_bound.
  */
 int cloog_domain_can_stride(CloogDomain *domain, int level)
 {
-	return isl_set_fast_dim_has_fixed_lower_bound(&domain->set, level-1, NULL);
+	struct cloog_can_stride ccs = { level, 1 };
+	int r;
+	r = isl_set_foreach_basic_set(&domain->set, basic_set_can_stride, &ccs);
+	assert(r == 0);
+	return ccs.can_stride;
+}
+
+
+struct cloog_stride_lower {
+	int level;
+	isl_int stride;
+	isl_int offset;
+	isl_set *set;
+	isl_basic_set *bounds;
+};
+
+/* If the given constraint is a lower bound on csl->level, then add
+ * a lower bound to csl->bounds that makes sure that the remainder
+ * of the smallest value on division by csl->stride is equal to csl->offset.
+ *
+ * In particular, the given lower bound is of the form
+ *
+ *	a i + f >= 0
+ *
+ * where f may depend on the parameters and other iterators.
+ * The stride is s and the offset is d.
+ * The lower bound -f/a may not satisfy the above condition.  In fact,
+ * it may not even be integral.  We want to round this value of i up
+ * to the nearest value that satisfies the condition and add the corresponding
+ * lower bound constraint.  This nearest value is obtained by rounding
+ * i - d up to the nearest multiple of s.
+ * That is, we first subtract d
+ *
+ *	i' = -f/a - d
+ *
+ * then we round up to the nearest multiple of s
+ *
+ *	i'' = s * ceil(i'/s)
+ *
+ * and finally, we add d again
+ *
+ *	i''' = i'' + d
+ *
+ * and impose the constraint i >= i'''.
+ *
+ * We find
+ *
+ *	i'' = s * ceil((-f - a * d)/(a * s)) = - s * floor((f + a * d)/(a * s))
+ *
+ *	i >= - s * floor((f + a * d)/(a * s)) + d
+ *
+ * or
+ *	i + s * floor((f + a * d)/(a * s)) - d >= 0
+ */
+static int constraint_stride_lower(__isl_take isl_constraint *c, void *user)
+{
+	struct cloog_stride_lower *csl = (struct cloog_stride_lower *)user;
+	int i;
+	isl_int v;
+	isl_int t;
+	isl_constraint *bound;
+	isl_div *div;
+	int pos;
+	unsigned nparam, nvar;
+
+	isl_int_init(v);
+	isl_constraint_get_coefficient(c, isl_dim_set, csl->level - 1, &v);
+	if (!isl_int_is_pos(v)) {
+		isl_int_clear(v);
+		isl_constraint_free(c);
+
+		return 0;
+	}
+
+	isl_int_init(t);
+
+	nparam = isl_constraint_dim(c, isl_dim_param);
+	nvar = isl_constraint_dim(c, isl_dim_set);
+	bound = isl_inequality_alloc(isl_basic_set_get_dim(csl->bounds));
+	div = isl_div_alloc(isl_basic_set_get_dim(csl->bounds));
+	isl_int_mul(t, v, csl->stride);
+	isl_div_set_denominator(div, t);
+	for (i = 0; i < nparam; ++i) {
+		isl_constraint_get_coefficient(c, isl_dim_param, i, &t);
+		isl_div_set_coefficient(div, isl_dim_param, i, t);
+	}
+	for (i = 0; i < nvar; ++i) {
+		if (i == csl->level - 1)
+			continue;
+		isl_constraint_get_coefficient(c, isl_dim_set, i, &t);
+		isl_div_set_coefficient(div, isl_dim_set, i, t);
+	}
+	isl_constraint_get_constant(c, &t);
+	isl_int_addmul(t, v, csl->offset);
+	isl_div_set_constant(div, t);
+
+	bound = isl_constraint_add_div(bound, div, &pos);
+	isl_int_set_si(t, 1);
+	isl_constraint_set_coefficient(bound, isl_dim_set,
+					csl->level - 1, t);
+	isl_constraint_set_coefficient(bound, isl_dim_div, pos,
+					csl->stride);
+	isl_int_neg(t, csl->offset);
+	isl_constraint_set_constant(bound, t);
+	csl->bounds = isl_basic_set_add_constraint(csl->bounds, bound);
+
+	isl_int_clear(v);
+	isl_int_clear(t);
+	isl_constraint_free(c);
+
+	return 0;
+}
+
+static int basic_set_stride_lower(__isl_take isl_basic_set *bset, void *user)
+{
+	struct cloog_stride_lower *csl = (struct cloog_stride_lower *)user;
+	int r;
+
+	csl->bounds = isl_basic_set_universe_like(bset);
+	r = isl_basic_set_foreach_constraint(bset, constraint_stride_lower, csl);
+	bset = isl_basic_set_intersect(bset, csl->bounds);
+	csl->set = isl_set_union(csl->set, isl_set_from_basic_set(bset));
+
+	return r;
+}
+
+/**
+ * Update the lower bounds at level "level" to the given stride information.
+ * That is, make sure that the remainder on division by "stride"
+ * is equal to "offset".
+ */
+CloogDomain *cloog_domain_stride_lower_bound(CloogDomain *domain, int level,
+	cloog_int_t stride, cloog_int_t offset)
+{
+	struct cloog_stride_lower csl;
+	int r;
+
+	isl_int_init(csl.stride);
+	isl_int_init(csl.offset);
+	csl.level = level;
+	csl.set = isl_set_empty_like(&domain->set);
+	isl_int_set(csl.stride, stride);
+	isl_int_set(csl.offset, offset);
+
+	r = isl_set_foreach_basic_set(&domain->set, basic_set_stride_lower, &csl);
+	assert(r == 0);
+
+	isl_int_clear(csl.stride);
+	isl_int_clear(csl.offset);
+
+	cloog_domain_free(domain);
+	return cloog_domain_from_isl_set(csl.set);
 }
 
 
