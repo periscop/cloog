@@ -583,6 +583,7 @@ CloogDomain *cloog_domain_project(CloogDomain *domain, int level)
 	struct isl_set *set = &domain->set;
 	set = isl_set_remove_dims(isl_set_copy(set),
 					level, isl_set_n_dim(set) - level);
+	set = isl_set_compute_divs(set);
 	return cloog_domain_from_isl_set(set);
 }
 
