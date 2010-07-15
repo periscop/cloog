@@ -1417,6 +1417,44 @@ static int insert_equation(CloogConstraint *upper, CloogConstraint *lower,
 
 
 /**
+ * Insert a loop that is executed exactly once as an assignment.
+ * In particular, the loop
+ *
+ *	for (i = e; i <= e; ++i) {
+ *		S;
+ *	}
+ *
+ * is generated as
+ *
+ *	i = e;
+ *	S;
+ *
+ */
+static void insert_otl_for(CloogConstraintSet *constraints, int level,
+	struct clast_expr *e, struct clast_stmt ***next, CloogInfos *infos)
+{
+    const char *iterator;
+
+    iterator = cloog_names_name_at_level(infos->names, level);
+
+    if (!clast_equal_add(infos->equal, constraints, level,
+				cloog_constraint_invalid(), infos)) {
+	struct clast_assignment *ass;
+	if (infos->options->block) {
+	    struct clast_block *b = new_clast_block();
+	    **next = &b->stmt;
+	    *next = &b->body;
+	}
+	ass = new_clast_assignment(iterator, e);
+	**next = &ass->stmt;
+	*next = &(**next)->next;
+    } else {
+	free_clast_expr(e);
+    }
+}
+
+
+/**
  * insert_for function:
  * This function inserts a for loop in the clast.
  * Returns 1 if the calling function should recurse into inner loops.
@@ -1447,14 +1485,6 @@ static int insert_for(CloogConstraintSet *constraints, int level,
   const char *iterator;
   struct clast_expr *e1;
   struct clast_expr *e2;
-  struct clast_assignment *ass;
-  struct clast_stmt **old_next = *next;
-  struct clast_stmt *guard;
-  
-  insert_extra_modulo_guards(constraints, 0, next, infos);
-  guard = *old_next;
-
-  iterator = cloog_names_name_at_level(infos->names, level);
   
   e1 = clast_minmax(constraints, level, 1, 0, infos);
   e2 = clast_minmax(constraints, level, 0, 0, infos);
@@ -1469,35 +1499,18 @@ static int insert_for(CloogConstraintSet *constraints, int level,
    * In the special case e1 = e2 = NULL, this is an infinite loop
    * so this is not a '='.
    */
-  if (!clast_expr_equal(e1, e2) || !infos->options->otl || (!e1 && !e2)) {
-    struct clast_for *f = new_clast_for(iterator, e1, e2, infos->stride[level-1]);
-    *old_next = &f->stmt;
-    if (guard)
-	f->body = guard;
-    else
-	*next = &f->body;
-  }
-  else if (!clast_equal_add(infos->equal, constraints, level,
-				cloog_constraint_invalid(), infos)) {
-    if (infos->options->block) {
-	struct clast_block *b = new_clast_block();
-	*old_next = &b->stmt;
-	if (guard)
-	    b->body = guard;
-	else
-	    *next = &b->body;
-    }
-    ass = new_clast_assignment(iterator, e1);
+  if (e1 && e2 && infos->options->otl && clast_expr_equal(e1, e2)) {
     free_clast_expr(e2);
-    *old_next = &ass->stmt;
-    if (guard)
-	ass->stmt.next = guard;
-    else
-	*next = &(**next)->next;
+    insert_otl_for(constraints, level, e1, next, infos);
   } else {
-    free_clast_expr(e1);
-    free_clast_expr(e2);
+    struct clast_for *f;
+    iterator = cloog_names_name_at_level(infos->names, level);
+    f = new_clast_for(iterator, e1, e2, infos->stride[level-1]);
+    **next = &f->stmt;
+    *next = &f->body;
   }
+
+  insert_extra_modulo_guards(constraints, 0, next, infos);
 
   return 1;    
 }
