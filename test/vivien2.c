@@ -1,4 +1,4 @@
-/* Generated from /home/skimo/git/cloog/test/vivien2.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.12s. */
+/* Generated from /home/skimo/git/cloog/test/vivien2.cloog by CLooG 0.14.0-292-g2bfd6ac gmp bits in 0.10s. */
 for (p1=-54*n+4;p1<=4;p1++) {
   if (p1%2 == 0) {
     S1((p1-2)/2);
@@ -26,7 +26,8 @@ for (p1=7;p1<=9;p1++) {
   }
 }
 for (p1=10;p1<=2*n+58;p1++) {
-  for (p2=ceild(-p1+2,4);p2<=min(floord(-p1+2*n,2),floord(-p1+5,4));p2++) {
+  p2 = ceild(-p1+2,4);
+  if (p2 <= min(floord(-p1+2*n,2),floord(-p1+5,4))) {
     if (p1%2 == 0) {
       S4(-p2,(p1+2*p2)/2);
     }
@@ -38,7 +39,8 @@ for (p1=10;p1<=2*n+58;p1++) {
       }
     }
   }
-  for (p2=ceild(-p1+6,4);p2<=min(floord(-p1+2*n,2),floord(-p1+9,4));p2++) {
+  p2 = ceild(-p1+6,4);
+  if (p2 <= min(floord(-p1+2*n,2),floord(-p1+9,4))) {
     if (p1%2 == 0) {
       S4(-p2,(p1+2*p2)/2);
     }
@@ -105,7 +107,8 @@ for (p1=10;p1<=2*n+58;p1++) {
   }
 }
 for (p1=2*n+59;p1<=4*n-2;p1++) {
-  for (p2=ceild(-p1+2,4);p2<=min(floord(-p1+2*n,2),floord(-p1+5,4));p2++) {
+  p2 = ceild(-p1+2,4);
+  if (p2 <= min(floord(-p1+2*n,2),floord(-p1+5,4))) {
     if (p1%2 == 0) {
       S4(-p2,(p1+2*p2)/2);
     }
@@ -117,7 +120,8 @@ for (p1=2*n+59;p1<=4*n-2;p1++) {
       }
     }
   }
-  for (p2=ceild(-p1+6,4);p2<=min(floord(-p1+2*n,2),floord(-p1+9,4));p2++) {
+  p2 = ceild(-p1+6,4);
+  if (p2 <= min(floord(-p1+2*n,2),floord(-p1+9,4))) {
     if (p1%2 == 0) {
       S4(-p2,(p1+2*p2)/2);
     }

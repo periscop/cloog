@@ -617,6 +617,31 @@ int cloog_domain_never_integral(CloogDomain * domain)
 
 
 /**
+ * Check whether the loop at "level" is executed at most once.
+ * We construct a map that maps all remaining variables to this iterator
+ * and check whether this map is single valued.
+ *
+ * Alternatively, we could have mapped the domain through a mapping
+ * [p] -> { [..., i] -> [..., i'] : i' > i }
+ * and then taken the intersection of the original domain and the transformed
+ * domain.  If this intersection is empty, then the corresponding
+ * loop is executed at most once.
+ */
+int cloog_domain_is_otl(CloogDomain *domain, int level)
+{
+	int otl;
+	isl_map *map;
+
+	map = isl_map_from_domain(isl_set_copy(&domain->set));
+	map = isl_map_move_dims(map, isl_dim_out, 0, isl_dim_in, level - 1, 1);
+	otl = isl_map_is_single_valued(map);
+	isl_map_free(map);
+
+	return otl;
+}
+
+
+/**
  * cloog_domain_stride function:
  * This function finds the stride imposed to unknown with the column number
  * 'strided_level' in order to be integral. For instance, if we have a

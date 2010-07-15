@@ -63,6 +63,7 @@ struct cloogloop
 {
   CloogState *state;          /**< State. */
   CloogDomain * domain ;      /**< The iteration domain. */
+  int otl;                    /**< Loop is executed at most once. */
   cloog_int_t stride;         /**< The stride for the corresponding iterator
                                *   (filled only after loop generation).
                                */

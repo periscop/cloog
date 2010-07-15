@@ -53,7 +53,7 @@ static int insert_modulo_guard(CloogConstraint *upper,
 			        struct clast_stmt ***next, CloogInfos *infos);
 static int insert_equation(CloogConstraint *upper, CloogConstraint *lower,
 			 int level, struct clast_stmt ***next, CloogInfos *infos);
-static int insert_for(CloogConstraintSet *constraints, int level,
+static int insert_for(CloogConstraintSet *constraints, int level, int otl,
 			struct clast_stmt ***next, CloogInfos *infos);
 static void insert_block(CloogBlock *block, int level,
 			  struct clast_stmt ***next, CloogInfos *infos);
@@ -1455,6 +1455,52 @@ static void insert_otl_for(CloogConstraintSet *constraints, int level,
 
 
 /**
+ * Insert a loop that is executed at most once as an assignment followed
+ * by a guard.  In particular, the loop
+ *
+ *	for (i = e1; i <= e2; ++i) {
+ *		S;
+ *	}
+ *
+ * is generated as
+ *
+ *	i = e1;
+ *	if (i <= e2) {
+ *		S;
+ *	}
+ *
+ */
+static void insert_guarded_otl_for(CloogConstraintSet *constraints, int level,
+	struct clast_expr *e1, struct clast_expr *e2,
+	struct clast_stmt ***next, CloogInfos *infos)
+{
+    const char *iterator;
+    struct clast_assignment *ass;
+    struct clast_guard *guard;
+
+    iterator = cloog_names_name_at_level(infos->names, level);
+
+    if (infos->options->block) {
+	struct clast_block *b = new_clast_block();
+	**next = &b->stmt;
+	*next = &b->body;
+    }
+    ass = new_clast_assignment(iterator, e1);
+    **next = &ass->stmt;
+    *next = &(**next)->next;
+
+    guard = new_clast_guard(1);
+    guard->eq[0].sign = -1;
+    guard->eq[0].LHS = &new_clast_term(infos->state->one,
+				       &new_clast_name(iterator)->expr)->expr;
+    guard->eq[0].RHS = e2;
+
+    **next = &guard->stmt;
+    *next = &guard->then;
+}
+
+
+/**
  * insert_for function:
  * This function inserts a for loop in the clast.
  * Returns 1 if the calling function should recurse into inner loops.
@@ -1475,11 +1521,12 @@ static void insert_otl_for(CloogConstraintSet *constraints, int level,
  * and then reattach the guard inside the loop.
  * - constraints contains all constraints,
  * - level is the column number of the element in matrix we want to use,
+ * - otl is set if the loop is executed at most once,
  * - the infos structure gives the user some options about code printing,
  *   the number of parameters in matrix (nb_par), and the arrays of iterator
  *   names and parameters (iters and params). 
  */
-static int insert_for(CloogConstraintSet *constraints, int level,
+static int insert_for(CloogConstraintSet *constraints, int level, int otl,
 		       struct clast_stmt ***next, CloogInfos *infos)
 {
   const char *iterator;
@@ -1502,6 +1549,8 @@ static int insert_for(CloogConstraintSet *constraints, int level,
   if (e1 && e2 && infos->options->otl && clast_expr_equal(e1, e2)) {
     free_clast_expr(e2);
     insert_otl_for(constraints, level, e1, next, infos);
+  } else if (otl) {
+    insert_guarded_otl_for(constraints, level, e1, e2, next, infos);
   } else {
     struct clast_for *f;
     iterator = cloog_names_name_at_level(infos->names, level);
@@ -1630,7 +1679,7 @@ static void insert_loop(CloogLoop * loop, int level,
 			      level, &j, infos->names->nb_parameters))) {
 	    empty_loop = !insert_equation(i, j, level, next, infos);
 	} else
-	    empty_loop = !insert_for(constraints, level, next, infos);
+	    empty_loop = !insert_for(constraints, level, loop->otl, next, infos);
     }
 
     if (!empty_loop) {

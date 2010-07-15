@@ -1,4 +1,4 @@
-/* Generated from /home/skimo/git/cloog/test/thomasset.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.04s. */
+/* Generated from /home/skimo/git/cloog/test/thomasset.cloog by CLooG 0.14.0-292-g2bfd6ac gmp bits in 0.04s. */
 if (n >= 1) {
   for (c1=0;c1<=floord(n-4,3);c1++) {
     for (i=3*c1+1;i<=3*c1+3;i++) {
@@ -39,7 +39,8 @@ if (n >= 1) {
   for (c1=ceild(n,3);c1<=floord(2*n,3);c1++) {
     for (c2=0;c2<=n-1;c2++) {
       for (j=max(1,3*c1-n);j<=min(n,3*c1-n+4);j++) {
-        for (p=max(ceild(3*c1-j,3),ceild(n-2,3));p<=min(floord(n,3),floord(3*c1-j+2,3));p++) {
+        p = max(ceild(3*c1-j,3),ceild(n-2,3));
+        if (p <= min(floord(n,3),floord(3*c1-j+2,3))) {
           S2(c2+1,j,0,p,c1-p);
         }
       }
