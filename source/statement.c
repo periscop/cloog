@@ -152,6 +152,7 @@ void cloog_statement_free(CloogStatement * statement)
     
     next = statement->next ;
     /* free(statement->usr) ; Actually, this is user's job ! */
+    free(statement->name);
     free(statement) ;
     statement = next ;
   }
@@ -182,6 +183,7 @@ CloogStatement *cloog_statement_malloc(CloogState *state)
   /* We set the various fields with default values. */
   statement->state = state;
   statement->number = 0;
+  statement->name = NULL;
   statement->usr  = NULL ; /* To fill it is actually user's job ! */
   statement->next = NULL ;
   
@@ -237,6 +239,7 @@ CloogStatement * cloog_statement_copy(CloogStatement * source)
     
     temp->state  = source->state;
     temp->number = source->number ;
+    temp->name = source->name ? strdup(source->name) : NULL;
     temp->usr    = source->usr ;
     temp->next   = NULL ;
     

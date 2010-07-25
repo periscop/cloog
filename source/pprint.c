@@ -278,7 +278,10 @@ void pprint_user_stmt(struct cloogoptions *options, FILE *dst,
 		       struct clast_user_stmt *u)
 {
     struct clast_stmt *t;
-    fprintf(dst, "S%d", u->statement->number);
+    if (u->statement->name)
+	fprintf(dst, "%s", u->statement->name);
+    else
+	fprintf(dst, "S%d", u->statement->number);
     fprintf(dst, "(");
     for (t = u->substitutions; t; t = t->next) {
 	assert(CLAST_STMT_IS_A(t, stmt_ass));
