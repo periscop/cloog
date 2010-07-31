@@ -52,6 +52,8 @@
 #include <cloog/statement.h>
 #include <cloog/block.h>
 #include <cloog/loop.h>
+#include <cloog/union_domain.h>
+#include <cloog/input.h>
 #include <cloog/program.h>
 #include <cloog/clast.h>
 #include <cloog/pprint.h>

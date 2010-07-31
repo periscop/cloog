@@ -260,23 +260,13 @@ int domain, block, inner, next ;
 
 
 /**
- * cloog_loop_read function:
- * This function reads loop data into a file (foo, possibly stdin) and
- * returns a pointer to a CloogLoop structure containing the read information.
- * This function can be used only for input file reading, when one loop is
- * associated with one statement.
- * - number is the statement block number carried by the loop (-1 if none).
- * - nb_parameters is the number of parameters.
- **
- * - September 9th 2002: first version.
- * - April    16th 2005: adaptation to new CloogStatement struct (with number).
- * - June     11th 2005: adaptation to new CloogBlock structure. 
- * - June     22nd 2005: Adaptation for GMP.
+ * Construct a CloogLoop structure from a given iteration domain
+ * and statement number.
  */
-CloogLoop *cloog_loop_read(CloogState *state,
-			    FILE * foo, int number, int nb_parameters)
-{ int nb_iterators, op1, op2, op3 ;
-  char s[MAX_STRING] ;
+CloogLoop *cloog_loop_from_domain(CloogState *state, CloogDomain *domain,
+	int number)
+{
+  int nb_iterators;
   CloogLoop * loop ;
   CloogStatement * statement ;
 
@@ -288,7 +278,7 @@ CloogLoop *cloog_loop_read(CloogState *state,
     cloog_die("memory overflow.\n");
   /* domain. */
   loop->state = state;
-  loop->domain = cloog_domain_union_read(state, foo, nb_parameters);
+  loop->domain = domain;
   if (loop->domain != NULL)
     nb_iterators = cloog_domain_dimension(loop->domain);
   else
@@ -307,13 +297,40 @@ CloogLoop *cloog_loop_read(CloogState *state,
   loop->inner = NULL ;
   /* next element. */
   loop->next = NULL ;  
+
+  return loop ;
+}
+
+
+/**
+ * cloog_loop_read function:
+ * This function reads loop data from a file (foo, possibly stdin) and
+ * returns a pointer to a CloogLoop structure containing the read information.
+ * This function can be used only for input file reading, when one loop is
+ * associated with one statement.
+ * - number is the statement block number carried by the loop (-1 if none).
+ * - nb_parameters is the number of parameters.
+ **
+ * - September 9th 2002: first version.
+ * - April    16th 2005: adaptation to new CloogStatement struct (with number).
+ * - June     11th 2005: adaptation to new CloogBlock structure. 
+ * - June     22nd 2005: Adaptation for GMP.
+ */
+CloogLoop *cloog_loop_read(CloogState *state,
+			    FILE *foo, int number, int nb_parameters)
+{
+  int op1, op2, op3;
+  char s[MAX_STRING];
+  CloogDomain *domain;
+
+  domain = cloog_domain_union_read(state, foo, nb_parameters);
     
   /* To read that stupid "0 0 0" line. */
   while (fgets(s,MAX_STRING,foo) == 0) ;
   while ((*s=='#' || *s=='\n') || (sscanf(s," %d %d %d",&op1,&op2,&op3)<3))
   fgets(s,MAX_STRING,foo) ;
 
-  return loop ;
+  return cloog_loop_from_domain(state, domain, number);
 }
 
 

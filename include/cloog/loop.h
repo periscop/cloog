@@ -95,6 +95,8 @@ void cloog_loop_free(CloogLoop *) ;
 /******************************************************************************
  *                              Reading functions                             *
  ******************************************************************************/
+CloogLoop *cloog_loop_from_domain(CloogState *state, CloogDomain *domain,
+				  int number);
 CloogLoop * cloog_loop_read(CloogState *state,
 			    FILE * foo, int number, int nb_parameters);
 

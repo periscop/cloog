@@ -99,6 +99,8 @@ CloogProgram * cloog_program_read(FILE *, CloogOptions *) ;
  *                            Processing functions                            *
  ******************************************************************************/
 CloogProgram * cloog_program_malloc(void);
+CloogProgram * cloog_program_alloc(CloogDomain *context, CloogUnionDomain *ud,
+	CloogOptions *options);
 CloogProgram * cloog_program_generate(CloogProgram *, CloogOptions *) ;
 void cloog_program_block(CloogProgram *program,
 	CloogScatteringList *scattering, CloogOptions *options);

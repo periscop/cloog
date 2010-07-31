@@ -51,6 +51,8 @@
 # include <sys/resource.h>
 #endif
 
+#define ALLOC(type) (type*)malloc(sizeof(type))
+
 
 /******************************************************************************
  *                          Structure display function                        *
@@ -500,42 +502,6 @@ void cloog_program_free(CloogProgram * program)
  ******************************************************************************/
 
 
-/**
- * cloog_scattering_list_read
- * Read in a list of scattering functions for the nb_statements
- * domains in loop.
- */
-static CloogScatteringList *cloog_scattering_list_read(FILE * foo,
-	CloogLoop *loop, int nb_statements, int nb_parameters)
-{
-    int nb_scat = 0;
-    char s[MAX_STRING];
-    CloogScatteringList *list = NULL, **next = &list;
-
-    /* We read first the number of scattering functions in the list. */
-    do {
-	if (!fgets(s, MAX_STRING, foo))
-	    break;
-    } while ((*s=='#' || *s=='\n') || (sscanf(s, " %d", &nb_scat) < 1));
-
-    if (nb_scat == 0)
-	return NULL;
-
-    if (nb_scat > nb_statements)
-	cloog_die("too many scattering functions.\n");
-
-    while (nb_scat--) {
-	*next = (CloogScatteringList *)malloc(sizeof(CloogScatteringList));
-	(*next)->scatt = cloog_domain_read_scattering(loop->domain, foo);
-	(*next)->next = NULL;
-
-	next = &(*next)->next;
-	loop = loop->next;
-    }
-    return list;
-}
-
-
 static void cloog_program_construct_block_list(CloogProgram *p)
 {
     CloogLoop *loop;
@@ -549,20 +515,14 @@ static void cloog_program_construct_block_list(CloogProgram *p)
 
 
 /**
- * cloog_program_read function:
- * This function read the informations to put in a CloogProgram structure from
- * a file (file, possibly stdin). It returns a pointer to a CloogProgram
- * structure containing the read informations.
- * - October 25th 2001: first version.
- * - September 9th 2002: - the big reading function is now split in several
- *                         functions (one per read data structure).
- *                       - adaptation to the new file format with naming.
+ * Construct a CloogProgram structure from a given context and
+ * union domain representing the iteration domains and scattering functions.
  */
-CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
+CloogProgram *cloog_program_alloc(CloogDomain *context, CloogUnionDomain *ud,
+	CloogOptions *options)
 {
-  int i, nb_statements;
-  char s[MAX_STRING], language, prefix[2]={'c','\0'};
-  CloogLoop * current, * next ;
+  int i;
+  char prefix[] = "c";
   CloogScatteringList * scatteringl;
   CloogNames *n;
   CloogProgram * p ;
@@ -570,66 +530,67 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
   /* Memory allocation for the CloogProgram structure. */
   p = cloog_program_malloc() ;
   
-  /* First of all, we read the language to use. */
-  while (fgets(s,MAX_STRING,file) == 0) ;
-  while ((*s=='#'||*s=='\n') || (sscanf(s," %c",&language)<1))
-  fgets(s,MAX_STRING,file) ;
-  p->language = language ;
+  if (options->language == LANGUAGE_FORTRAN)
+    p->language = 'f';
+  else
+    p->language = 'c';
     
   p->names = n = cloog_names_alloc();
 
   /* We then read the context data. */
-  p->context = cloog_domain_read_context(options->state, file);
-  n->nb_parameters = cloog_domain_parameter_dimension(p->context);
+  p->context = context;
+  n->nb_parameters = ud->n_name[CLOOG_PARAM];
   
-  /* First part of the CloogNames structure: reading of the parameter names. */
-  n->parameters = cloog_names_read_strings(file, n->nb_parameters,
-						NULL, FIRST_PARAMETER);
-      
-  /* We read the statement number. */
-  while (fgets(s,MAX_STRING,file) == 0) ;
-  while ((*s=='#'||*s=='\n') || (sscanf(s," %d",&nb_statements)<1))
-  fgets(s,MAX_STRING,file) ;
+  /* First part of the CloogNames structure: the parameter names. */
+  if (ud->name[CLOOG_PARAM]) {
+    n->parameters = ud->name[CLOOG_PARAM];
+    ud->name[CLOOG_PARAM] = NULL;
+  } else
+    n->parameters = cloog_names_generate_items(n->nb_parameters, NULL,
+					       FIRST_PARAMETER);
 
-  /* Statements and domains reading for each statement. */
-  if (nb_statements > 0)
-  { /* Reading of the first domain. */
-    p->loop = cloog_loop_read(options->state, file, 0, n->nb_parameters);
-    
-    if (p->loop->domain != NULL)
-      n->nb_iterators = cloog_domain_dimension(p->loop->domain);
-    else
-      n->nb_iterators = 0;
-    
-    /* And the same for each next domain. */
-    current = p->loop ;
-    for (i=2;i<=nb_statements;i++) {
-      next = cloog_loop_read(options->state, file, i-1, n->nb_parameters);
-      if (next->domain != NULL &&
-          cloog_domain_dimension(next->domain) > n->nb_iterators)
-        n->nb_iterators = cloog_domain_dimension(next->domain);
-    
-      current->next = next ;
-      current = current->next ;
-    }     
-        
-    /* Reading of the iterator names. */
-    n->iterators = cloog_names_read_strings(file, n->nb_iterators,
-						NULL, FIRST_ITERATOR);
+  n->nb_iterators = ud->n_name[CLOOG_ITER];
+  if (ud->name[CLOOG_ITER]) {
+    n->iterators = ud->name[CLOOG_ITER];
+    ud->name[CLOOG_ITER] = NULL;
+  } else
+    n->iterators = cloog_names_generate_items(n->nb_iterators, NULL,
+					      FIRST_ITERATOR);
 
-    /* Reading and putting the scattering data in program structure. */
-    scatteringl = cloog_scattering_list_read(file, p->loop, nb_statements,
-						n->nb_parameters);
-    
-    if (scatteringl != NULL)
-    { if (cloog_scattering_list_lazy_same(scatteringl))
-        cloog_msg(options, CLOOG_WARNING,
-			"some scattering functions are similar.\n");
-      
+  if (ud->domain) {
+    CloogNamedDomainList *l;
+    CloogLoop **next = &p->loop;
+    CloogScatteringList **next_scat = &scatteringl;
+
+    scatteringl = NULL;
+    for (i = 0, l = ud->domain; l; ++i, l = l->next) {
+      *next = cloog_loop_from_domain(options->state, l->domain, i);
+      l->domain = NULL;
+      (*next)->block->statement->name = l->name;
+      (*next)->block->statement->usr = l->usr;
+      l->name = NULL;
+
+      if (l->scattering) {
+	*next_scat = ALLOC(CloogScatteringList);
+	(*next_scat)->scatt = l->scattering;
+	l->scattering = NULL;
+	(*next_scat)->next = NULL;
+
+	next_scat = &(*next_scat)->next;
+      }
+
+      next = &(*next)->next;
+    }
+
+    if (scatteringl != NULL) {
       p->nb_scattdims = cloog_scattering_dimension(scatteringl->scatt,
 							    p->loop->domain);
       n->nb_scattering = p->nb_scattdims;
-      n->scattering = cloog_names_read_strings(file, p->nb_scattdims, prefix, -1);
+      if (ud->name[CLOOG_SCAT]) {
+	n->scattering = ud->name[CLOOG_SCAT];
+	ud->name[CLOOG_SCAT] = NULL;
+      } else
+	n->scattering = cloog_names_generate_items(n->nb_scattering, prefix, -1);
     
       /* The boolean array for scalar dimensions is created and set to 0. */
       p->scaldims = (int *)malloc(p->nb_scattdims*(sizeof(int))) ;
@@ -664,8 +625,33 @@ CloogProgram * cloog_program_read(FILE * file, CloogOptions * options)
     p->blocklist = NULL ;
     p->scaldims  = NULL ;
   }
+
+  cloog_union_domain_free(ud);
    
   return(p) ;
+}
+
+
+/**
+ * cloog_program_read function:
+ * This function read the informations to put in a CloogProgram structure from
+ * a file (file, possibly stdin). It returns a pointer to a CloogProgram
+ * structure containing the read informations.
+ * - October 25th 2001: first version.
+ * - September 9th 2002: - the big reading function is now split in several
+ *                         functions (one per read data structure).
+ *                       - adaptation to the new file format with naming.
+ */
+CloogProgram *cloog_program_read(FILE *file, CloogOptions *options)
+{
+  CloogInput *input;
+  CloogProgram *p;
+
+  input = cloog_input_read(file, options);
+  p = cloog_program_alloc(input->context, input->ud, options);
+  free(input);
+
+  return p;
 }
 
 

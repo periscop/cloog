@@ -70,6 +70,7 @@ SOURCES_CORE = \
 	source/clast.c \
 	source/matrix.c \
 	source/state.c \
+	source/input.c \
 	source/int.c \
 	source/loop.c \
 	source/names.c \
@@ -77,6 +78,7 @@ SOURCES_CORE = \
 	source/pprint.c \
 	source/program.c \
 	source/statement.c \
+	source/union_domain.c \
 	source/version.c
 
 DEFAULT_INCLUDES = -I.
@@ -98,6 +100,7 @@ pkginclude_HEADERS = \
 	include/cloog/block.h \
 	include/cloog/clast.h \
 	include/cloog/cloog.h \
+	include/cloog/input.h \
 	include/cloog/int.h \
 	include/cloog/matrix.h \
 	include/cloog/state.h \
@@ -109,6 +112,7 @@ pkginclude_HEADERS = \
 	include/cloog/pprint.h \
 	include/cloog/program.h \
 	include/cloog/statement.h \
+	include/cloog/union_domain.h \
 	include/cloog/version.h
 
 pkgmatrixincludedir = $(pkgincludedir)/matrix
