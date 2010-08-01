@@ -112,6 +112,8 @@ struct clast_guard {
 };
 
 
+struct clast_stmt *cloog_clast_create_from_input(CloogInput *input,
+						 CloogOptions *options);
 struct clast_stmt *cloog_clast_create(CloogProgram *program,
 				      CloogOptions *options);
 void cloog_clast_free(struct clast_stmt *s);

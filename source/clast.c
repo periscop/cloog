@@ -1745,3 +1745,21 @@ struct clast_stmt *cloog_clast_create(CloogProgram *program,
 
     return root;
 }
+
+
+struct clast_stmt *cloog_clast_create_from_input(CloogInput *input,
+						 CloogOptions *options)
+{
+    CloogProgram *program;
+    struct clast_stmt *root;
+
+    program = cloog_program_alloc(input->context, input->ud, options);
+    free(input);
+
+    program = cloog_program_generate(program, options);
+
+    root = cloog_clast_create(program, options);
+    cloog_program_free(program);
+
+    return root;
+}

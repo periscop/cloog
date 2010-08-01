@@ -1435,11 +1435,11 @@ if (n >= 2) @{
 The CLooG Library was implemented to allow the user to call CLooG
 directly from his programs, without file accesses or system calls. The
 user only needs to link his programs with C libraries. The CLooG
-library mainly provides one function (@code{cloog_program_generate})
+library mainly provides one function (@code{cloog_clast_create_from_input})
 which takes as input the problem
 description with some options, and returns the data structure corresponding
-to the generated code (a @code{CloogProgram} structure) which is more or less
-an abstract syntax tree.
+to the generated code (a @code{struct clast_stmt} structure)
+which is more or less an abstract syntax tree.
 The user can work with this data structure and/or use
 our pretty printing function to write the final code in either C or FORTRAN.
 Some other functions are provided for convenience reasons.
@@ -1447,7 +1447,6 @@ These functions as well as the data structures are described in this section.
 
 @menu
 * CLooG Data Structures::
-* CLooG Functions::
 * CLooG Output::
 * Example of Library Utilization::
 @end menu
@@ -1463,14 +1462,10 @@ generator to represent and to process a code generation problem.
 * CloogMatrix::
 * CloogDomain::
 * CloogScattering::
-* CloogScatteringList::
+* CloogUnionDomain::
 * CloogStatement::
-* CloogBlock::
-* CloogBlockList::
-* CloogLoop::
-* CloogNames::
-* CloogProgram::
 * CloogOptions::
+* CloogInput::
 @end menu
 
 
@@ -1509,6 +1504,10 @@ struct cloogmatrix
   cloog_int_t *p_Init; /* Matrix rows contiguously in memory. */
 @};
 typedef struct cloogmatrix CloogMatrix;
+
+CloogMatrix *cloog_matrix_alloc(unsigned NbRows, unsigned NbColumns);
+void cloog_matrix_print(FILE *foo, CloogMatrix *m);
+void cloog_matrix_free(CloogMatrix *matrix);
 @end group
 @end example
 
@@ -1684,20 +1683,42 @@ domain dimensions.
 The function consumes a reference to the given @code{struct isl_map}.
 
 
-@node CloogScatteringList
-@subsection CloogScatteringList
+@node CloogUnionDomain
+@subsection CloogUnionDomain
 @example
 @group
-struct cloogscatteringlist @{
-  CloogScattering *scatt;
-  struct cloogscatteringlist *next;
-@};
-typedef struct cloogscatteringlist CloogScatteringList;
+enum cloog_dim_type @{ CLOOG_PARAM, CLOOG_ITER, CLOOG_SCAT @};
+
+CloogUnionDomain *cloog_union_domain_alloc(int nb_par);
+CloogUnionDomain *cloog_union_domain_add_domain(CloogUnionDomain *ud,
+        const char *name, CloogDomain *domain,
+        CloogScattering *scattering, void *usr);
+CloogUnionDomain *cloog_union_domain_set_name(CloogUnionDomain *ud,
+        enum cloog_dim_type type, int index, const char *name);
+void cloog_union_domain_free(CloogUnionDomain *ud);
 @end group
 @end example
 
-@noindent The CloogScatteringList structure represents
-a @code{NULL} terminated linked list of scattering functions.
+@noindent A @code{CloogUnionDomain} structure represents a union
+of scattered named domains.  A @code{CloogUnionDomain} is
+initialized by a call to @code{cloog_union_domain_alloc},
+after which domains can be added using @code{cloog_union_domain_add_domain}.
+
+@code{cloog_union_domain_alloc} takes the number of parameters as input.
+@code{cloog_union_domain_add_domain} takes a previously created
+@code{CloogUnionDomain} as input along with an optional name,
+a domain, an optional scattering function and a user pointer.
+The name may be @code{NULL} and is duplicated if it is not.
+If no name is specified, then the statements will be named according
+to the order in which they were added.
+@code{domain} and @code{scattering} are taken over
+by the @code{CloogUnionDomain}.  @code{scattering} may be @code{NULL},
+but it must be consistently @code{NULL} or not over all calls
+to @code{cloog_union_domain_add_domain}.
+@code{cloog_union_domain_set_name} can be used to set the names
+of parameters, iterators and scattering dimensions.
+The names of iterators and scattering dimensions can only be set
+after all domains have been added.
 
 
 @node CloogStatement
@@ -1706,10 +1727,15 @@ a @code{NULL} terminated linked list of scattering functions.
 @group
 struct cloogstatement
 @{ int number ;                  /* The statement unique number. */
+  char *name;                   /* Name of the statement. */
   void * usr ;                  /* Pointer for user's convenience. */
   struct cloogstatement * next ;/* Next element of the linked list. */
 @} ;
 typedef struct cloogstatement CloogStatement ;
+
+CloogStatement *cloog_statement_malloc(CloogState *state);
+void cloog_statement_print(FILE *, CloogStatement *);
+void cloog_statement_free(CloogStatement *);
 @end group
 @end example
 
@@ -1723,266 +1749,6 @@ corresponding @code{CloogStatement} structure. The whole management of the
 CLooG never tries to print, to allocate or to free a memory block pointed
 by @code{usr}. 
 
-
-@node CloogBlock
-@subsection CloogBlock
-@example
-@group
-struct cloogblock
-@{ CloogStatement * statement ; /* Statement list of the block. */
-  CloogMatrix * scattering ;   /* Scattering function of the block. */
-  int depth ;                  /* Original block depth.*/
-  void * usr;                  /* Pointer for user's convenience. */
-@} ;
-typedef struct cloogblock CloogBlock ;
-@end group
-@end example
-
-@noindent The @code{CloogBlock} structure represents a statement block.
-In a statement block, every statements have the same iteration
-domain and the same scattering function (actually, the scattering
-functions may differ only by a scalar
-coefficient if it just precises the ordering of the statements within
-the block). @code{statement} is the statement list where the
-statement order matters, @code{scattering} is one of
-the statement scattering functions and
-@code{depth} is the number of dimensions of the
-iteration domain (only the unknown, not the tag/parameters/scalar).
-@code{usr} is a pointer for library user's convenience. Note this pointer
-is never allocated, freed or printed by CLooG.
-
-@node CloogBlockList
-@subsection CloogBlockList
-@example
-@group
-struct cloogdblocklist
-@{ CloogBlock * block ;
-  struct cloogblocklist * next ;
-@} ;
-typedef struct cloogblocklist CloogBlockList ;
-@end group
-@end example
-
-@noindent The CloogBlockList structure represents a @code{NULL} terminated linked list
-of blocks.
-
-
-@node CloogLoop
-@subsection CloogLoop 
-@example
-@group
-struct cloogloop
-@{ CloogDomain * domain;       /* Iteration domain. */
-  Value stride ;               /* Loop stride. */
-  CloogBlock * block ;         /* Included statement block.*/
-  void * usr;                  /* Pointer for user's convenience. */
-  struct cloogloop * inner ;   /* Loop at the next level. */
-  struct cloogloop * next ;    /* Next loop at the same level. */
-@} ;
-typedef struct cloogloop CloogLoop ;
-@end group
-@end example
-
-@noindent The @code{CloogLoop} structure represents a loop.
-First of all, a
-loop has an iteration domain (@code{domain}). The iterator's stride for loop
-increment is @code{stride}. The loop can include a statement block
-in the field @code{block}. If there is no included statement block,
-@code{block} is set to @code{NULL}. @code{usr} is a pointer for library
-user's convenience. Note that this pointer is never allocated, freed or
-printed by CLooG. @code{inner} is a pointer to the inner
-loop, and @code{next} a pointer to the next loop in the textual order. If
-there are no inner loop or no next loop, the corresponding pointer is set
-to @code{NULL}.
-
-
-@node CloogNames
-@subsection CloogNames
-@example
-@group
-struct cloognames
-@{ int nb_scattering ;         /* Scattering dimension number. */
-  int nb_iterators ;          /* Iterator number. */
-  int nb_parameters ;         /* Parameter number. */
-  char ** scattering ;        /* The scattering dimension names. */
-  char ** iterators ;         /* The iterator names. */
-  char ** parameters ;        /* The parameter names. */
-@} ;
-typedef struct cloognames CloogNames ;
-@end group
-@end example
-
-@noindent The @code{CloogNames} structure represents the scattering dimension,
-the iterator and the parameter names in the final program.
-@code{nb_scattering} 
-(respectively @code{nb_iterators} and @code{nb_parameters})
-is the number of scattering dimensions number
-(respectively the iterator and parameter number)
-and of elements in the corresponding array of strings
-@code{scattering}
-(respectively @code{iterators} and @code{parameters}).
-The @math{i^{th}} scattering dimension name will be associated with the
-to the dimension @math{i} of the scattering function.
-The @math{i^{th}} iterator name will be associated with the
-dimension @math{i} of the iteration domain. 
-The @math{i^{th}} parameter name will be associated with the
-dimension @math{i} of the context polyhedron.
-The user has to ensure that there are
-enough scattering dimension, iterator and parameter names. 
-
-
-@node CloogProgram
-@subsection CloogProgram
-@example
-@group
-struct cloogprogram
-@{ char language ;              /* The language of the program. */
-  int  nb_scattdims ;          /* Scattering dimension number. */
-  CloogNames  * names ;        /* Iterators and parameters names. */
-  CloogDomain * context ;      /* The context of the program. */
-  CloogLoop   * loop ;         /* The loops of the program. */
-  CloogBlockList * blocklist ; /* The statement block list. */
-  void * usr;                  /* For library user's convenience. */
-@} ;
-typedef struct cloogprogram CloogProgram ;
-@end group
-@end example
-
-@noindent The @code{CloogProgram} structure represents a static control program kernel.
-@code{language} precises the language (@code{c} for C or @code{f} for FORTRAN).
-@code{nb_scattdims} gives the number of scattering dimensions.
-@code{context} is a pointer to the constraints on the program parameters,
-it can't be the
-@code{NULL} pointer even if there are no constraints on parameters. In such a
-case, set a polyhedron with as many dimensions as there are parameters, with
-an @emph{always true} constraint like @math{1 \geq 0} (this is necessary
-since the number of parameters is deduced from the dimension number of
-the context constraints). @code{loop} is a pointer
-to the first loop of the program. @code{names} is a pointer to the various
-element names (scattering dimension, iterators, parameters)
-of the final program. @code{names} can be the @code{NULL}
-pointer if the user do not want to use our pretty printing function.
-@code{blocklist} is the linked list of all the statement block structures.
-@code{usr} is a pointer for library user's convenience. Note that this pointer
-is never allocated, freed or printed by CLooG.
-As an example, let us consider the following loop nest:
-@example
-@group
-for (i=0; i<=n; i++) @{ 
-  for (j=0; j<=n; j++) @{
-    S1 ;
-    S2 ;
-  @}
-  for (j=n+1; j<=2*n; j++) @{
-    S3 ;
-  @}
-@}  
-@end group
-@end example
-@noindent The next figure gives a possible representation in memory for this
-program thanks to the CLooG data structures (it has been actually printed
-by the @code{cloog_program_print} function). In this figure,
-@samp{+-- CloogLoop} denotes an @samp{inner} loop, while a @samp{CloogLoop}
-on the same column pointed by an arrow denotes a @samp{next} loop:
-
-@smallexample
-+-- CloogProgram
-|       |       
-|       Language: c
-|       |       
-|       Scattering dimension number: 0
-|       |       
-|       +-- CloogNames
-|       |       |       
-|       |       Scattering dimension number: 0
-|       |       |       
-|       |       +-- No scattering string
-|       |       |       
-|       |       Iterator number -----------: 2
-|       |       |       
-|       |       +-- Iterator strings ------: i j
-|       |       |       
-|       |       Parameter number ----------: 1
-|       |       |       
-|       |       +-- Parameter strings -----: n
-|       |       
-|       +-- Context
-|       |       [   1    1   -2  ]
-|       |       [   1    0    1  ]
-|       |       
-|       +-- CloogLoop
-|       |       |       
-|       |       +-- CloogDomain
-|       |       |       [   1   -1    1    0  ]
-|       |       |       [   1    1    0    0  ]
-|       |       |       [   1    0    0    1  ]
-|       |       |       
-|       |       Stride: 1
-|       |       |       
-|       |       +-- Null CloogBlock
-|       |       |       
-|       |       +-- CloogLoop
-|       |       |       |       
-|       |       |       +-- CloogDomain
-|       |       |       |       [   1    0    1    0    0  ]
-|       |       |       |       [   1    0   -1    1    0  ]
-|       |       |       |       [   1    0    0    0    1  ]
-|       |       |       |       
-|       |       |       Stride: 1
-|       |       |       |       
-|       |       |       +-- Null CloogBlock
-|       |       |       |       
-|       |       |       +-- CloogLoop
-|       |       |       |       |       
-|       |       |       |       +-- CloogDomain
-|       |       |       |       |       [   1    0    0    0    1  ]
-|       |       |       |       |       
-|       |       |       |       Stride: 1
-|       |       |       |       |       
-|       |       |       |       +-- CloogBlock
-|       |       |       |       |       |       
-|       |       |       |       |       +-- CloogStatement 1 
-|       |       |       |       |       |          |   
-|       |       |       |       |       |          V   
-|       |       |       |       |       |   CloogStatement 2 
-|       |       |       |       |       |       
-|       |       |       |       |       +-- Null scattering function
-|       |       |       |       |       |       
-|       |       |       |       |       Depth: 2
-|       |       |       |       |       
-|       |       |       |       
-|       |       |       V
-|       |       |   CloogLoop
-|       |       |       |       
-|       |       |       +-- CloogDomain
-|       |       |       |       [   1    0   -1    2    0  ]
-|       |       |       |       [   1    0    1   -1   -1  ]
-|       |       |       |       [   1    0    0    0    1  ]
-|       |       |       |       
-|       |       |       Stride: 1
-|       |       |       |       
-|       |       |       +-- Null CloogBlock
-|       |       |       |       
-|       |       |       +-- CloogLoop
-|       |       |       |       |       
-|       |       |       |       +-- CloogDomain
-|       |       |       |       |       [   1    0    0    0    1  ]
-|       |       |       |       |       
-|       |       |       |       Stride: 1
-|       |       |       |       |       
-|       |       |       |       +-- CloogBlock
-|       |       |       |       |       |       
-|       |       |       |       |       +-- CloogStatement 3 
-|       |       |       |       |       |       
-|       |       |       |       |       +-- Null scattering function
-|       |       |       |       |       |       
-|       |       |       |       |       Depth: 2
-|       |       |       |       |       
-|       |       |       |       
-|       |       |       
-|       |       
-|       
-@end smallexample
 
 
 @node CloogOptions
@@ -2000,8 +1766,13 @@ struct cloogoptions
   int block ;                 /* -block option.      */
   int cpp ;                   /* -cpp option.        */
   int compilable ;            /* -compilable option. */
+  int language;               /* LANGUAGE_C or LANGUAGE_FORTRAN */
 @} ;
 typedef struct cloogoptions CloogOptions ;
+
+CloogOptions *cloog_options_malloc(CloogState *state);
+void cloog_options_print(FILE *foo, CloogOptions *options);
+void cloog_options_free(CloogOptions *options);
 @end group
 @end example
 
@@ -2022,236 +1793,38 @@ As a reminder, the default values are:
 @end itemize 
 
 
-@node CLooG Functions
-@section CLooG Functions Description
-
-@menu
-* cloog_program_generate::
-* cloog_program_scatter::
-* cloog_program_pprint::
-* cloog_program_read::
-* Allocation and Initialization Functions::
-* Memory Deallocation Functions::
-* Printing Functions::
-@end menu
-
-
-@node cloog_program_generate
-@subsection cloog_program_generate
+@node CloogInput
+@subsection CloogInput
 @example
 @group
-CloogProgram   * cloog_program_generate
-( CloogProgram * program,       /* Input program. */
-  CloogOptions * options        /* Options. */
-) ;
+CloogInput *cloog_input_read(FILE *file, CloogOptions *options);
+CloogInput *cloog_input_alloc(CloogDomain *context,
+                                CloogUnionDomain *ud);
+void cloog_input_free(CloogInput *input);
 @end group
 @end example
 
-@noindent The @code{cloog_program_generate} function generates
-the data structure of the source code that scans the input
-polyhedra pointed by @code{program}
-according to the options pointed by @code{options}.
-The process is made directly on the input structure pointed by
-@code{program}, thus the original structure is no longer available
-after a call to this function. It returns a pointer to a
-@code{CloogProgram} structure containing the
-solution in CLooG structures.
-
-The input @code{CloogProgram} structure must have only one loop level
-(no inner loops): there is one loop per statement block. For a given block,
-the corresponding loop carries the iteration domain, the statement block,
-and a loop stride initialized to 1. For instance, the input @code{CloogProgram} structure
-that have been sent to @code{cloog_program_generate} to achieve the final
-structure and code shown as example in the @code{CloogProgram} structure
-description (@pxref{CloogProgram}) was the following one:
-
-@smallexample
-+-- CloogProgram
-|       |       
-|       Language: c
-|       |       
-|       Scattering dimension number: 0
-|       |       
-|       +-- CloogNames
-|       |       |       
-|       |       Scattering dimension number: 0
-|       |       |       
-|       |       +-- No scattering string
-|       |       |       
-|       |       Iterator number -----------: 2
-|       |       |       
-|       |       +-- Iterator strings ------: i j
-|       |       |       
-|       |       Parameter number ----------: 1
-|       |       |       
-|       |       +-- Parameter strings -----: n
-|       |       
-|       +-- Context
-|       |       [    1     1    -2  ]
-|       |       
-|       +-- CloogLoop
-|       |       |       
-|       |       +-- CloogDomain
-|       |       |       [    1     1     0     0     0  ]
-|       |       |       [    1    -1     0     1     0  ]
-|       |       |       [    1     0     1     0     0  ]
-|       |       |       [    1     0    -1     1     0  ]
-|       |       |       
-|       |       Stride: 1
-|       |       |       
-|       |       +-- CloogBlock
-|       |       |       |       
-|       |       |       +-- CloogStatement 1 
-|       |       |       |          |
-|       |       |       |          V
-|       |       |       |   CloogStatement 2 
-|       |       |       |       
-|       |       |       +-- Null scattering function
-|       |       |       |       
-|       |       |       Depth: 2
-|       |       |       
-|       |       V
-|       |   CloogLoop
-|       |       |       
-|       |       +-- CloogDomain
-|       |       |       [    1     1     0     0     0  ]
-|       |       |       [    1    -1     0     1     0  ]
-|       |       |       [    1     0     1    -1    -1  ]
-|       |       |       [    1     0    -1     2     0  ]
-|       |       |       
-|       |       Stride: 1
-|       |       |       
-|       |       +-- CloogBlock
-|       |       |       |       
-|       |       |       +-- CloogStatement 3 
-|       |       |       |       
-|       |       |       +-- Null scattering function
-|       |       |       |       
-|       |       |       Depth: 2
-|       |       |       
-|       |       
-|       
-@end smallexample
-
-
-@node cloog_program_pprint
-@subsection cloog_program_pprint
-@example
-@group
-void cloog_program_pprint
-( FILE * file,                  /* Output file. */
-  CloogProgram * program,       /* Program to print. */
-  CloogOptions * options        /* Options. */
-) ;
-@end group
-@end example
-
-@noindent The function @code{cloog_program_pprint} is a pretty printer for
-@code{CloogProgram} structures when it is a solution provided by
-the @code{cloog_program_generate} function. It prints the code or pseudo-code in the
-file pointed by @code{file} (possibly @code{stdout}) with regards to the
-options pointed by @code{options}.
-
-
-@node cloog_program_scatter
-@subsection cloog_program_scatter
-@example
-@group
-void cloog_program_scatter(
-  CloogProgram *program,        /* Input program. */
-  CloogScatteringList *scatt,   /* Additional scattering functions. */
-  CloogOptions *options         /* Options. */
-) ;
-@end group
-@end example
-
-@noindent The function @code{cloog_program_scatter} applies scattering
-functions to the @code{CloogProgram} structure pointed by @code{program}.
-Original domains of @code{program} are freed. Scattering functions
-are inside the @code{CloogScatteringList} structure pointed by @code{scattering}.
-There must be as many scattering functions in the @code{CloogScatteringList}
-structure as loops (i.e. iteration domains) in the @code{CloogProgram}
-structure. The first scattering function of the list will be applied to the
-iteration domain of the first loop in the program, and so on.
-@code{names} gives the scattering dimension names as an array of strings. If
-@code{names} is @code{NULL}, names are automatically generated: the name of
-the @math{n^{th}} scattering dimension will be @code{cn}.
-
-
-@node cloog_program_read
-@subsection cloog_program_read
-@example
-CloogProgram * cloog_program_read(FILE *) ;
-@end example
-@noindent The @code{cloog_program_read} function
-reads the program data from a CLooG input file
-(@pxref{Writing The Input File}). It takes
-as input a pointer to the file it has to read (possibly @code{stdin}), and
-return a pointer to the read @code{CloogProgram} structure.
-
-
-@node Allocation and Initialization Functions
-@subsection Allocation and Initialization Functions
-@example
-CloogStructure * cloog_structure_malloc() ;
-@end example
-@noindent Each CLooG data structure has an allocation and initialization
-function as shown above, where @code{Structure} and @code{structure} have to
-be replaced by the name of the convenient structure (without @samp{Cloog} prefix) for
-instance @code{CloogLoop * cloog_loop_malloc() ;}. These functions return
-pointers to an allocated structure with fields set to convenient default
-values. @strong{Using those functions is mandatory} to support internal
-management fields and to avoid upward compatibility problems if
-new fields appear. An exception is @code{cloog_matrix_malloc} since the
-@code{CloogMatrix} comes directly from the PolyLib. It takes two parameters:
-the number of rows and columns of the matrix we want to allocate:
-@example
-CloogMatrix * cloog_matrix_malloc(unsigned nbrows, unsigned nbcolumns);
-@end example
-
-
-@node Memory Deallocation Functions
-@subsection Memory Deallocation Functions
-@example
-void cloog_structure_free(CloogStructure *) ;
-@end example
-@noindent Each CLooG data structure has a deallocation function as shown above,
- where @code{Structure} and @code{structure} have to
-be replaced by the name of the convenient structure (without @samp{Cloog} prefix) for
-instance @code{void cloog_loop_free(CloogLoop *) ;}. These functions
-free the allocated memory for the structure provided as input. They free
-memory recursively, i.e. they also free the allocated memory for the internal
-structures.
-@strong{Using those functions is mandatory} to avoid memory leaks on internal
-management fields and to avoid upward compatibility problems if
-new fields appear.
-
-
-@node Printing Functions
-@subsection Printing Functions
-@example
-void cloog_structure_print(FILE *, CloogStructure *) ;
-@end example
-@noindent Each CLooG data structure has a printing function as shown above,
- where @code{Structure} and @code{structure} have to
-be replaced by the name of the convenient structure (without @samp{Cloog} prefix) for
-instance @code{void cloog_loop_print(FILE *, CloogLoop *) ;}. These functions
-print the pointed structure (and its fields recursively) to the file provided
-as input (possibly @code{stdout}).
+@noindent A @code{CloogInput} structure represents the input to CLooG.
+It is essentially a @code{CloogUnionDomain} along with a context
+@code{CloogDomain}.  A @code{CloogInput} can be created from
+a @code{CloogDomain} and a @code{CloogUnionDomains} using
+@code{cloog_input_alloc}, or it can be read from a CLooG input
+file using @code{cloog_input_read}.  The latter also modifies
+the @code{language} field of the @code{CloogOptions} structure.
+The constructed @code{CloogInput} can be used as input
+to a @code{cloog_clast_create_from_input} call.
 
 
 @node CLooG Output
 @section CLooG Output
 
 @noindent
-Given a @code{CloogProgram} for scanning the input polyhedra,
-computed using @code{cloog_program_generate}
-(@pxref{cloog_program_generate}),
-an AST corresponding to the @code{CloogProgram} can be constructed
-using @code{cloog_clast_create} and destroyed using
+Given a description of the input,
+an AST corresponding to the @code{CloogInput} can be constructed
+using @code{cloog_clast_create_from_input} and destroyed using
 @code{free_clast_stmt}.
 @example
-struct clast_stmt *cloog_clast_create(CloogProgram *program,
+struct clast_stmt *cloog_clast_create_from_input(CloogInput *input,
                                       CloogOptions *options);
 void free_clast_stmt(struct clast_stmt *s);
 @end example
@@ -2484,20 +2057,21 @@ CLooG distribution.
 int main()
 @{
   CloogState *state;
-  CloogProgram *program;
+  CloogInput *input;
   CloogOptions * options ;
+  struct clast_stmt *root;
   
   /* Setting options and reading program informations. */
   state = cloog_state_malloc();
   options = cloog_options_malloc(state);
-  program = cloog_program_read(stdin,options) ;
+  input = cloog_input_read(stdin, options);
 
   /* Generating and printing the code. */
-  program = cloog_program_generate(program,options) ;
-  cloog_program_pprint(stdout,program,options) ;
+  root = cloog_clast_create_from_input(input, options);
+  clast_pprint(stdout, root, 0, options);
 
+  cloog_clast_free(root);
   cloog_options_free(options) ;
-  cloog_program_free(program) ;
   cloog_state_free(state);
   return 0;
 @}

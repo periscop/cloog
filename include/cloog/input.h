@@ -12,6 +12,8 @@ struct clooginput {
 typedef struct clooginput CloogInput;
 
 CloogInput *cloog_input_read(FILE *file, CloogOptions *options);
+CloogInput *cloog_input_alloc(CloogDomain *context, CloogUnionDomain *ud);
+void cloog_input_free(CloogInput *input);
 
 #if defined(__cplusplus)
 }
