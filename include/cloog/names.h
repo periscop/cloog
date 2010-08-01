@@ -83,7 +83,7 @@ void cloog_names_free(CloogNames *) ;
 /******************************************************************************
  *                              Reading functions                             *
  ******************************************************************************/
-char ** cloog_names_read_strings(FILE *, int, char *, char) ;
+char ** cloog_names_read_strings(FILE *file, int nb_items);
 
 
 /******************************************************************************

@@ -258,22 +258,15 @@ CloogNames *cloog_names_copy(CloogNames *names)
 /**
  * cloog_names_read_strings function:
  * This function reads names data from a file (file, possibly stdin). It first
- * reads the naming option to know if whether has to automatically generate the
- * names, or to read them. Names are stored into an array of strings, and a
- * pointer to this array is returned.
+ * reads the naming option to know if whether it can read the names from the
+ * file.  If not, NULL is returned.  Otherwise, the names are stored
+ * into an array of strings, and a pointer to this array is returned.
  * - nb_items is the number of names the function will have to read if the
  *   naming option is set to read.
- * - prefix is the prefix to give to each name in case of automatic generation.
- * - first item is the name of the first suffix in case of automatic generation.
- **
- * - September 9th 2002: first version.
  */
-char ** cloog_names_read_strings(file, nb_items, prefix, first_item)
-FILE * file ;
-int nb_items ;
-char * prefix, first_item ;
+char ** cloog_names_read_strings(FILE *file, int nb_items)
 { int i, option, n ;
-  char s[MAX_STRING], str[MAX_STRING], * c, ** names ;
+  char s[MAX_STRING], str[MAX_STRING], * c, **names = NULL;
 
   /* We first read name option. */
   while (fgets(s,MAX_STRING,file) == 0) ;
@@ -320,9 +313,6 @@ char * prefix, first_item ;
       c += n ;
     }
   }
-  /* Else we create names automatically. */
-  else
-  names = cloog_names_generate_items(nb_items,prefix,first_item) ;
 
   return names ;
 }

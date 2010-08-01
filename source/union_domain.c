@@ -197,6 +197,9 @@ static CloogUnionDomain *set_names_from_list(CloogUnionDomain *ud,
 {
 	int i;
 
+	if (!names)
+		return ud;
+
 	for (i = 0; i < n; ++i) {
 		ud = cloog_union_domain_set_name(ud, type, i, names[i]);
 		free(names[i]);
@@ -215,7 +218,7 @@ CloogUnionDomain *cloog_union_domain_read(FILE *file, int nb_par,
 	CloogOptions *options)
 {
 	int op1, op2, op3;
-	char line[MAX_STRING], prefix[] = "c";
+	char line[MAX_STRING];
 	CloogDomain **domain;
 	CloogUnionDomain *ud;
 	CloogScatteringList *scatteringl;
@@ -226,7 +229,7 @@ CloogUnionDomain *cloog_union_domain_read(FILE *file, int nb_par,
 
 	ud = cloog_union_domain_alloc(nb_par);
 
-	names = cloog_names_read_strings(file, nb_par, NULL, FIRST_PARAMETER);
+	names = cloog_names_read_strings(file, nb_par);
 	ud = set_names_from_list(ud, CLOOG_PARAM, nb_par, names);
 
 	/* We read the number of statements. */
@@ -256,7 +259,7 @@ CloogUnionDomain *cloog_union_domain_read(FILE *file, int nb_par,
 	}
         
 	/* Reading of the iterator names. */
-	names = cloog_names_read_strings(file, n_iter, NULL, FIRST_ITERATOR);
+	names = cloog_names_read_strings(file, n_iter);
 
 	/* Reading and putting the scattering data in program structure. */
 	scatteringl = cloog_scattering_list_read(file, domain, n_dom, nb_par);
@@ -284,7 +287,7 @@ CloogUnionDomain *cloog_union_domain_read(FILE *file, int nb_par,
 
 	if (scatteringl) {
 		int n_scat = ud->n_name[CLOOG_SCAT];
-		names = cloog_names_read_strings(file, n_scat, prefix, -1);
+		names = cloog_names_read_strings(file, n_scat);
 		ud = set_names_from_list(ud, CLOOG_SCAT, n_scat, names);
 	}
 
