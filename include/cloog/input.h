@@ -15,6 +15,8 @@ CloogInput *cloog_input_read(FILE *file, CloogOptions *options);
 CloogInput *cloog_input_alloc(CloogDomain *context, CloogUnionDomain *ud);
 void cloog_input_free(CloogInput *input);
 
+void cloog_input_dump_cloog(FILE *file, CloogInput *input, CloogOptions *opt);
+
 #if defined(__cplusplus)
 }
 #endif 

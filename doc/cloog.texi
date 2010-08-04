@@ -1801,6 +1801,8 @@ CloogInput *cloog_input_read(FILE *file, CloogOptions *options);
 CloogInput *cloog_input_alloc(CloogDomain *context,
                                 CloogUnionDomain *ud);
 void cloog_input_free(CloogInput *input);
+
+void cloog_input_dump_cloog(FILE *, CloogInput *, CloogOptions *);
 @end group
 @end example
 
@@ -1814,6 +1816,14 @@ the @code{language} field of the @code{CloogOptions} structure.
 The constructed @code{CloogInput} can be used as input
 to a @code{cloog_clast_create_from_input} call.
 
+A @code{CloogInput} data structure and a @code{CloogOptions} contain
+the same information as a .cloog file. This function dumps the .cloog
+description of the given data structures into a file.
+
+@node Dump CLooG Input File Function
+@subsection Dump CLooG Input File Function
+@example
+@end example
 
 @node CLooG Output
 @section CLooG Output

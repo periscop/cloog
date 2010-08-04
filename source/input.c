@@ -75,3 +75,103 @@ void cloog_input_free(CloogInput *input)
 	cloog_union_domain_free(input->ud);
 	free(input);
 }
+
+/**
+ * Dump the .cloog description of a CloogInput and a CloogOptions data structure
+ * into a file. The generated .cloog file will contain the same information as
+ * the data structures. The file can be used to run the cloog program on the
+ * example.
+ */
+void cloog_input_dump_cloog(FILE *file, CloogInput *input, CloogOptions *opt)
+{
+        int i, num_statements;
+        CloogUnionDomain *ud = input->ud;
+        CloogNamedDomainList *ndl = ud->domain;
+
+        fprintf(file,
+                "# CLooG -> CLooG\n"
+                "# This is an automatic dump of a CLooG input file from a "
+                "CloogInput data\n"
+                "# structure.\n\n");
+
+        /* Language. */
+        if (opt->language == LANGUAGE_FORTRAN) {
+                fprintf(file, "# Language: FORTRAN\n");
+                fprintf(file, "f\n\n");
+        } else {
+                fprintf(file, "# Language: C\n");
+                fprintf(file, "c\n\n");
+        }
+
+        /* Context. */
+        fprintf(file, "# Context:\n");
+        cloog_domain_print_constraints(file, input->context, 0);
+
+        fprintf(file, "\n%d # Parameter name(s)\n",
+                ud->name[CLOOG_PARAM] ? 1 : 0);
+
+        if (ud->name[CLOOG_PARAM])
+                for (i = 0; i < ud->n_name[CLOOG_PARAM]; i++)
+                        fprintf(file, "%s ", ud->name[CLOOG_PARAM][i]);
+
+        /* Statement number. */
+        i = 0;
+        while (ndl != NULL) {
+        	i++;
+        	ndl = ndl->next;
+        }
+        num_statements = i;
+        fprintf(file, "\n# Statement number:\n%d\n\n", num_statements);
+
+        /* Iteration domains. */
+        i = 1;
+        ndl = ud->domain;
+        while (ndl != NULL) {
+                fprintf(file, "# Iteration domain of statement %d (%s).\n", i,
+                        ndl->name);
+
+                cloog_domain_print_constraints(file, ndl->domain, 1);
+                fprintf(file,"\n0 0 0 # For future options.\n\n");
+
+                i++;
+                ndl = ndl->next;
+        }
+
+        fprintf(file, "\n%d # Iterator name(s)\n\n",
+                ud->name[CLOOG_SCAT] ? 1 : 0);
+
+        if (ud->name[CLOOG_ITER])
+                for (i = 0; i < ud->n_name[CLOOG_ITER]; i++)
+                        fprintf(file, "%s ", ud->name[CLOOG_ITER][i]);
+
+        /* Exit, if no scattering is supplied. */
+        if (!ud->domain || !ud->domain->scattering) {
+                fprintf(file, "# No scattering functions.\n0\n\n");
+                return;
+        }
+
+        /* Scattering relations. */
+        fprintf(file,
+                "# --------------------- SCATTERING --------------------\n");
+
+        fprintf(file, "%d # Scattering functions\n", num_statements);
+
+        i = 1;
+        ndl = ud->domain;
+        while (ndl != NULL) {
+                fprintf(file, "\n# Scattering of statement %d (%s).\n", i,
+                        ndl->name);
+
+                cloog_scattering_print_constraints(file, ndl->scattering, 1);
+
+                i++;
+                ndl = ndl->next;
+        }
+
+        fprintf(file, "\n%d # Scattering dimension name(s)\n",
+                ud->name[CLOOG_SCAT] ? 1 : 0);
+
+        if (ud->name[CLOOG_SCAT])
+                for (i = 0; i < ud->n_name[CLOOG_SCAT]; i++)
+                        fprintf(file, "%s ", ud->name[CLOOG_SCAT][i]);
+}
