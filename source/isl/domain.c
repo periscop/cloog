@@ -1169,3 +1169,61 @@ CloogDomain *cloog_domain_scatter(CloogDomain *domain, CloogScattering *scatt)
 	map = isl_map_intersect_range(map, &domain->set);
 	return cloog_domain_from_isl_set(isl_set_from_map(map));
 }
+
+static int add_domain(__isl_take isl_map *map, void *user)
+{
+	isl_dim *dim;
+	const char *name;
+	CloogDomain *domain;
+	CloogScattering *scat;
+	CloogUnionDomain **ud = (CloogUnionDomain **)user;
+
+	dim = isl_map_get_dim(map);
+	name = isl_dim_get_tuple_name(dim, isl_dim_in);
+	domain = cloog_domain_from_isl_set(isl_map_domain(isl_map_copy(map)));
+	scat = cloog_scattering_from_isl_map(map);
+	*ud = cloog_union_domain_add_domain(*ud, name, domain, scat, NULL);
+	isl_dim_free(dim);
+
+	return 0;
+}
+
+/**
+ * Construct a CloogUnionDomain from an isl_union_map representing
+ * a global scattering function.  The input is a mapping from different
+ * spaces (different tuple names and possibly different dimensions)
+ * to a common space.  The iteration domains are set to the domains
+ * in each space.  The statement names are set to the names of the
+ * spaces.  The parameter names of the result are set to those of
+ * the input, but the iterator and scattering dimension names are
+ * left unspecified.
+ */
+CloogUnionDomain *cloog_union_domain_from_isl_union_map(
+	__isl_take isl_union_map *umap)
+{
+	int i;
+	int nparam;
+	isl_dim *dim;
+	CloogUnionDomain *ud;
+
+	dim = isl_union_map_get_dim(umap);
+	nparam = isl_dim_size(dim, isl_dim_param);
+
+	ud = cloog_union_domain_alloc(nparam);
+
+	for (i = 0; i < nparam; ++i) {
+		const char *s = isl_dim_get_name(dim, isl_dim_param, i);
+		ud = cloog_union_domain_set_name(ud, CLOOG_PARAM, i, s);
+	}
+	isl_dim_free(dim);
+
+	if (isl_union_map_foreach_map(umap, &add_domain, &ud) < 0) {
+		isl_union_map_free(umap);
+		cloog_union_domain_free(ud);
+		assert(0);
+	}
+
+	isl_union_map_free(umap);
+
+	return ud;
+}
