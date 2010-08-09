@@ -1768,7 +1768,7 @@ CloogLoop *cloog_loop_block(CloogLoop *loop, int *scaldims, int nb_scattdims)
     for (begin = loop; begin; begin = begin->next) {
 	if (!begin->block || !begin->block->scaldims)
 	    return loop;
-	if (cloog_loop_next_scal_cmp(loop) > 0)
+	if (cloog_loop_next_scal_cmp(begin) > 0)
 	    return loop;
     }
 
