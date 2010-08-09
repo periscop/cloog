@@ -138,7 +138,7 @@ void cloog_input_dump_cloog(FILE *file, CloogInput *input, CloogOptions *opt)
         }
 
         fprintf(file, "\n%d # Iterator name(s)\n\n",
-                ud->name[CLOOG_SCAT] ? 1 : 0);
+                ud->name[CLOOG_ITER] ? 1 : 0);
 
         if (ud->name[CLOOG_ITER])
                 for (i = 0; i < ud->n_name[CLOOG_ITER]; i++)
