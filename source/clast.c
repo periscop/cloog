@@ -45,6 +45,7 @@ static int clast_equal_add(CloogEqualities *equal,
 static struct clast_stmt *clast_equal(int level, CloogInfos *infos);
 static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
 					int level, int max, int guard, 
+					int lower_bound,
 					CloogInfos *infos);
 static void insert_guard(CloogConstraintSet *constraints, int level,
 			  struct clast_stmt ***next, CloogInfos *infos);
@@ -743,6 +744,7 @@ struct clast_minmax_data {
     int level;
     int max;
     int guard;
+    int lower_bound;
     CloogInfos *infos;
     int n;
     struct clast_reduction *r;
@@ -820,8 +822,8 @@ static int collect_bounds(CloogConstraint *c, void *user)
 
     d->r->elts[d->n] = clast_bound_from_constraint(c, d->level,
 							    d->infos->names);
-    if (d->max && !cloog_int_is_one(d->infos->stride[d->level - 1]) &&
-		  !cloog_int_is_zero(d->infos->stride[d->level - 1])) {
+    if (d->lower_bound && !cloog_int_is_one(d->infos->stride[d->level - 1]) &&
+			  !cloog_int_is_zero(d->infos->stride[d->level - 1])) {
 	update_lower_bound(d->r->elts[d->n], d->level, d->infos);
     }
 
@@ -847,6 +849,7 @@ static int collect_bounds(CloogConstraint *c, void *user)
  * - guard is set to 0 if there is no guard, and set to the level of the element
  *   with a guard otherwise (then the function gives the max or the min only
  *   for the constraint where the guarded coefficient is 0), 
+ * - lower is set to 1 if the maximum is to be used a lower bound on a loop
  * - the infos structure gives the user some options about code printing,
  *   the number of parameters in domain (nb_par), and the arrays of iterator
  *   names and parameters (iters and params). 
@@ -855,9 +858,10 @@ static int collect_bounds(CloogConstraint *c, void *user)
  */
 static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
 				       int level, int max, int guard,
+				       int lower_bound,
 				       CloogInfos *infos)
 {
-    struct clast_minmax_data data = { level, max, guard, infos };
+    struct clast_minmax_data data = { level, max, guard, lower_bound, infos };
   
     data.n = 0;
 
@@ -1013,7 +1017,8 @@ static int insert_guard_constraint(CloogConstraint *j, void *user)
 	}
 	  
 	guarded = (d->nb_iter >= d->level) ? d->level : 0 ;
-	d->g->eq[d->n].RHS = clast_minmax(d->copy, d->i,minmax,guarded,d->infos);
+	d->g->eq[d->n].RHS = clast_minmax(d->copy,  d->i, minmax, guarded, 0,
+					  d->infos);
     }
     d->n++;
 
@@ -1533,8 +1538,8 @@ static int insert_for(CloogConstraintSet *constraints, int level, int otl,
   struct clast_expr *e1;
   struct clast_expr *e2;
   
-  e1 = clast_minmax(constraints, level, 1, 0, infos);
-  e2 = clast_minmax(constraints, level, 0, 0, infos);
+  e1 = clast_minmax(constraints, level, 1, 0, 1, infos);
+  e2 = clast_minmax(constraints, level, 0, 0, 0, infos);
 
   if (clast_expr_is_bigger_constant(e1, e2)) {
     free_clast_expr(e1);
