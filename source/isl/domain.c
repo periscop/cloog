@@ -713,7 +713,7 @@ static int basic_set_can_stride(__isl_take isl_basic_set *bset, void *user)
  * Return 1 if CLooG is allowed to perform stride detection on level "level"
  * and 0 otherwise.
  * Currently, stride detection is only allowed when none of the lower
- * bound constraint involve any existentially quantified variables.
+ * bound constraints involve any existentially quantified variables.
  * The reason is that the current isl interface does not make it
  * easy to construct an integer division that depends on other integer
  * divisions.
