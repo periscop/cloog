@@ -64,10 +64,9 @@ struct cloogloop
   CloogState *state;          /**< State. */
   CloogDomain * domain ;      /**< The iteration domain. */
   int otl;                    /**< Loop is executed at most once. */
-  cloog_int_t stride;         /**< The stride for the corresponding iterator
+  CloogStride *stride;        /**< If not NULL, stride information on iterator
                                *   (filled only after loop generation).
                                */
-  cloog_int_t offset;         /**< Offset of strided loop. */
   CloogBlock * block ;        /**< The included statement block, NULL if none.*/
   void * usr;		      /**< User field, for library user convenience.
 			       *   This pointer is not freed when the

@@ -48,6 +48,7 @@
 #include <cloog/options.h>
 #include <cloog/names.h>
 #include <cloog/constraints.h>
+#include <cloog/stride.h>
 #include <cloog/domain.h>
 #include <cloog/statement.h>
 #include <cloog/block.h>

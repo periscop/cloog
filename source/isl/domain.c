@@ -732,8 +732,7 @@ int cloog_domain_can_stride(CloogDomain *domain, int level)
 
 struct cloog_stride_lower {
 	int level;
-	isl_int stride;
-	isl_int offset;
+	CloogStride *stride;
 	isl_set *set;
 	isl_basic_set *bounds;
 };
@@ -802,7 +801,7 @@ static int constraint_stride_lower(__isl_take isl_constraint *c, void *user)
 	nvar = isl_constraint_dim(c, isl_dim_set);
 	bound = isl_inequality_alloc(isl_basic_set_get_dim(csl->bounds));
 	div = isl_div_alloc(isl_basic_set_get_dim(csl->bounds));
-	isl_int_mul(t, v, csl->stride);
+	isl_int_mul(t, v, csl->stride->stride);
 	isl_div_set_denominator(div, t);
 	for (i = 0; i < nparam; ++i) {
 		isl_constraint_get_coefficient(c, isl_dim_param, i, &t);
@@ -815,7 +814,7 @@ static int constraint_stride_lower(__isl_take isl_constraint *c, void *user)
 		isl_div_set_coefficient(div, isl_dim_set, i, t);
 	}
 	isl_constraint_get_constant(c, &t);
-	isl_int_addmul(t, v, csl->offset);
+	isl_int_addmul(t, v, csl->stride->offset);
 	isl_div_set_constant(div, t);
 
 	bound = isl_constraint_add_div(bound, div, &pos);
@@ -823,8 +822,8 @@ static int constraint_stride_lower(__isl_take isl_constraint *c, void *user)
 	isl_constraint_set_coefficient(bound, isl_dim_set,
 					csl->level - 1, t);
 	isl_constraint_set_coefficient(bound, isl_dim_div, pos,
-					csl->stride);
-	isl_int_neg(t, csl->offset);
+					csl->stride->stride);
+	isl_int_neg(t, csl->stride->offset);
 	isl_constraint_set_constant(bound, t);
 	csl->bounds = isl_basic_set_add_constraint(csl->bounds, bound);
 
@@ -854,23 +853,17 @@ static int basic_set_stride_lower(__isl_take isl_basic_set *bset, void *user)
  * is equal to "offset".
  */
 CloogDomain *cloog_domain_stride_lower_bound(CloogDomain *domain, int level,
-	cloog_int_t stride, cloog_int_t offset)
+	CloogStride *stride)
 {
 	struct cloog_stride_lower csl;
 	int r;
 
-	isl_int_init(csl.stride);
-	isl_int_init(csl.offset);
+	csl.stride = stride;
 	csl.level = level;
 	csl.set = isl_set_empty_like(&domain->set);
-	isl_int_set(csl.stride, stride);
-	isl_int_set(csl.offset, offset);
 
 	r = isl_set_foreach_basic_set(&domain->set, basic_set_stride_lower, &csl);
 	assert(r == 0);
-
-	isl_int_clear(csl.stride);
-	isl_int_clear(csl.offset);
 
 	cloog_domain_free(domain);
 	return cloog_domain_from_isl_set(csl.set);

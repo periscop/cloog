@@ -16,8 +16,7 @@
  */
 struct clooginfos {
   CloogState *state;         /**< State. */
-  cloog_int_t *stride;       /**< The stride for each iterator. */
-  cloog_int_t *offset;       /**< The offset for each iterator. */
+  CloogStride **stride;
   int  nb_scattdims ;        /**< Scattering dimension number. */
   int * scaldims ;           /**< Boolean array saying whether a given
                               *   scattering dimension is scalar or not.
@@ -210,7 +209,7 @@ static void free_clast_for(struct clast_stmt *s)
 }
 
 struct clast_for *new_clast_for(const char *it, struct clast_expr *LB, 
-				struct clast_expr *UB, cloog_int_t stride)
+				struct clast_expr *UB, CloogStride *stride)
 {
     struct clast_for *f = malloc(sizeof(struct clast_for));
     f->stmt.op = &stmt_for;
@@ -220,7 +219,10 @@ struct clast_for *new_clast_for(const char *it, struct clast_expr *LB,
     f->UB = UB;
     f->body = NULL;
     cloog_int_init(f->stride);
-    cloog_int_set(f->stride, stride);
+    if (stride)
+	cloog_int_set(f->stride, stride->stride);
+    else
+	cloog_int_set_si(f->stride, 1);
     return f;
 }
 
@@ -795,7 +797,7 @@ static int count_bounds(CloogConstraint *c, void *user)
  * operation on the constant.
  */
 static void update_lower_bound(struct clast_expr *expr, int level,
-	CloogInfos *infos)
+	CloogStride *stride)
 {
     struct clast_term *t;
     if (expr->type != clast_expr_term)
@@ -803,10 +805,10 @@ static void update_lower_bound(struct clast_expr *expr, int level,
     t = (struct clast_term *)expr;
     if (t->var)
 	return;
-    cloog_int_sub(t->val, t->val, infos->offset[level - 1]);
-    cloog_int_cdiv_q(t->val, t->val, infos->stride[level - 1]);
-    cloog_int_mul(t->val, t->val, infos->stride[level - 1]);
-    cloog_int_add(t->val, t->val, infos->offset[level - 1]);
+    cloog_int_sub(t->val, t->val, stride->offset);
+    cloog_int_cdiv_q(t->val, t->val, stride->stride);
+    cloog_int_mul(t->val, t->val, stride->stride);
+    cloog_int_add(t->val, t->val, stride->offset);
 }
 
 
@@ -822,9 +824,9 @@ static int collect_bounds(CloogConstraint *c, void *user)
 
     d->r->elts[d->n] = clast_bound_from_constraint(c, d->level,
 							    d->infos->names);
-    if (d->lower_bound && !cloog_int_is_one(d->infos->stride[d->level - 1]) &&
-			  !cloog_int_is_zero(d->infos->stride[d->level - 1])) {
-	update_lower_bound(d->r->elts[d->n], d->level, d->infos);
+    if (d->lower_bound && d->infos->stride[d->level - 1]) {
+	update_lower_bound(d->r->elts[d->n], d->level,
+			   d->infos->stride[d->level - 1]);
     }
 
     d->n++;
@@ -1217,8 +1219,9 @@ static int insert_modulo_guard_constraint(CloogConstraint *c, void *user)
 	for (i=1;i<=nb_iter;i++) {
 	  if (i == level || cloog_int_is_zero(line[i]))
 	    continue;
-	  if (cloog_int_is_divisible_by(infos->stride[i-1], line[level])) {
-	    cloog_int_addmul(line[len-1], line[i], infos->offset[i-1]);
+	  if (infos->stride[i - 1] &&
+	      cloog_int_is_divisible_by(infos->stride[i-1]->stride, line[level])) {
+	    cloog_int_addmul(line[len-1], line[i], infos->stride[i-1]->offset);
 	    cloog_int_fdiv_r(line[len-1], line[len-1], line[level]);
 	    continue;
 	  }
@@ -1661,10 +1664,8 @@ static void insert_loop(CloogLoop * loop, int level,
     constraints = cloog_constraint_set_simplify(temp,infos->equal,level,
 				   infos->names->nb_parameters);
     cloog_constraint_set_free(temp);
-    if (level) {
-      cloog_int_set(infos->stride[level-1], loop->stride);
-      cloog_int_set(infos->offset[level-1], loop->offset);
-    }
+    if (level)
+	infos->stride[level - 1] = loop->stride;
 
     /* First of all we have to print the guard. */
     insert_guard(constraints,level, next, infos);
@@ -1712,7 +1713,7 @@ struct clast_stmt *cloog_clast_create(CloogProgram *program,
 				      CloogOptions *options)
 {
     CloogInfos *infos = ALLOC(CloogInfos);
-    int i, nb_levels;
+    int nb_levels;
     struct clast_stmt *root = &new_clast_root(program->names)->stmt;
     struct clast_stmt **next = &root->next;
 
@@ -1726,12 +1727,7 @@ struct clast_stmt *cloog_clast_create(CloogProgram *program,
     * be included inside an external loop without iteration domain.
     */ 
     nb_levels = program->names->nb_scattering+program->names->nb_iterators+1;
-    infos->stride = ALLOCN(cloog_int_t, nb_levels);
-    infos->offset = ALLOCN(cloog_int_t, nb_levels);
-    for (i = 0; i < nb_levels; ++i) {
-	cloog_int_init(infos->stride[i]);
-	cloog_int_init(infos->offset[i]);
-    }
+    infos->stride = ALLOCN(CloogStride *, nb_levels);
 
     infos->equal = cloog_equal_alloc(nb_levels,
 			       nb_levels, program->names->nb_parameters);
@@ -1740,12 +1736,7 @@ struct clast_stmt *cloog_clast_create(CloogProgram *program,
 
     cloog_equal_free(infos->equal);
 
-    for (i = 0; i < nb_levels; ++i) {
-	cloog_int_clear(infos->stride[i]);
-	cloog_int_clear(infos->offset[i]);
-    }
     free(infos->stride);
-    free(infos->offset);
     free(infos);
 
     return root;

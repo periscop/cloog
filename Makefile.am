@@ -78,6 +78,7 @@ SOURCES_CORE = \
 	source/pprint.c \
 	source/program.c \
 	source/statement.c \
+	source/stride.c \
 	source/union_domain.c \
 	source/version.c
 
@@ -112,6 +113,7 @@ pkginclude_HEADERS = \
 	include/cloog/pprint.h \
 	include/cloog/program.h \
 	include/cloog/statement.h \
+	include/cloog/stride.h \
 	include/cloog/union_domain.h \
 	include/cloog/version.h
 

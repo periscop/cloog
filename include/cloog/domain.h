@@ -42,6 +42,7 @@ extern "C"
   {
 #endif 
 
+
 struct cloogdomain;
 typedef struct cloogdomain CloogDomain ;
 struct cloogscattering;
@@ -121,7 +122,7 @@ void          cloog_domain_stride(CloogDomain *, int, cloog_int_t *, cloog_int_t
 int           cloog_domain_can_stride(CloogDomain *domain, int level);
 int           cloog_domain_is_otl(CloogDomain *domain, int level);
 CloogDomain * cloog_domain_stride_lower_bound(CloogDomain *domain, int level,
-					cloog_int_t stride, cloog_int_t offset);
+					CloogStride *stride);
 int           cloog_domain_lazy_disjoint(CloogDomain *, CloogDomain *) ;
 int           cloog_domain_lazy_equal(CloogDomain *, CloogDomain *) ;
 int           cloog_scattering_lazy_block(CloogScattering *, CloogScattering *,

@@ -130,7 +130,7 @@ struct clast_user_stmt *new_clast_user_stmt(CloogStatement *stmt,
 						struct clast_stmt *subs);
 struct clast_block *new_clast_block(void);
 struct clast_for *new_clast_for(const char *it, struct clast_expr *LB, 
-				struct clast_expr *UB, cloog_int_t stride);
+				struct clast_expr *UB, CloogStride *stride);
 struct clast_guard *new_clast_guard(int n);
 
 void free_clast_name(struct clast_name *t);
