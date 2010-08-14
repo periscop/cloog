@@ -41,6 +41,8 @@
 # include <stdio.h>
 # include "../include/cloog/cloog.h"
 
+#define ALLOC(type) (type*)malloc(sizeof(type))
+
 
 /******************************************************************************
  *                             Memory leaks hunting                           *
@@ -1142,6 +1144,40 @@ CloogLoop *cloog_loop_nest(CloogLoop *loop, CloogDomain *context, int level)
 }
 
 
+/* Check if the domains of the inner loops impose a stride constraint
+ * on the given level.
+ * The core of the search is implemented in cloog_domain_list_stride.
+ * Here, we simply construct a list of domains to pass to this function
+ * and if a stride is found, we adjust the lower bounds by calling
+ * cloog_domain_stride_lower_bound.
+ */
+static int cloog_loop_variable_offset_stride(CloogLoop *loop, int level)
+{
+    CloogDomainList *list = NULL;
+    CloogLoop *inner;
+    CloogStride *stride;
+
+    for (inner = loop->inner; inner; inner = inner->next) {
+	CloogDomainList *entry = ALLOC(CloogDomainList);
+	entry->domain = cloog_domain_copy(inner->domain);
+	entry->next = list;
+	list = entry;
+    }
+
+    stride = cloog_domain_list_stride(list, level);
+
+    cloog_domain_list_free(list);
+
+    if (!stride)
+	return 0;
+
+    loop->stride = stride;
+    loop->domain = cloog_domain_stride_lower_bound(loop->domain, level, stride);
+
+    return 1;
+}
+
+
 /**
  * cloog_loop_stride function:
  * This function will find the stride of a loop for the iterator at the column
@@ -1155,6 +1191,13 @@ CloogLoop *cloog_loop_nest(CloogLoop *loop, CloogDomain *context, int level)
  * i%3=0, the stride for i is 3. Lastly, we have to find the new lower bound
  * for i: the first value satisfying the common constraint: -3. At the end, the
  * iteration domain for i is -3<=i<=n and the stride for i is 3.
+ *
+ * The algorithm implemented in this function only allows for strides
+ * on loops with a lower bound that has a constant remainder on division
+ * by the stride.  Before initiating this procedure, we first check
+ * if we can find a stride with a lower bound with a variable offset in
+ * cloog_loop_variable_offset_stride.
+ *
  * - loop is the loop including the iteration domain of the considered iterator,
  * - level is the column number of the iterator in the matrix of contraints.
  **
@@ -1168,6 +1211,9 @@ void cloog_loop_stride(CloogLoop * loop, int level)
   CloogLoop * inner ;
 
   if (!cloog_domain_can_stride(loop->domain, level))
+    return;
+
+  if (cloog_loop_variable_offset_stride(loop, level))
     return;
 
   cloog_int_init(stride);

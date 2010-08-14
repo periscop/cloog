@@ -337,6 +337,18 @@ void cloog_domain_print_structure(FILE *file, CloogDomain *domain, int level,
  ******************************************************************************/
 
 
+void cloog_domain_list_free(CloogDomainList *list)
+{
+	CloogDomainList *next;
+
+	for ( ; list; list = next) {
+		next = list->next;
+		cloog_domain_free(list->domain);
+		free(list);
+	}
+}
+
+
 /**
  * cloog_scattering_list_free function:
  * This function frees the allocated memory for a CloogScatteringList structure.
@@ -834,13 +846,109 @@ static int constraint_stride_lower(__isl_take isl_constraint *c, void *user)
 	return 0;
 }
 
+/* This functions performs essentially the same operation as
+ * constraint_stride_lower, the only difference being that the offset d
+ * is not a constant, but an affine expression in terms of the parameters
+ * and earlier variables.  In particular the affine expression is equal
+ * to the coefficients of stride->constraint multiplied by stride->factor.
+ * As in constraint_stride_lower, we add an extra bound
+ *
+ *	i + s * floor((f + a * d)/(a * s)) - d >= 0
+ *
+ * for each lower bound
+ *
+ *	a i + f >= 0
+ *
+ * where d is not the aforementioned affine expression.
+ */
+static int constraint_stride_lower_c(__isl_take isl_constraint *c, void *user)
+{
+	struct cloog_stride_lower *csl = (struct cloog_stride_lower *)user;
+	int i;
+	isl_int v;
+	isl_int t, u;
+	isl_constraint *bound;
+	isl_constraint *csl_c;
+	isl_div *div;
+	int pos;
+	unsigned nparam, nvar;
+
+	isl_int_init(v);
+	isl_constraint_get_coefficient(c, isl_dim_set, csl->level - 1, &v);
+	if (!isl_int_is_pos(v)) {
+		isl_int_clear(v);
+		isl_constraint_free(c);
+
+		return 0;
+	}
+
+	csl_c = &csl->stride->constraint->isl;
+
+	isl_int_init(t);
+	isl_int_init(u);
+
+	nparam = isl_constraint_dim(c, isl_dim_param);
+	nvar = isl_constraint_dim(c, isl_dim_set);
+	bound = isl_inequality_alloc(isl_basic_set_get_dim(csl->bounds));
+	div = isl_div_alloc(isl_basic_set_get_dim(csl->bounds));
+	isl_int_mul(t, v, csl->stride->stride);
+	isl_div_set_denominator(div, t);
+	for (i = 0; i < nparam; ++i) {
+		isl_constraint_get_coefficient(c, isl_dim_param, i, &t);
+		isl_constraint_get_coefficient(csl_c, isl_dim_param, i, &u);
+		isl_int_mul(u, u, csl->stride->factor);
+		isl_int_addmul(t, v, u);
+		isl_div_set_coefficient(div, isl_dim_param, i, t);
+		isl_int_neg(u, u);
+		isl_constraint_set_coefficient(bound, isl_dim_param, i, u);
+	}
+	for (i = 0; i < nvar; ++i) {
+		if (i == csl->level - 1)
+			continue;
+		isl_constraint_get_coefficient(c, isl_dim_set, i, &t);
+		isl_constraint_get_coefficient(csl_c, isl_dim_set, i, &u);
+		isl_int_mul(u, u, csl->stride->factor);
+		isl_int_addmul(t, v, u);
+		isl_div_set_coefficient(div, isl_dim_set, i, t);
+		isl_int_neg(u, u);
+		isl_constraint_set_coefficient(bound, isl_dim_set, i, u);
+	}
+	isl_constraint_get_constant(c, &t);
+	isl_constraint_get_constant(csl_c, &u);
+	isl_int_mul(u, u, csl->stride->factor);
+	isl_int_addmul(t, v, u);
+	isl_div_set_constant(div, t);
+	isl_int_neg(u, u);
+	isl_constraint_set_constant(bound, u);
+
+	bound = isl_constraint_add_div(bound, div, &pos);
+	isl_int_set_si(t, 1);
+	isl_constraint_set_coefficient(bound, isl_dim_set,
+					csl->level - 1, t);
+	isl_constraint_set_coefficient(bound, isl_dim_div, pos,
+					csl->stride->stride);
+	csl->bounds = isl_basic_set_add_constraint(csl->bounds, bound);
+
+	isl_int_clear(u);
+	isl_int_clear(t);
+	isl_int_clear(v);
+	isl_constraint_free(c);
+
+	return 0;
+}
+
 static int basic_set_stride_lower(__isl_take isl_basic_set *bset, void *user)
 {
 	struct cloog_stride_lower *csl = (struct cloog_stride_lower *)user;
 	int r;
 
 	csl->bounds = isl_basic_set_universe_like(bset);
-	r = isl_basic_set_foreach_constraint(bset, constraint_stride_lower, csl);
+	if (csl->stride->constraint)
+		r = isl_basic_set_foreach_constraint(bset,
+					&constraint_stride_lower_c, csl);
+	else
+		r = isl_basic_set_foreach_constraint(bset,
+					&constraint_stride_lower, csl);
 	bset = isl_basic_set_intersect(bset, csl->bounds);
 	csl->set = isl_set_union(csl->set, isl_set_from_basic_set(bset));
 
@@ -1272,4 +1380,191 @@ CloogUnionDomain *cloog_union_domain_from_isl_union_set(
 	isl_union_set_free(uset);
 
 	return ud;
+}
+
+/* Computes x, y and g such that g = gcd(a,b) and a*x+b*y = g */
+static void Euclid(cloog_int_t a, cloog_int_t b,
+			cloog_int_t *x, cloog_int_t *y, cloog_int_t *g)
+{
+	cloog_int_t c, d, e, f, tmp;
+
+	cloog_int_init(c);
+	cloog_int_init(d);
+	cloog_int_init(e);
+	cloog_int_init(f);
+	cloog_int_init(tmp);
+	cloog_int_abs(c, a);
+	cloog_int_abs(d, b);
+	cloog_int_set_si(e, 1);
+	cloog_int_set_si(f, 0);
+	while (cloog_int_is_pos(d)) {
+		cloog_int_tdiv_q(tmp, c, d);
+		cloog_int_mul(tmp, tmp, f);
+		cloog_int_sub(e, e, tmp);
+		cloog_int_tdiv_q(tmp, c, d);
+		cloog_int_mul(tmp, tmp, d);
+		cloog_int_sub(c, c, tmp);
+		cloog_int_swap(c, d);
+	    cloog_int_swap(e, f);
+	}
+	cloog_int_set(*g, c);
+	if (cloog_int_is_zero(a))
+		cloog_int_set_si(*x, 0);
+	else if (cloog_int_is_pos(a))
+		cloog_int_set(*x, e);
+	else cloog_int_neg(*x, e);
+	if (cloog_int_is_zero(b))
+		cloog_int_set_si(*y, 0);
+	else {
+		cloog_int_mul(tmp, a, *x);
+		cloog_int_sub(tmp, c, tmp);
+		cloog_int_divexact(*y, tmp, b);
+	}
+	cloog_int_clear(c);
+	cloog_int_clear(d);
+	cloog_int_clear(e);
+	cloog_int_clear(f);
+	cloog_int_clear(tmp);
+}
+
+/* Construct a CloogStride from the given constraint for the given level,
+ * if possible.
+ * We first compute the gcd of the coefficients of the existentially
+ * quantified variables and then remove any common factors it has
+ * with the coefficient at the given level.
+ * The result is the value of the stride and if it is not one,
+ * the it is possible to construct a CloogStride.
+ * The constraint leading to the stride is stored in the CloogStride
+ * as well a value (factor) such that the product of this value
+ * and the coefficient at the given level is equal to -1 modulo the stride.
+ */
+static CloogStride *construct_stride(isl_constraint *c, int level)
+{
+	int i, n, sign;
+	isl_int v, m, gcd, stride, factor;
+	CloogStride *s;
+
+	if (!c)
+		return NULL;
+
+	isl_int_init(v);
+	isl_int_init(m);
+	isl_int_init(gcd);
+	isl_int_init(factor);
+	isl_int_init(stride);
+
+	isl_constraint_get_coefficient(c, isl_dim_set, level - 1, &v);
+	sign = isl_int_sgn(v);
+	isl_int_abs(m, v);
+
+	isl_int_set_si(gcd, 0);
+	n = isl_constraint_dim(c, isl_dim_div);
+	for (i = 0; i < n; ++i) {
+		isl_constraint_get_coefficient(c, isl_dim_div, i, &v);
+		isl_int_gcd(gcd, gcd, v);
+	}
+
+	isl_int_gcd(v, m, gcd);
+	isl_int_divexact(stride, gcd, v);
+
+	if (isl_int_is_zero(stride) || isl_int_is_one(stride))
+		s = NULL;
+	else {
+		Euclid(m, stride, &factor, &v, &gcd);
+		if (sign > 0)
+			isl_int_neg(factor, factor);
+
+		c = isl_constraint_copy(c);
+		s = cloog_stride_alloc_from_constraint(stride,
+			    cloog_constraint_from_isl_constraint(c), factor);
+	}
+
+	isl_int_clear(stride);
+	isl_int_clear(factor);
+	isl_int_clear(gcd);
+	isl_int_clear(m);
+	isl_int_clear(v);
+
+	return s;
+}
+
+struct cloog_isl_find_stride_data {
+	int level;
+	CloogStride *stride;
+};
+
+/* Check if the given constraint can be used to derive
+ * a stride on the iterator identified by data->level.
+ * We first check that there are some existentially quantified variables
+ * and that the coefficient at data->level is non-zero.
+ * Then we call construct_stride for further checks and the actual
+ * construction of the CloogStride.
+ */
+static int find_stride(__isl_take isl_constraint *c, void *user)
+{
+	struct cloog_isl_find_stride_data *data;
+	int n;
+	isl_int v;
+
+	data = (struct cloog_isl_find_stride_data *)user;
+
+	if (data->stride) {
+		isl_constraint_free(c);
+		return 0;
+	}
+
+	n = isl_constraint_dim(c, isl_dim_div);
+	if (n == 0) {
+		isl_constraint_free(c);
+		return 0;
+	}
+
+	isl_int_init(v);
+
+	isl_constraint_get_coefficient(c, isl_dim_set, data->level - 1, &v);
+	if (!isl_int_is_zero(v))
+		data->stride = construct_stride(c, data->level);
+
+	isl_int_clear(v);
+
+	isl_constraint_free(c);
+
+	return 0;
+}
+
+/* Check if the given list of domains has a common stride on the given level.
+ * If so, return a pointer to a CloogStride object.  If not, return NULL.
+ *
+ * We project out all later variables, take the union and compute
+ * the affine hull of the union.  Then we check the (equality)
+ * constraints in this affine hull for imposing a stride.
+ */
+CloogStride *cloog_domain_list_stride(CloogDomainList *list, int level)
+{
+	struct cloog_isl_find_stride_data data = { level, NULL };
+	isl_set *set;
+	isl_basic_set *aff;
+	int first = level;
+	int n;
+	int r;
+
+	n = isl_set_dim(&list->domain->set, isl_dim_set) - first;
+	set = isl_set_project_out(isl_set_copy(&list->domain->set),
+					isl_dim_set, first, n);
+
+	for (list = list->next; list; list = list->next) {
+		isl_set *set_i;
+		n = isl_set_dim(&list->domain->set, isl_dim_set) - first;
+		set_i = isl_set_project_out(isl_set_copy(&list->domain->set),
+						isl_dim_set, first, n);
+		set = isl_set_union(set, set_i);
+	}
+	aff = isl_set_affine_hull(set);
+
+	r = isl_basic_set_foreach_constraint(aff, &find_stride, &data);
+	assert(r == 0);
+
+	isl_basic_set_free(aff);
+
+	return data.stride;
 }

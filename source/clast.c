@@ -800,6 +800,8 @@ static void update_lower_bound(struct clast_expr *expr, int level,
 	CloogStride *stride)
 {
     struct clast_term *t;
+    if (stride->constraint)
+	return;
     if (expr->type != clast_expr_term)
 	return;
     t = (struct clast_term *)expr;
@@ -1156,6 +1158,72 @@ static void insert_computed_modulo_guard(struct clast_reduction *r,
 }
 
 
+/* Try and eliminate coefficients from a modulo constraint based on
+ * stride information of an earlier level.
+ * The modulo of the constraint being constructed is "m".
+ * The stride information at level "level" is given by "stride"
+ * and indicated that the iterator i at level "level" is equal to
+ * some expression modulo stride->stride.
+ * If stride->stride is a multiple of "m' then i is also equal to
+ * the expression modulo m and so we can eliminate the coefficient of i.
+ *
+ * If stride->constraint is NULL, then i has a constant value modulo m, stored
+ * stride->offset.  We simply multiply this constant with the coefficient
+ * of i and add the result to the constant term, reducing it modulo m.
+ *
+ * If stride->constraint is not NULL, then it is a constraint of the form
+ *
+ *	e + k i = s a
+ *
+ * with s equal to stride->stride, e an expression in terms of the
+ * parameters and earlier iterators and a some arbitrary expression
+ * in terms of existentially quantified variables.
+ * stride->factor is a value f such that f * k = -1 mod s.
+ * Adding stride->constraint f * c times to the current modulo constraint,
+ * with c the coefficient of i eliminates i in favor of parameters and
+ * earlier variables.
+ */
+static void eliminate_using_stride_constraint(cloog_int_t *line, int len,
+	int nb_iter, CloogStride *stride, int level, cloog_int_t m)
+{
+	if (!stride)
+		return;
+	if (!cloog_int_is_divisible_by(stride->stride, m))
+		return;
+
+	if (stride->constraint) {
+		int i;
+		cloog_int_t t, v;
+
+		cloog_int_init(t);
+		cloog_int_init(v);
+		cloog_int_mul(t, line[level], stride->factor);
+		for (i = 1; i < level; ++i) {
+			cloog_constraint_coefficient_get(stride->constraint,
+							i - 1, &v);
+			cloog_int_addmul(line[i], t, v);
+			cloog_int_fdiv_r(line[i], line[i], m);
+		}
+		for (i = nb_iter + 1; i <= len - 2; ++i) {
+			cloog_constraint_coefficient_get(stride->constraint,
+						i - nb_iter - 1 + level, &v);
+			cloog_int_addmul(line[i], t, v);
+			cloog_int_fdiv_r(line[i], line[i], m);
+		}
+		cloog_constraint_constant_get(stride->constraint, &v);
+		cloog_int_addmul(line[len - 1], t, v);
+		cloog_int_fdiv_r(line[len - 1], line[len - 1], m);
+		cloog_int_clear(v);
+		cloog_int_clear(t);
+	} else {
+		cloog_int_addmul(line[len - 1], line[level], stride->offset);
+		cloog_int_fdiv_r(line[len - 1], line[len - 1], m);
+	}
+
+	cloog_int_set_si(line[level], 0);
+}
+
+
 /* Temporary structure for communication between insert_modulo_guard and
  * its cloog_constraint_set_foreach_constraint callback function.
  */
@@ -1216,15 +1284,12 @@ static int insert_modulo_guard_constraint(CloogConstraint *c, void *user)
 	nb_elts = 0;
 
 	/* First, the modulo guard : the iterators... */
+	for (i = level - 1; i >= 1; --i)
+	    eliminate_using_stride_constraint(line, len, nb_iter,
+					infos->stride[i - 1], i, line[level]);
 	for (i=1;i<=nb_iter;i++) {
 	  if (i == level || cloog_int_is_zero(line[i]))
 	    continue;
-	  if (infos->stride[i - 1] &&
-	      cloog_int_is_divisible_by(infos->stride[i-1]->stride, line[level])) {
-	    cloog_int_addmul(line[len-1], line[i], infos->stride[i-1]->offset);
-	    cloog_int_fdiv_r(line[len-1], line[len-1], line[level]);
-	    continue;
-	  }
 
 	  name = cloog_names_name_at_level(infos->names, i);
 

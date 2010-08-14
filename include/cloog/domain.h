@@ -50,6 +50,17 @@ typedef struct cloogscattering CloogScattering;
 
 
 /**
+ * CloogDomainList structure:
+ * this structure reprensents a node of a linked list of CloogDomain structures.
+ */
+struct cloogdomainlist {
+  CloogDomain *domain;         /**< An element of the list. */
+  struct cloogdomainlist *next;/**< Pointer to the next element of the list.*/
+} ;
+typedef struct cloogdomainlist CloogDomainList;
+
+
+/**
  * CloogScatteringList structure:
  * this structure reprensents a node of a linked list of CloogScattering structures.
  */
@@ -93,6 +104,7 @@ void cloog_domain_print_structure(FILE *file, CloogDomain *domain, int level,
 /******************************************************************************
  *                         Memory deallocation function                       *
  ******************************************************************************/
+void cloog_domain_list_free(CloogDomainList *);
 void cloog_scattering_list_free(CloogScatteringList *);
 
 
@@ -145,6 +157,8 @@ CloogDomain * cloog_domain_from_context(CloogDomain *context);
 CloogDomain * cloog_domain_scatter(CloogDomain *domain, CloogScattering *scatt);
 int           cloog_scattering_fully_specified(CloogScattering *scattering,
 						CloogDomain *domain);
+
+CloogStride *cloog_domain_list_stride(CloogDomainList *list, int level);
 
 #if defined(__cplusplus)
   }

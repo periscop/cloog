@@ -12,10 +12,14 @@ struct cloogstride {
   int references;
   cloog_int_t stride;         /**< The actual stride. */
   cloog_int_t offset;         /**< Offset of strided loop. */
+  cloog_int_t factor;
+  CloogConstraint *constraint;
 };
 typedef struct cloogstride CloogStride;
 
 CloogStride *cloog_stride_alloc(cloog_int_t stride, cloog_int_t offset);
+CloogStride *cloog_stride_alloc_from_constraint(cloog_int_t stride,
+	CloogConstraint *constraint, cloog_int_t factor);
 CloogStride *cloog_stride_copy(CloogStride *stride);
 void cloog_stride_free(CloogStride *stride);
 
