@@ -1734,6 +1734,8 @@ There is also a backend dependent function for creating
 #include <cloog/isl/cloog.h>
 CloogUnionDomain *cloog_union_domain_from_isl_union_map(
         __isl_take isl_union_map *umap);
+CloogUnionDomain *cloog_union_domain_from_isl_union_set(
+	__isl_take isl_union_set *uset);
 @end example
 @noindent
 The function @code{cloog_union_domain_from_isl_union_map} takes a
@@ -1747,6 +1749,8 @@ spaces.  The parameter names of the result are set to those of
 the input, but the iterator and scattering dimension names are
 left unspecified.
 The function consumes a reference to the given @code{isl_union_map}.
+The function @code{cloog_union_domain_from_isl_union_set} is similar,
+but takes unscattered domains as input.
 
 
 @node CloogStatement

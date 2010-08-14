@@ -1170,7 +1170,7 @@ CloogDomain *cloog_domain_scatter(CloogDomain *domain, CloogScattering *scatt)
 	return cloog_domain_from_isl_set(isl_set_from_map(map));
 }
 
-static int add_domain(__isl_take isl_map *map, void *user)
+static int add_domain_from_map(__isl_take isl_map *map, void *user)
 {
 	isl_dim *dim;
 	const char *name;
@@ -1217,13 +1217,66 @@ CloogUnionDomain *cloog_union_domain_from_isl_union_map(
 	}
 	isl_dim_free(dim);
 
-	if (isl_union_map_foreach_map(umap, &add_domain, &ud) < 0) {
+	if (isl_union_map_foreach_map(umap, &add_domain_from_map, &ud) < 0) {
 		isl_union_map_free(umap);
 		cloog_union_domain_free(ud);
 		assert(0);
 	}
 
 	isl_union_map_free(umap);
+
+	return ud;
+}
+
+static int add_domain(__isl_take isl_set *set, void *user)
+{
+	isl_dim *dim;
+	const char *name;
+	CloogDomain *domain;
+	CloogUnionDomain **ud = (CloogUnionDomain **)user;
+
+	dim = isl_set_get_dim(set);
+	name = isl_dim_get_tuple_name(dim, isl_dim_in);
+	domain = cloog_domain_from_isl_set(set);
+	*ud = cloog_union_domain_add_domain(*ud, name, domain, NULL, NULL);
+	isl_dim_free(dim);
+
+	return 0;
+}
+
+/**
+ * Construct a CloogUnionDomain from an isl_union_set.
+ * The statement names are set to the names of the
+ * spaces.  The parameter names of the result are set to those of
+ * the input, but the iterator and scattering dimension names are
+ * left unspecified.
+ */
+CloogUnionDomain *cloog_union_domain_from_isl_union_set(
+	__isl_take isl_union_set *uset)
+{
+	int i;
+	int nparam;
+	isl_dim *dim;
+	CloogUnionDomain *ud;
+
+	dim = isl_union_set_get_dim(uset);
+	nparam = isl_dim_size(dim, isl_dim_param);
+
+	ud = cloog_union_domain_alloc(nparam);
+
+	for (i = 0; i < nparam; ++i) {
+		const char *s = isl_dim_get_name(dim, isl_dim_param, i);
+		ud = cloog_union_domain_set_name(ud, CLOOG_PARAM, i, s);
+	}
+	isl_dim_free(dim);
+
+	if (isl_union_set_foreach_set(uset, &add_domain, &ud) < 0) {
+		isl_union_set_free(uset);
+		cloog_union_domain_free(ud);
+		assert(0);
+	}
+
+	isl_union_set_free(uset);
 
 	return ud;
 }
