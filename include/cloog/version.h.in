@@ -32,7 +32,17 @@ extern "C"
   {
 #endif 
 
+#define CLOOG_VERSION_MAJOR @VERSION_MAJOR@
+#define CLOOG_VERSION_MINOR @VERSION_MINOR@
+#define CLOOG_VERSION_REVISION @VERSION_REVISION@
+
 const char *cloog_version(void);
+
+int cloog_version_major(void);
+
+int cloog_version_minor(void);
+
+int cloog_version_revision(void);
 
 #if defined(__cplusplus)
   }

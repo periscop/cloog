@@ -41,3 +41,4 @@ test/Makefile
 test/Makefile.in
 test/generate_test
 version.h
+include/cloog/version.h

@@ -43,7 +43,12 @@ AC_PREREQ(2.13)
 AC_INIT(source/cloog.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE(cloog, 0.14.0)
+
+VERSION_MAJOR=0
+VERSION_MINOR=14
+VERSION_REVISION=0
+
+AM_INIT_AUTOMAKE(cloog, "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REVISION}")
 
 dnl /**************************************************************************
 dnl  *                              Checking                                  *
@@ -171,6 +176,10 @@ AC_SUBST(INSTALL)
 
 AC_SUBST(BITS)
 
+AC_SUBST(VERSION_MAJOR)
+AC_SUBST(VERSION_MINOR)
+AC_SUBST(VERSION_REVISION)
+
 PACKAGE_NAME="cloog-isl"
 PACKAGE_CFLAGS="-DCLOOG_INT_GMP=1"
 AX_CREATE_PKGCONFIG_INFO
@@ -179,6 +188,7 @@ AC_CONFIG_FILES(Makefile test/Makefile)
 AC_CONFIG_FILES(autoconf/Doxyfile)
 AC_CONFIG_FILES(doc/Makefile)
 AC_CONFIG_FILES(source/version.c)
+AC_CONFIG_FILES(include/cloog/version.h)
 AC_CONFIG_FILES([genversion.sh], [chmod +x genversion.sh])
 AC_CONFIG_COMMANDS([version.h],
 	[echo '#define CLOOG_HEAD "'`./genversion.sh`'"' > version.h])

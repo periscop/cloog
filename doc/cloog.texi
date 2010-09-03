@@ -1448,6 +1448,7 @@ These functions as well as the data structures are described in this section.
 @menu
 * CLooG Data Structures::
 * CLooG Output::
+* Retrieving version information::
 * Example of Library Utilization::
 @end menu
 
@@ -2081,6 +2082,35 @@ struct clast_reduction *new_clast_reduction(enum clast_red_type t,
 void free_clast_reduction(struct clast_reduction *r);
 @end example
 
+@node Retrieving version information
+@section Retrieving version information
+CLooG provides static and dynamic version checks to assist on
+including a compatible version of the library.
+A static version check at compile time can be achieved by
+querying the version constants defined in @code{version.h}:
+
+@itemize @bullet
+@item @code{CLOOG_VERSION_MAJOR}
+@item @code{CLOOG_VERSION_MINOR}
+@item @code{CLOOG_VERSION_REVISION}
+@end itemize
+
+This way it is possible to ensure the included headers are of the
+correct version. It is still possible that the installed CLooG
+library version differs from the installed headers.
+In order to avoid this, a dynamic version check is provided with
+the functions:
+
+@example
+@group
+int cloog_version_major(void);
+int cloog_version_minor(void);
+int cloog_version_revision(void);
+@end group
+@end example
+
+By using both the static and the dynamic version check, it is possible
+to match CLooG's header version with the library's version.
 
 @node Example of Library Utilization
 @section Example of Library Utilization
