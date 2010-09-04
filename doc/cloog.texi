@@ -1582,7 +1582,7 @@ is that of @ref{Domain Representation}.
 The function @code{cloog_domain_from_cloog_matrix} takes a @code{CloogState}, a
 @code{CloogMatrix} and @code{int} as input and returns a pointer to a
 @code{CloogDomain}. @code{matrix} describes the domain and @code{nb_par} is the
-number of parameters in this domain. The input data structures are neiter
+number of parameters in this domain. The input data structures are neither
 modified nor freed.
 The @code{CloogDomain} can be freed using @code{cloog_domain_free}.
 There are also some backend dependent functions for creating
@@ -1644,7 +1644,7 @@ pointer to a @code{CloogScattering}.
 @code{matrix} describes the scattering, while @code{nb_scat} and
 @code{nb_par} are the number of scattering dimensions and
 the number of parameters, respectively. The input data structures are
-neiter modified nor freed.
+neither modified nor freed.
 A @code{CloogScattering} can be freed using @code{cloog_scattering_free}.
 There are also some backend dependent functions for creating
 @code{CloogScattering}s.
@@ -1678,7 +1678,7 @@ CloogScattering *cloog_scattering_from_isl_map(struct isl_map *map);
 @noindent
 The function @code{cloog_scattering_from_isl_map} takes a
 @code{struct isl_map} as input and returns a pointer to a @code{CloogScattering}.
-The outut dimensions of the @code{struct isl_map} correspond to the
+The output dimensions of the @code{struct isl_map} correspond to the
 scattering dimensions, while the input dimensions correspond to the
 domain dimensions.
 The function consumes a reference to the given @code{struct isl_map}.
