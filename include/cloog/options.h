@@ -88,6 +88,8 @@ struct cloogoptions
                    */
   int language;   /* 1 to generate FORTRAN, 0 for C otherwise. */
 
+  int save_domains;/* Save unsimplified copy of domain. */
+
   /* MISC OPTIONS */
   char * name ;   /* Name of the input file. */
   float time ;    /* Time spent for code generation in seconds. */

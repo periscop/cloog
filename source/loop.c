@@ -208,6 +208,7 @@ void cloog_loop_free(CloogLoop * loop)
     
     next = loop->next ;
     cloog_domain_free(loop->domain) ;
+    cloog_domain_free(loop->unsimplified);
     cloog_block_free(loop->block) ;
     if (loop->inner != NULL)
     cloog_loop_free(loop->inner) ;
@@ -345,6 +346,7 @@ CloogLoop *cloog_loop_malloc(CloogState *state)
   /* We set the various fields with default values. */
   loop->state    = state;
   loop->domain = NULL ;
+  loop->unsimplified = NULL;
   loop->block  = NULL ;
   loop->usr    = NULL;
   loop->inner  = NULL ;
@@ -2279,7 +2281,7 @@ CloogLoop *cloog_loop_generate(CloogLoop *loop, CloogDomain *context,
  * See cloog_loop_simplify.
  */
 static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
-	int level)
+	int level, CloogOptions *options)
 {
   int domain_dim;
   CloogBlock * new_block ;
@@ -2305,10 +2307,10 @@ static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
     return NULL;
   }
 
-  inner = cloog_loop_simplify(loop->inner, inter, level+1);
-  cloog_domain_free(inter) ;
+  inner = cloog_loop_simplify(loop->inner, inter, level+1, options);
   
   if ((inner == NULL) && (loop->block == NULL)) {
+    cloog_domain_free(inter);
     cloog_domain_free(simp);
     return NULL;
   }
@@ -2317,6 +2319,11 @@ static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
   
   simplified = cloog_loop_alloc(loop->state, simp, loop->otl, loop->stride,
 				new_block, inner, NULL);
+
+  if (loop->block && options->save_domains)
+    simplified->unsimplified = inter;
+  else
+    cloog_domain_free(inter);
 
   return(simplified) ; 
 }
@@ -2343,14 +2350,15 @@ static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
  *                          simplifying gives a union of polyhedra (before, it
  *                          was under the responsibility of the pretty printer).
  */ 
-CloogLoop *cloog_loop_simplify(CloogLoop *loop, CloogDomain *context, int level)
+CloogLoop *cloog_loop_simplify(CloogLoop *loop, CloogDomain *context, int level,
+	CloogOptions *options)
 {
   CloogLoop *now;
   CloogLoop *res = NULL;
   CloogLoop **next = &res;
 
   for (now = loop; now; now = now->next) {
-    *next = loop_simplify(now, context, level);
+    *next = loop_simplify(now, context, level, options);
 
     now->inner = NULL; /* For loop integrity. */
     cloog_domain_free(now->domain);

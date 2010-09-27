@@ -85,6 +85,7 @@ struct clast_block {
 
 struct clast_user_stmt {
     struct clast_stmt	stmt;
+    CloogDomain *	domain;
     CloogStatement *	statement;
     struct clast_stmt *	substitutions;
 };
@@ -126,8 +127,8 @@ struct clast_reduction *new_clast_reduction(enum clast_red_type t, int n);
 struct clast_root *new_clast_root(CloogNames *names);
 struct clast_assignment *new_clast_assignment(const char *lhs,
 					      struct clast_expr *rhs);
-struct clast_user_stmt *new_clast_user_stmt(CloogStatement *stmt, 
-						struct clast_stmt *subs);
+struct clast_user_stmt *new_clast_user_stmt(CloogDomain *domain,
+    CloogStatement *stmt, struct clast_stmt *subs);
 struct clast_block *new_clast_block(void);
 struct clast_for *new_clast_for(const char *it, struct clast_expr *LB, 
 				struct clast_expr *UB, CloogStride *stride);

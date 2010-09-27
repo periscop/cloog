@@ -55,8 +55,8 @@ static int insert_equation(CloogConstraint *upper, CloogConstraint *lower,
 			 int level, struct clast_stmt ***next, CloogInfos *infos);
 static int insert_for(CloogConstraintSet *constraints, int level, int otl,
 			struct clast_stmt ***next, CloogInfos *infos);
-static void insert_block(CloogBlock *block, int level,
-			  struct clast_stmt ***next, CloogInfos *infos);
+static void insert_block(CloogDomain *domain, CloogBlock *block, int level,
+			 struct clast_stmt ***next, CloogInfos *infos);
 static void insert_loop(CloogLoop * loop, int level,
 			struct clast_stmt ***next, CloogInfos *infos);
 
@@ -156,17 +156,19 @@ static void free_clast_user_stmt(struct clast_stmt *s)
 {
     struct clast_user_stmt *u = (struct clast_user_stmt *)s;
     assert(CLAST_STMT_IS_A(s, stmt_user));
+    cloog_domain_free(u->domain);
     cloog_statement_free(u->statement);
     cloog_clast_free(u->substitutions);
     free(u);
 }
 
-struct clast_user_stmt *new_clast_user_stmt(CloogStatement *stmt, 
-					    struct clast_stmt *subs)
+struct clast_user_stmt *new_clast_user_stmt(CloogDomain *domain,
+    CloogStatement *stmt, struct clast_stmt *subs)
 {
     struct clast_user_stmt *u = malloc(sizeof(struct clast_user_stmt));
     u->stmt.op = &stmt_user;
     u->stmt.next = NULL;
+    u->domain = cloog_domain_copy(domain);
     u->statement = cloog_statement_copy(stmt);
     u->substitutions = subs;
     return u;
@@ -1652,7 +1654,7 @@ static int insert_for(CloogConstraintSet *constraints, int level, int otl,
  **
  * - September 21th 2003: first version (pick from pprint function). 
  */
-static void insert_block(CloogBlock *block, int level,
+static void insert_block(CloogDomain *domain, CloogBlock *block, int level,
 			 struct clast_stmt ***next, CloogInfos *infos)
 {
     CloogStatement * statement ;
@@ -1667,7 +1669,7 @@ static void insert_block(CloogBlock *block, int level,
 	subs = clast_equal(level,infos);
 
 	statement->next = NULL;
-	**next = &new_clast_user_stmt(statement, subs)->stmt;
+	**next = &new_clast_user_stmt(domain, statement, subs)->stmt;
 	statement->next = s_next;
 	*next = &(**next)->next;
     }
@@ -1758,7 +1760,7 @@ static void insert_loop(CloogLoop * loop, int level,
 
     if (!empty_loop) {
 	/* Finally, if there is an included statement block, print it. */
-	insert_block(loop->block, level+equality, next, infos);
+	insert_block(loop->unsimplified, loop->block, level+equality, next, infos);
 
 	/* Go to the next level. */
 	if (loop->inner != NULL)

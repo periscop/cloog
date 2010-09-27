@@ -63,6 +63,7 @@ struct cloogloop
 {
   CloogState *state;          /**< State. */
   CloogDomain * domain ;      /**< The iteration domain. */
+  CloogDomain *unsimplified;  /**< Unsimplified version of domain. */
   int otl;                    /**< Loop is executed at most once. */
   CloogStride *stride;        /**< If not NULL, stride information on iterator
                                *   (filled only after loop generation).
@@ -108,7 +109,8 @@ CloogLoop * cloog_loop_malloc(CloogState *state);
 CloogLoop *cloog_loop_generate(CloogLoop *loop, CloogDomain *context,
 	int level, int scalar, int *scaldims, int nb_scattdims,
 	CloogOptions *options);
-CloogLoop *cloog_loop_simplify(CloogLoop *loop, CloogDomain *context, int level);
+CloogLoop *cloog_loop_simplify(CloogLoop *loop, CloogDomain *context, int level,
+	CloogOptions *options);
 void cloog_loop_scatter(CloogLoop *, CloogScattering *);
 
 

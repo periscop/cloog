@@ -1803,6 +1803,7 @@ struct cloogoptions
   int cpp ;                   /* -cpp option.        */
   int compilable ;            /* -compilable option. */
   int language;               /* LANGUAGE_C or LANGUAGE_FORTRAN */
+  int save_domains;           /* Save unsimplified copy of domain. */
 @} ;
 typedef struct cloogoptions CloogOptions ;
 
@@ -1827,6 +1828,12 @@ As a reminder, the default values are:
 @item @math{cpp = 0} (do not generate a compilable part of code using preprocessor).
 @item @math{compilable = 0} (do not generate a compilable code).
 @end itemize 
+
+The @code{save_domains} option is only useful for users of the CLooG
+library.  This option defaults to 0, but when it is set, the @code{domain}
+field of each @code{clast_user_stmt} will be set to the set
+of values for the scattering dimensions
+for which this instance of the user statement is executed.
 
 
 @node CloogInput
@@ -1910,11 +1917,12 @@ struct clast_block *new_clast_block(void);
 
 struct clast_user_stmt @{
     struct clast_stmt   stmt;
+    CloogDomain *	domain;
     CloogStatement *    statement;
     struct clast_stmt * substitutions;
 @};
-struct clast_user_stmt *new_clast_user_stmt(CloogStatement *stmt, 
-                                            struct clast_stmt *subs);
+struct clast_user_stmt *new_clast_user_stmt(CloogDomain *domain,
+    CloogStatement *stmt, struct clast_stmt *subs);
 
 struct clast_for @{
     struct clast_stmt   stmt;
@@ -1957,6 +1965,12 @@ by the user, @pxref{CloogStatement}.
 assigning an expression in terms of the scattering dimensions to
 each of the original iterators in the original order.
 The @code{LHS}s of these assignments are left blank (@code{NULL}).
+The @code{domain} is set to @code{NULL} if the @code{save_domains} option
+is not set.  Otherwise, it is set to the set
+of values for the scattering dimensions
+for which this instance of the user statement is executed.
+Note that unless the @code{noscalars} option has been set, the
+constant scattering dimensions may have been removed from this set.
 
 @noindent
 A @code{clast_for} represents a for loop, iterating @code{body} for each
