@@ -15,6 +15,11 @@ CloogDomain *cloog_domain_from_isl_set(struct isl_set *set)
 	return (CloogDomain *)set;
 }
 
+__isl_give isl_set *isl_set_from_cloog_domain(CloogDomain *domain)
+{
+	return &domain->set;
+}
+
 CloogScattering *cloog_scattering_from_isl_map(struct isl_map *map)
 {
 	return (CloogScattering *)map;

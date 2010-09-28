@@ -27,6 +27,8 @@ CloogUnionDomain *cloog_union_domain_from_isl_union_map(
 CloogUnionDomain *cloog_union_domain_from_isl_union_set(
 	__isl_take isl_union_set *uset);
 
+__isl_give isl_set *isl_set_from_cloog_domain(CloogDomain *domain);
+
 
 #if defined(__cplusplus)
   }
