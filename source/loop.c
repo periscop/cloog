@@ -271,31 +271,18 @@ CloogLoop *cloog_loop_from_domain(CloogState *state, CloogDomain *domain,
   int nb_iterators;
   CloogLoop * loop ;
   CloogStatement * statement ;
-
-  cloog_loop_leak_up(state);
   
   /* Memory allocation and information reading for the first domain: */
-  loop = (CloogLoop *)malloc(sizeof(CloogLoop)) ;
-  if (loop == NULL) 
-    cloog_die("memory overflow.\n");
+  loop = cloog_loop_malloc(state);
   /* domain. */
-  loop->state = state;
   loop->domain = domain;
   if (loop->domain != NULL)
     nb_iterators = cloog_domain_dimension(loop->domain);
   else
   nb_iterators = 0 ;
-  loop->otl = 0;
-  /* assume no stride */
-  loop->stride = NULL;
   /* included statement block. */
   statement = cloog_statement_alloc(state, number + 1);
   loop->block = cloog_block_alloc(statement, 0, NULL, nb_iterators);
-  loop->usr = NULL;
-  /* inner is NULL at beginning. */
-  loop->inner = NULL ;
-  /* next element. */
-  loop->next = NULL ;  
 
   return loop ;
 }
