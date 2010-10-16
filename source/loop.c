@@ -764,7 +764,7 @@ CloogLoop *cloog_loop_remove_empty_domain_loops(CloogLoop *loop)
 	    res_next = &(*res_next)->next;
 	}
     }
-    res_next = NULL;
+    *res_next = NULL;
 
     return res;
 }
