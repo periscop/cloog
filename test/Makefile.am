@@ -162,7 +162,8 @@ FINITE_CLOOGTEST_C =                   \
 	./reservoir/two   
 
 CLOOG_ISL_TEST_C =			\
-	isl/mod
+	isl/mod				\
+	isl/mod2
 
 CLOOGTEST_C =                          \
 	infinite                       \

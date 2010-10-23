@@ -1238,6 +1238,15 @@ struct clast_modulo_guard_data {
 
 
 /* Insert a modulo guard for constraint c.
+ * The constraint may be either an equality or an inequality.
+ * Since this function returns -1, it is only called on a single constraint.
+ * In case of an inequality, the constraint is usually an upper bound
+ * on d->level.  However, if this variable is an existentially
+ * quantified variable, the upper bound constraint may get removed
+ * as trivially holding and then this function is called with
+ * a lower bound instead.  In this case, we need to adjust the constraint
+ * based on the sum of the constant terms of the lower and upper bound
+ * stored in d->bound.
  */
 static int insert_modulo_guard_constraint(CloogConstraint *c, void *user)
 {
@@ -1258,8 +1267,11 @@ static int insert_modulo_guard_constraint(CloogConstraint *c, void *user)
     line = line_vector->p;
     cloog_constraint_copy_coefficients(c, line + 1);
 
-    if (cloog_int_is_pos(line[level]))
+    if (cloog_int_is_pos(line[level])) {
 	cloog_seq_neg(line + 1, line + 1, len - 1);
+	if (!cloog_constraint_is_equality(c))
+	    cloog_int_add(line[len - 1], line[len - 1], d->bound);
+    }
     cloog_int_neg(line[level], line[level]);
     assert(cloog_int_is_pos(line[level]));
 
