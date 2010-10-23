@@ -887,9 +887,9 @@ static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
  * Insert modulo guards defined by existentially quantified dimensions,
  * not involving the given level.
  *
- * This function is called from within insert_guard or insert_for.
- * Any constraint used in constructing * a modulo guard is removed
- * from the constraint set to avoid insert_guard or insert_for
+ * This function is called from within insert_guard.
+ * Any constraint used in constructing a modulo guard is removed
+ * from the constraint set to avoid insert_guard
  * adding a duplicate (pair of) constraint(s).
  */
 static void insert_extra_modulo_guards(CloogConstraintSet *constraints,
@@ -1585,13 +1585,6 @@ static void insert_guarded_otl_for(CloogConstraintSet *constraints, int level,
  *    -j +5*M >= 0
  *     j -4*M >= 0
  * this function should return 'for (j=max(-i+9*M,4*M),j<=5*M;j++) {'.
- * If the given element is involved in modulo guards defined by
- * existentially quantified variables, then these guards should be
- * inserted inside the for loop.  However, the constraints involved
- * in this guard should not be used in determining the lower and upper
- * bound of the loop.  We therefore insert the guards first (which
- * removes the corresponding constraints from the constraint set)
- * and then reattach the guard inside the loop.
  * - constraints contains all constraints,
  * - level is the column number of the element in matrix we want to use,
  * - otl is set if the loop is executed at most once,
@@ -1631,8 +1624,6 @@ static int insert_for(CloogConstraintSet *constraints, int level, int otl,
     **next = &f->stmt;
     *next = &f->body;
   }
-
-  insert_extra_modulo_guards(constraints, 0, next, infos);
 
   return 1;    
 }

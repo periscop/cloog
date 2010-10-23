@@ -161,12 +161,16 @@ FINITE_CLOOGTEST_C =                   \
 	./reservoir/tang-xue1          \
 	./reservoir/two   
 
+CLOOG_ISL_TEST_C =			\
+	isl/mod
+
 CLOOGTEST_C =                          \
 	infinite                       \
 	infinite2                      \
 	infinite3                      \
 	infinite4                      \
-	$(FINITE_CLOOGTEST_C)
+	$(FINITE_CLOOGTEST_C)          \
+	$(CLOOG_ISL_TEST_C)
 
 #	./reservoir/long               \
 #	faber
