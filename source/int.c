@@ -58,6 +58,17 @@ void cloog_vec_free(struct cloog_vec *vec)
 	free(vec);
 }
 
+void cloog_vec_dump(struct cloog_vec *vec)
+{
+	int i;
+
+	for (i = 0; i < vec->size; ++i) {
+		cloog_int_print(stderr, vec->p[i]);
+		fprintf(stderr, " ");
+	}
+	fprintf(stderr, "\n");
+}
+
 int cloog_seq_first_non_zero(cloog_int_t *p, unsigned len)
 {
 	int i;
