@@ -671,12 +671,12 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 		return constraints;
 
 	id = isl_basic_map_identity(isl_basic_set_get_dim(bset));
-	id = isl_basic_map_remove(id, isl_dim_out, dim.pos, 1);
+	id = isl_basic_map_remove_dims(id, isl_dim_out, dim.pos, 1);
 	bset = isl_basic_set_apply(bset, isl_basic_map_copy(id));
 	bset = isl_basic_set_apply(bset, isl_basic_map_reverse(id));
 
 	constraints_dim = isl_basic_set_dim(bset, isl_dim_set);
-	eq = isl_basic_set_remove_dims(eq, constraints_dim,
+	eq = isl_basic_set_remove_dims(eq, isl_dim_set, constraints_dim,
 			isl_basic_set_dim(eq, isl_dim_set) - constraints_dim);
 	bset = isl_basic_set_gist(bset, eq);
 	if (isl_basic_set_dim(bset, isl_dim_div) != 1)

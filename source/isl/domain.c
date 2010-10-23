@@ -595,7 +595,7 @@ CloogDomain *cloog_domain_universe(CloogState *state, unsigned dim)
 CloogDomain *cloog_domain_project(CloogDomain *domain, int level)
 {
 	struct isl_set *set = &domain->set;
-	set = isl_set_remove_dims(isl_set_copy(set),
+	set = isl_set_remove_dims(isl_set_copy(set), isl_dim_set,
 					level, isl_set_n_dim(set) - level);
 	set = isl_set_compute_divs(set);
 	return cloog_domain_from_isl_set(set);
@@ -1228,7 +1228,8 @@ CloogScattering *cloog_scattering_erase_dimension(CloogScattering *domain,
 						int dimension)
 {
 	struct isl_map *map;
-	map = isl_map_remove(isl_map_copy(&domain->map), isl_dim_out, dimension, 1);
+	map = isl_map_remove_dims(isl_map_copy(&domain->map),
+				  isl_dim_out, dimension, 1);
 	return cloog_scattering_from_isl_map(map);
 }
 
