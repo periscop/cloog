@@ -769,6 +769,7 @@ CloogLoop *cloog_loop_specialize(CloogLoop *loop,
 	int level, int scalar, int *scaldims, int nb_scattdims)
 {
     int dim;
+    CloogDomain *domain;
     CloogLoop *l;
 
     loop = cloog_loop_decompose_inner(loop, level, scalar,
@@ -781,8 +782,13 @@ CloogLoop *cloog_loop_specialize(CloogLoop *loop,
 	    continue;
 
 	dim = cloog_domain_dimension(l->domain);
-	cloog_domain_free(l->domain);
-	l->domain = cloog_domain_project(l->inner->domain, dim);
+	domain = cloog_domain_project(l->inner->domain, dim);
+	if (cloog_domain_isconvex(domain)) {
+	    cloog_domain_free(l->domain);
+	    l->domain = domain;
+	} else {
+	    cloog_domain_free(domain);
+	}
     }
 
     return cloog_loop_remove_empty_domain_loops(loop);
