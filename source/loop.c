@@ -2362,7 +2362,7 @@ CloogLoop *cloog_loop_simplify(CloogLoop *loop, CloogDomain *context, int level)
   cloog_loop_free(loop);
   
   /* Examples like test/iftest2.cloog give unions of polyhedra after
-   * simplifying, thus we we have to disjoint them. Another good reason to
+   * simplifying, thus we have to make them disjoint. Another good reason to
    * put the simplifying step in the Quillere backtrack.
    */
   res = cloog_loop_disjoint(res);
