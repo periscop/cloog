@@ -11,6 +11,7 @@
 CloogDomain *cloog_domain_from_isl_set(struct isl_set *set)
 {
 	set = isl_set_detect_equalities(set);
+	set = isl_set_compute_divs(set);
 	return (CloogDomain *)set;
 }
 
