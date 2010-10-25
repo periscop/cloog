@@ -303,8 +303,6 @@ void cloog_domain_print_structure(FILE *file, CloogDomain *domain, int level,
 				  const char *name)
 {
 	int i ;
-	char *suffix = " ]";
-	char *prefix;
 	struct isl_set *set = &domain->set;
 
 	/* Go to the right level. */
@@ -316,20 +314,12 @@ void cloog_domain_print_structure(FILE *file, CloogDomain *domain, int level,
 		return;
 	}
 	fprintf(file, "+-- %s\n", name);
-	prefix = isl_alloc_array(set->ctx, char, 2*(level+1)+3);
-	assert(prefix);
 	for (i = 0; i < level+1; ++i)
-		memcpy(prefix+2*i, "|\t", 2);
-	strcpy(prefix+2*(level+1), "[ ");
+		fprintf(file, "|\t");
 
-	for (i = 0; i < set->n; ++i) {
-		isl_basic_set_print(set->p[i], file, 0, prefix, suffix,
-					ISL_FORMAT_POLYLIB_CONSTRAINTS);
-		prefix[2*(level+1)] = '\0';
-		fprintf(file, "%s\n", prefix);
-		prefix[2*(level+1)] = '[';
-	}
-	free(prefix);
+	isl_set_print(set, file, 0, ISL_FORMAT_ISL);
+
+	fprintf(file, "\n");
 }
 
 
