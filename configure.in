@@ -142,7 +142,7 @@ build)
 	;;
 system)
 	if test "x$with_isl_prefix" != "x"; then
-		ISL_CPPFLAGS="-I$with_isl_prefix/include"
+		ISL_CPPFLAGS="-I$with_isl_prefix/include/isl"
 	fi
 	if test "x$with_isl_exec_prefix" != "x"; then
 		ISL_LDFLAGS="-L$with_isl_exec_prefix/lib"
