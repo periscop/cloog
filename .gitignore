@@ -17,7 +17,7 @@ autoconf/install-sh
 autoconf/ltmain.sh
 autoconf/missing
 autom4te.cache/
-cloog
+./cloog
 cloog-isl-uninstalled.pc
 cloog-isl-uninstalled.sh
 cloog-isl.pc

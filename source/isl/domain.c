@@ -4,9 +4,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <cloog/isl/cloog.h>
-#include <isl_list.h>
-#include <isl_constraint.h>
-#include <isl_div.h>
+#include <isl/list.h>
+#include <isl/constraint.h>
+#include <isl/div.h>
 
 CloogDomain *cloog_domain_from_isl_set(struct isl_set *set)
 {

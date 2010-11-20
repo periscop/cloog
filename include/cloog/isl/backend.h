@@ -1,7 +1,7 @@
 #ifndef CLOOG_ISL_BACKEND_H
 #define CLOOG_ISL_BACKEND_H
 
-#include <isl_constraint.h>
+#include <isl/constraint.h>
 
 struct cloogbackend {
 	struct isl_ctx	*ctx;

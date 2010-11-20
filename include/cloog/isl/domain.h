@@ -1,10 +1,10 @@
 #ifndef CLOOG_ISL_DOMAIN_H
 #define CLOOG_ISL_DOMAIN_H
 
-#include <isl_map.h>
-#include <isl_set.h>
-#include <isl_union_map.h>
-#include <isl_union_set.h>
+#include <isl/map.h>
+#include <isl/set.h>
+#include <isl/union_map.h>
+#include <isl/union_set.h>
 
 #if defined(__cplusplus)
 extern "C" 

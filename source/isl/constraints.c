@@ -3,7 +3,7 @@
 #include <ctype.h>
 #include <cloog/isl/cloog.h>
 #include <cloog/isl/backend.h>
-#include <isl_set.h>
+#include <isl/set.h>
 
 
 #define ALLOC(type) (type*)malloc(sizeof(type))
