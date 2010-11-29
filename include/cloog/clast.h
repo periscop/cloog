@@ -92,6 +92,7 @@ struct clast_user_stmt {
 
 struct clast_for {
     struct clast_stmt	stmt;
+    CloogDomain *	domain;
     const char *	iterator;
     struct clast_expr *	LB;
     struct clast_expr *	UB;
@@ -130,8 +131,9 @@ struct clast_assignment *new_clast_assignment(const char *lhs,
 struct clast_user_stmt *new_clast_user_stmt(CloogDomain *domain,
     CloogStatement *stmt, struct clast_stmt *subs);
 struct clast_block *new_clast_block(void);
-struct clast_for *new_clast_for(const char *it, struct clast_expr *LB, 
-				struct clast_expr *UB, CloogStride *stride);
+struct clast_for *new_clast_for(CloogDomain *domain, const char *it,
+                                struct clast_expr *LB, struct clast_expr *UB,
+                                CloogStride *stride);
 struct clast_guard *new_clast_guard(int n);
 
 void free_clast_name(struct clast_name *t);

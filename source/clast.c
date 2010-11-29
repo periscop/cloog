@@ -51,10 +51,12 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 static int insert_modulo_guard(CloogConstraint *upper,
 				CloogConstraint *lower, int level,
 			        struct clast_stmt ***next, CloogInfos *infos);
-static int insert_equation(CloogConstraint *upper, CloogConstraint *lower,
-			 int level, struct clast_stmt ***next, CloogInfos *infos);
-static int insert_for(CloogConstraintSet *constraints, int level, int otl,
-			struct clast_stmt ***next, CloogInfos *infos);
+static int insert_equation(CloogDomain *domain, CloogConstraint *upper,
+                           CloogConstraint *lower, int level,
+                           struct clast_stmt ***next, CloogInfos *infos);
+static int insert_for(CloogDomain *domain, CloogConstraintSet *constraints,
+                      int level, int otl, struct clast_stmt ***next,
+                      CloogInfos *infos);
 static void insert_block(CloogDomain *domain, CloogBlock *block, int level,
 			 struct clast_stmt ***next, CloogInfos *infos);
 static void insert_loop(CloogLoop * loop, int level,
@@ -203,6 +205,7 @@ static void free_clast_for(struct clast_stmt *s)
 {
     struct clast_for *f = (struct clast_for *)s;
     assert(CLAST_STMT_IS_A(s, stmt_for));
+    cloog_domain_free(f->domain);
     free_clast_expr(f->LB);
     free_clast_expr(f->UB);
     cloog_int_clear(f->stride);
@@ -210,12 +213,14 @@ static void free_clast_for(struct clast_stmt *s)
     free(f);
 }
 
-struct clast_for *new_clast_for(const char *it, struct clast_expr *LB, 
-				struct clast_expr *UB, CloogStride *stride)
+struct clast_for *new_clast_for(CloogDomain *domain, const char *it,
+                                struct clast_expr *LB, struct clast_expr *UB,
+                                CloogStride *stride)
 {
     struct clast_for *f = malloc(sizeof(struct clast_for));
     f->stmt.op = &stmt_for;
     f->stmt.next = NULL;
+    f->domain = cloog_domain_copy(domain);
     f->iterator = it;
     f->LB = LB;
     f->UB = UB;
@@ -1412,7 +1417,7 @@ static int insert_modulo_guard(CloogConstraint *upper,
  * a loop with a single iteration, but the user wants us to generate
  * a loop anyway, so we do it here.
  */
-static int insert_equation_as_loop(CloogConstraint *upper,
+static int insert_equation_as_loop(CloogDomain *domain, CloogConstraint *upper,
 		CloogConstraint *lower, int level, struct clast_stmt ***next,
 		CloogInfos *infos)
 {
@@ -1425,7 +1430,8 @@ static int insert_equation_as_loop(CloogConstraint *upper,
 	e1 = clast_expr_copy(e2);
     else
 	e1 = clast_bound_from_constraint(lower, level, infos->names);
-    f = new_clast_for(iterator, e1, e2, infos->stride[level-1]);
+
+    f = new_clast_for(domain, iterator, e1, e2, infos->stride[level-1]);
     **next = &f->stmt;
     *next = &f->body;
 
@@ -1459,14 +1465,15 @@ static int insert_equation_as_loop(CloogConstraint *upper,
  * - July 14th 2003: (debug) no more print the constant in the modulo guard when
  *                   it was previously included in a stride calculation.
  */
-static int insert_equation(CloogConstraint *upper, CloogConstraint *lower,
-			    int level, struct clast_stmt ***next, CloogInfos *infos)
+static int insert_equation(CloogDomain *domain, CloogConstraint *upper,
+                           CloogConstraint *lower, int level, struct clast_stmt
+                           ***next, CloogInfos *infos)
 {
   struct clast_expr *e;
   struct clast_assignment *ass;
 
   if (!infos->options->otl)
-    return insert_equation_as_loop(upper, lower, level, next, infos);
+    return insert_equation_as_loop(domain, upper, lower, level, next, infos);
 
   if (!insert_modulo_guard(upper, lower, level, next, infos)) {
     cloog_constraint_release(lower);
@@ -1606,8 +1613,9 @@ static void insert_guarded_otl_for(CloogConstraintSet *constraints, int level,
  *   the number of parameters in matrix (nb_par), and the arrays of iterator
  *   names and parameters (iters and params). 
  */
-static int insert_for(CloogConstraintSet *constraints, int level, int otl,
-		       struct clast_stmt ***next, CloogInfos *infos)
+static int insert_for(CloogDomain *domain, CloogConstraintSet *constraints,
+                      int level, int otl, struct clast_stmt ***next,
+                      CloogInfos *infos)
 {
   const char *iterator;
   struct clast_expr *e1;
@@ -1634,7 +1642,8 @@ static int insert_for(CloogConstraintSet *constraints, int level, int otl,
   } else {
     struct clast_for *f;
     iterator = cloog_names_name_at_level(infos->names, level);
-    f = new_clast_for(iterator, e1, e2, infos->stride[level-1]);
+
+    f = new_clast_for(domain, iterator, e1, e2, infos->stride[level-1]);
     **next = &f->stmt;
     *next = &f->body;
   }
@@ -1747,15 +1756,18 @@ static void insert_loop(CloogLoop * loop, int level,
 	 */
 	if (cloog_constraint_is_valid(i =
 		cloog_constraint_set_defining_equality(constraints, level))) {
-	  empty_loop = !insert_equation(i, cloog_constraint_invalid(),
-					level, next, infos);
+          empty_loop = !insert_equation(loop->unsimplified, i,
+                                        cloog_constraint_invalid(), level, next,
+                                        infos);
 	  equality = 1 ;   
 	} else if (cloog_constraint_is_valid(i =
 		    cloog_constraint_set_defining_inequalities(constraints,
 			      level, &j, infos->names->nb_parameters))) {
-	    empty_loop = !insert_equation(i, j, level, next, infos);
+            empty_loop = !insert_equation(loop->unsimplified, i, j, level, next,
+                                          infos);
 	} else
-	    empty_loop = !insert_for(constraints, level, loop->otl, next, infos);
+	    empty_loop = !insert_for(loop->unsimplified, constraints, level,
+                                     loop->otl, next, infos);
     }
 
     if (!empty_loop) {

@@ -2281,7 +2281,7 @@ CloogLoop *cloog_loop_generate(CloogLoop *loop, CloogDomain *context,
  * See cloog_loop_simplify.
  */
 static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
-	int level, CloogOptions *options)
+	int level, int nb_scattdims, CloogOptions *options)
 {
   int domain_dim;
   CloogBlock * new_block ;
@@ -2307,7 +2307,8 @@ static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
     return NULL;
   }
 
-  inner = cloog_loop_simplify(loop->inner, inter, level+1, options);
+  inner = cloog_loop_simplify(loop->inner, inter, level+1, nb_scattdims,
+                              options);
   
   if ((inner == NULL) && (loop->block == NULL)) {
     cloog_domain_free(inter);
@@ -2320,7 +2321,8 @@ static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
   simplified = cloog_loop_alloc(loop->state, simp, loop->otl, loop->stride,
 				new_block, inner, NULL);
 
-  if (loop->block && options->save_domains)
+  /* Only save the domains, if their level is still a scattering level.  */
+  if (options->save_domains && level <= nb_scattdims)
     simplified->unsimplified = inter;
   else
     cloog_domain_free(inter);
@@ -2351,14 +2353,14 @@ static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
  *                          was under the responsibility of the pretty printer).
  */ 
 CloogLoop *cloog_loop_simplify(CloogLoop *loop, CloogDomain *context, int level,
-	CloogOptions *options)
+	                       int nb_scattdims, CloogOptions *options)
 {
   CloogLoop *now;
   CloogLoop *res = NULL;
   CloogLoop **next = &res;
 
   for (now = loop; now; now = now->next) {
-    *next = loop_simplify(now, context, level, options);
+    *next = loop_simplify(now, context, level, nb_scattdims, options);
 
     now->inner = NULL; /* For loop integrity. */
     cloog_domain_free(now->domain);

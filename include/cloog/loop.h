@@ -110,7 +110,7 @@ CloogLoop *cloog_loop_generate(CloogLoop *loop, CloogDomain *context,
 	int level, int scalar, int *scaldims, int nb_scattdims,
 	CloogOptions *options);
 CloogLoop *cloog_loop_simplify(CloogLoop *loop, CloogDomain *context, int level,
-	CloogOptions *options);
+	int nb_scattdims, CloogOptions *options);
 void cloog_loop_scatter(CloogLoop *, CloogScattering *);
 
 

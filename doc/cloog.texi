@@ -1831,10 +1831,12 @@ As a reminder, the default values are:
 
 The @code{save_domains} option is only useful for users of the CLooG
 library.  This option defaults to 0, but when it is set, the @code{domain}
-field of each @code{clast_user_stmt} will be set to the set
-of values for the scattering dimensions
-for which this instance of the user statement is executed.
-
+field of each @code{clast_user_stmt} will be set to the set of values for the
+scattering dimensions for which this instance of the user statement is executed.
+The @code{domain} field of each @code{clast_for} contains the set of values for
+the scattering dimensions for which an instance of a user statement is executed
+inside the @code{clast_for}. It is only available if the @code{clast_for}
+enumerates a scattering dimension.
 
 @node CloogInput
 @subsection CloogInput
@@ -1926,14 +1928,16 @@ struct clast_user_stmt *new_clast_user_stmt(CloogDomain *domain,
 
 struct clast_for @{
     struct clast_stmt   stmt;
+    CloogDomain *       domain;
     const char *        iterator;
     struct clast_expr * LB;
     struct clast_expr * UB;
     cloog_int_t         stride;
     struct clast_stmt * body;
 @};
-struct clast_for *new_clast_for(const char *it, struct clast_expr *LB, 
-                         struct clast_expr *UB, cloog_int_t stride);
+struct clast_for *new_clast_for(CloogDomain *domain, const char *it,
+                                struct clast_expr *LB, struct clast_expr *UB,
+                                cloog_int_t stride);
 
 struct clast_guard @{
     struct clast_stmt   stmt;
@@ -1976,6 +1980,11 @@ constant scattering dimensions may have been removed from this set.
 A @code{clast_for} represents a for loop, iterating @code{body} for each
 value of @code{iterator} between @code{LB} and @code{UB} in steps
 of size @code{stride}.
+The @code{domain} is set to @code{NULL} if the @code{save_domains} option is not
+set.  Otherwise, it is set to the set of values for the scattering dimensions
+for which a user statement is executed inside this @code{clast_for}.  Note that
+unless the @code{noscalars} option has been set, the constant scattering
+dimensions may have been removed from this set.
 
 @noindent
 A @code{clast_guard} represents the guarded execution of the @code{then}
