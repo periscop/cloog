@@ -19,6 +19,11 @@ CloogConstraint *cloog_constraint_from_isl_constraint(struct isl_constraint *con
 	return (CloogConstraint *)constraint;
 }
 
+isl_basic_set *cloog_constraints_set_to_isl(CloogConstraintSet *constraints)
+{
+	return (isl_basic_set *)constraints;
+}
+
 
 /******************************************************************************
  *                             Memory leaks hunting                           *
@@ -28,14 +33,16 @@ CloogConstraint *cloog_constraint_from_isl_constraint(struct isl_constraint *con
 
 void cloog_constraint_set_free(CloogConstraintSet *constraints)
 {
-	isl_basic_set_free(&constraints->bset);
+	isl_basic_set_free(cloog_constraints_set_to_isl(constraints));
 }
 
 
 int cloog_constraint_set_contains_level(CloogConstraintSet *constraints,
 			int level, int nb_parameters)
 {
-	return isl_basic_set_n_dim(&constraints->bset) >= level;
+	isl_basic_set *bset;
+	bset = cloog_constraints_set_to_isl(constraints);
+	return isl_basic_set_dim(bset, isl_dim_set) >= level;
 }
 
 struct cloog_isl_dim {
@@ -44,14 +51,16 @@ struct cloog_isl_dim {
 };
 
 static struct cloog_isl_dim set_cloog_dim_to_isl_dim(
-					CloogConstraintSet *bset, int pos)
+	CloogConstraintSet *constraints, int pos)
 {
+	isl_basic_set *bset;
 	enum isl_dim_type types[] = { isl_dim_set, isl_dim_div, isl_dim_param };
 	int i;
 	struct cloog_isl_dim ci_dim;
 
+	bset = cloog_constraints_set_to_isl(constraints);
 	for (i = 0; i < 3; ++i) {
-		unsigned dim = isl_basic_set_dim(&bset->bset, types[i]);
+		unsigned dim = isl_basic_set_dim(bset, types[i]);
 		if (pos < dim) {
 			ci_dim.type = types[i];
 			ci_dim.pos = pos;
@@ -70,8 +79,9 @@ CloogConstraint *cloog_constraint_set_defining_equality(
 {
 	struct isl_constraint *c;
 	struct cloog_isl_dim dim;
-	struct isl_basic_set *bset = &constraints->bset;
+	isl_basic_set *bset;
 
+	bset = cloog_constraints_set_to_isl(constraints);
 	dim = set_cloog_dim_to_isl_dim(constraints, level - 1);
 	if (isl_basic_set_has_defining_equality(bset, dim.type, dim.pos, &c))
 		return cloog_constraint_from_isl_constraint(c);
@@ -102,8 +112,9 @@ CloogConstraint *cloog_constraint_set_defining_inequalities(
 	struct isl_constraint *l;
 	struct isl_constraint *c;
 	struct cloog_isl_dim dim;
-	struct isl_basic_set *bset = &constraints->bset;
+	struct isl_basic_set *bset;
 
+	bset = cloog_constraints_set_to_isl(constraints);
 	dim = set_cloog_dim_to_isl_dim(constraints, level - 1);
 	if (!isl_basic_set_has_defining_inequalities(bset, dim.type, dim.pos,
 								&l, &u))
@@ -129,12 +140,16 @@ CloogConstraint *cloog_constraint_set_defining_inequalities(
 
 int cloog_constraint_set_total_dimension(CloogConstraintSet *constraints)
 {
-	return isl_basic_set_total_dim(&constraints->bset);
+	isl_basic_set *bset;
+	bset = cloog_constraints_set_to_isl(constraints);
+	return isl_basic_set_total_dim(bset);
 }
 
 int cloog_constraint_set_n_iterators(CloogConstraintSet *constraints, int n_par)
 {
-	return isl_basic_set_n_dim(&constraints->bset);
+	isl_basic_set *bset;
+	bset = cloog_constraints_set_to_isl(constraints);
+	return isl_basic_set_dim(bset, isl_dim_set);
 }
 
 
@@ -181,9 +196,12 @@ int cloog_equal_total_dimension(CloogEqualities *equal)
 void cloog_equal_free(CloogEqualities *equal)
 {
 	int i;
+	isl_basic_set *bset;
 
-	for (i = 0; i < equal->n; ++i)
-		isl_basic_set_free(&equal->constraints[i]->bset);
+	for (i = 0; i < equal->n; ++i) {
+		bset = cloog_constraints_set_to_isl(equal->constraints[i]);
+		isl_basic_set_free(bset);
+	}
 	free(equal->constraints);
 	free(equal->types);
 	free(equal);
@@ -314,8 +332,10 @@ void cloog_equal_add(CloogEqualities *equal, CloogConstraintSet *matrix,
  */
 void cloog_equal_del(CloogEqualities *equal, int level)
 { 
+	isl_basic_set *bset;
+	bset = cloog_constraints_set_to_isl(equal->constraints[level - 1]);
 	equal->types[level-1] = EQTYPE_NONE;
-	isl_basic_set_free(&equal->constraints[level-1]->bset);
+	isl_basic_set_free(bset);
 	equal->constraints[level-1] = NULL;
 }
 
@@ -346,8 +366,9 @@ void cloog_constraint_set_normalize(CloogConstraintSet *matrix, int level)
  */
 CloogConstraintSet *cloog_constraint_set_copy(CloogConstraintSet *constraints)
 {
-	return cloog_constraint_set_from_isl_basic_set(
-			isl_basic_set_dup(&constraints->bset));
+	isl_basic_set *bset;
+	bset = cloog_constraints_set_to_isl(constraints);
+	return cloog_constraint_set_from_isl_basic_set(isl_basic_set_dup(bset));
 }
 
 
@@ -644,6 +665,7 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	int level, CloogEqualities *equal, int nb_par, cloog_int_t *bound)
 {
 	int j;
+	isl_ctx *ctx;
 	struct isl_basic_set *eq;
 	struct isl_basic_map *id;
 	struct cloog_isl_dim dim;
@@ -651,21 +673,25 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	struct isl_div *div;
 	unsigned constraints_dim;
 	int pos;
-	struct isl_basic_set *bset = &constraints->bset;
+	isl_basic_set *bset;
 
+	bset = cloog_constraints_set_to_isl(constraints);
+	ctx = isl_basic_set_get_ctx(bset);
 	dim = set_cloog_dim_to_isl_dim(constraints, level - 1);
 	if (dim.type != isl_dim_set)
 		return constraints;
 
 	eq = NULL;
 	for (j = 0; j < level - 1; ++j) {
+		isl_basic_set *bset_j;
 		if (equal->types[j] != EQTYPE_EXAFFINE)
 			continue;
+		bset_j = cloog_constraints_set_to_isl(equal->constraints[j]);
 		if (!eq)
-			eq = isl_basic_set_copy(&equal->constraints[j]->bset);
+			eq = isl_basic_set_copy(bset_j);
 		else
 			eq = isl_basic_set_intersect(eq,
-			    isl_basic_set_copy(&equal->constraints[j]->bset));
+						    isl_basic_set_copy(bset_j));
 	}
 	if (!eq)
 		return constraints;
@@ -685,10 +711,8 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	div = isl_basic_set_div(isl_basic_set_copy(bset), 0);
 	c = isl_equality_alloc(isl_basic_set_get_dim(bset));
 	c = isl_constraint_add_div(c, div, &pos);
-	isl_constraint_set_coefficient(c, isl_dim_set, dim.pos,
-					bset->ctx->one);
-	isl_constraint_set_coefficient(c, isl_dim_div, pos,
-					bset->ctx->negone);
+	isl_constraint_set_coefficient(c, isl_dim_set, dim.pos, ctx->one);
+	isl_constraint_set_coefficient(c, isl_dim_div, pos, ctx->negone);
 	bset = isl_basic_set_add_constraint(bset, c);
 
 	isl_int_set_si(*bound, 0);
@@ -736,14 +760,17 @@ int cloog_constraint_set_foreach_constraint(CloogConstraintSet *constraints,
 	int (*fn)(CloogConstraint *constraint, void *user), void *user)
 {
 	struct cloog_isl_foreach data = { fn, user };
+	isl_basic_set *bset;
 
-	return isl_basic_set_foreach_constraint(&constraints->bset,
+	bset = cloog_constraints_set_to_isl(constraints);
+	return isl_basic_set_foreach_constraint(bset,
 						cloog_isl_foreach_cb, &data);
 }
 
 CloogConstraint *cloog_equal_constraint(CloogEqualities *equal, int j)
 {
+	isl_basic_set *bset;
+	bset = cloog_constraints_set_to_isl(equal->constraints[j]);
 	return cloog_constraint_from_isl_constraint(
-		    isl_basic_set_first_constraint(
-			    isl_basic_set_copy(&equal->constraints[j]->bset)));
+		    isl_basic_set_first_constraint(isl_basic_set_copy(bset)));
 }

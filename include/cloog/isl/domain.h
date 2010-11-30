@@ -13,11 +13,9 @@ extern "C"
 
 
 struct cloogdomain {
-	struct isl_set set;
 };
 
 struct cloogscattering {
-	struct isl_map map;
 };
 
 CloogDomain *cloog_domain_from_isl_set(struct isl_set *set);

@@ -9,7 +9,6 @@ extern "C"
 #endif 
 
 struct cloogconstraintset {
-	struct isl_basic_set bset;
 };
 
 struct cloogequalities {
