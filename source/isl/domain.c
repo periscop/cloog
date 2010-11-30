@@ -58,16 +58,9 @@ void cloog_domain_print_constraints(FILE *foo, CloogDomain *domain,
 }
 
 
-void cloog_scattering_print_constraints(FILE *foo, CloogScattering *scattering,
-					int print_number)
+void cloog_scattering_print_constraints(FILE *foo, CloogScattering *scattering)
 {
-	if (print_number)
-		isl_map_print(&scattering->map, foo, 0, ISL_FORMAT_EXT_POLYLIB);
-	else {
-		assert(scattering->map.n == 1);
-		isl_basic_map_print(scattering->map.p[0], foo,
-				    0, NULL, NULL, ISL_FORMAT_POLYLIB);
-	}
+	isl_map_print(&scattering->map, foo, 0, ISL_FORMAT_EXT_POLYLIB);
 }
 
 

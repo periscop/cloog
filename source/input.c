@@ -162,7 +162,7 @@ void cloog_input_dump_cloog(FILE *file, CloogInput *input, CloogOptions *opt)
                 fprintf(file, "\n# Scattering of statement %d (%s).\n", i,
                         ndl->name);
 
-                cloog_scattering_print_constraints(file, ndl->scattering, 1);
+                cloog_scattering_print_constraints(file, ndl->scattering);
 
                 i++;
                 ndl = ndl->next;

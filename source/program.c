@@ -237,7 +237,7 @@ void cloog_program_dump_cloog(FILE * foo, CloogProgram * program,
   fprintf(foo, "%d # Scattering functions", i);
 
   for (tmp_scatt = scattering; tmp_scatt; tmp_scatt = tmp_scatt->next)
-    cloog_scattering_print_constraints(foo, tmp_scatt->scatt, 1);
+    cloog_scattering_print_constraints(foo, tmp_scatt->scatt);
 
   fprintf(foo, "\n1 # Scattering dimension name(s)\n");
 

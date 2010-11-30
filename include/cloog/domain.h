@@ -76,8 +76,7 @@ typedef struct cloogscatteringlist CloogScatteringList;
  ******************************************************************************/
 void          cloog_domain_print_constraints(FILE *, CloogDomain *,
 						int print_number);
-void          cloog_scattering_print_constraints(FILE *, CloogScattering *,
-						 int print_number);
+void          cloog_scattering_print_constraints(FILE *, CloogScattering *);
 void          cloog_domain_free(CloogDomain *) ;
 void          cloog_scattering_free(CloogScattering *);
 CloogDomain * cloog_domain_copy(CloogDomain *) ;
