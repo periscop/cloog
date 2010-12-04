@@ -1380,17 +1380,63 @@ CloogUnionDomain *cloog_union_domain_from_isl_union_map(
 	return ud;
 }
 
+static int count_same_name(__isl_keep isl_dim *dim,
+	enum isl_dim_type type, unsigned pos, const char *name)
+{
+	enum isl_dim_type t;
+	unsigned p, s;
+	int count = 0;
+	int len = strlen(name);
+
+	for (t = isl_dim_param; t <= type && t <= isl_dim_out; ++t) {
+		s = t == type ? pos : isl_dim_size(dim, t);
+		for (p = 0; p < s; ++p) {
+			const char *n = isl_dim_get_name(dim, t, p);
+			if (n && !strncmp(n, name, len))
+				count++;
+		}
+	}
+	return count;
+}
+
 static int add_domain(__isl_take isl_set *set, void *user)
 {
+	int i, nvar;
+	isl_ctx *ctx;
 	isl_dim *dim;
+	char buffer[20];
 	const char *name;
 	CloogDomain *domain;
 	CloogUnionDomain **ud = (CloogUnionDomain **)user;
 
+	ctx = isl_set_get_ctx(set);
 	dim = isl_set_get_dim(set);
 	name = isl_dim_get_tuple_name(dim, isl_dim_in);
 	domain = cloog_domain_from_isl_set(set);
 	*ud = cloog_union_domain_add_domain(*ud, name, domain, NULL, NULL);
+
+	nvar = isl_dim_size(dim, isl_dim_set);
+	for (i = 0; i < nvar; ++i) {
+		char *long_name = NULL;
+		int n;
+
+		name = isl_dim_get_name(dim, isl_dim_set, i);
+		if (!name) {
+			snprintf(buffer, sizeof(buffer), "i%d", i);
+			name = buffer;
+		}
+		n = count_same_name(dim, isl_dim_set, i, name);
+		if (n) {
+			int size = strlen(name) + 10;
+			long_name = isl_alloc_array(ctx, char, size);
+			if (!long_name)
+				cloog_die("memory overflow.\n");
+			snprintf(long_name, size, "%s_%d", name, n);
+			name = long_name;
+		}
+		*ud = cloog_union_domain_set_name(*ud, CLOOG_ITER, i, name);
+		free(long_name);
+	}
 	isl_dim_free(dim);
 
 	return 0;
@@ -1399,9 +1445,8 @@ static int add_domain(__isl_take isl_set *set, void *user)
 /**
  * Construct a CloogUnionDomain from an isl_union_set.
  * The statement names are set to the names of the
- * spaces.  The parameter names of the result are set to those of
- * the input, but the iterator and scattering dimension names are
- * left unspecified.
+ * spaces.  The parameter and iterator names of the result are set to those of
+ * the input, but the scattering dimension names are left unspecified.
  */
 CloogUnionDomain *cloog_union_domain_from_isl_union_set(
 	__isl_take isl_union_set *uset)
