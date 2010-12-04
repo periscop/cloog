@@ -136,6 +136,7 @@ CloogUnionDomain *cloog_union_domain_set_name(CloogUnionDomain *ud,
 			ud->name[type][i] = NULL;
 	}
 
+	free(ud->name[type][index]);
 	ud->name[type][index] = strdup(name);
 	if (!ud->name[type][index])
 		cloog_die("memory overflow.\n");
