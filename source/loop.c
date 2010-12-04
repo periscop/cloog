@@ -1515,7 +1515,7 @@ int cloog_loop_more(CloogLoop *loop, int level, int scalar, int nb_scattdims)
 int cloog_loop_is_constant(CloogLoop *loop, int level)
 {
     for (; loop; loop = loop->next)
-	if (!cloog_domain_lazy_isconstant(loop->domain, level - 1))
+	if (!cloog_domain_lazy_isconstant(loop->domain, level - 1, NULL))
 	    return 0;
     return 1;
 }
@@ -1812,7 +1812,7 @@ static int cloog_loop_equal_prefix(CloogLoop *a, CloogLoop *b,
     for (i = i + 1; i < nb_scattdims; ++i) {
 	if (scaldims[i])
 	    continue;
-	if (!cloog_domain_lazy_isconstant(a->domain, dim))
+	if (!cloog_domain_lazy_isconstant(a->domain, dim, NULL))
 	    return 0;
 	/* No need to check that dim is also constant in b and that the
 	 * constant values are equal.  That will happen during the check

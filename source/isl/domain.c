@@ -1261,10 +1261,11 @@ int cloog_scattering_lazy_isscalar(CloogScattering *scatt, int dimension,
  * domain 'domain' is constant.
  * If value is not NULL, then it is set to the constant value of dimension.
  */
-int cloog_domain_lazy_isconstant(CloogDomain *domain, int dimension)
+int cloog_domain_lazy_isconstant(CloogDomain *domain, int dimension,
+	cloog_int_t *value)
 {
 	isl_set *set = isl_set_from_cloog_domain(domain);
-	return isl_set_fast_dim_is_fixed(set, dimension, NULL);
+	return isl_set_fast_dim_is_fixed(set, dimension, value);
 }
 
 
