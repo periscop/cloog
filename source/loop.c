@@ -1502,6 +1502,59 @@ int cloog_loop_more(CloogLoop *loop, int level, int scalar, int nb_scattdims)
   return level + scalar <= nb_scattdims ||
 	 cloog_domain_dimension(loop->domain) >= level;
 }
+
+/**
+ * Return 1 if the domains of all loops in the given linked list
+ * have a fixed value at the given level.
+ * Note that there is no need to check that the fixed value is
+ * the same for each of these loops because this function is only
+ * called on a component.  If the loops were to have fixed, but
+ * different values, the loops with different fixed values would
+ * have been split over distinct components.
+ */
+int cloog_loop_is_constant(CloogLoop *loop, int level)
+{
+    for (; loop; loop = loop->next)
+	if (!cloog_domain_lazy_isconstant(loop->domain, level - 1))
+	    return 0;
+    return 1;
+}
+
+/**
+ * Assuming all domains in the given linked list of loop
+ * have a fixed values at level, return a single loop with
+ * a domain corresponding to this fixed value and with as
+ * list of inner loops the concatenation of all inner loops
+ * in the original list.
+ */
+CloogLoop *cloog_loop_constant(CloogLoop *loop, int level)
+{
+    CloogLoop *res, *inner, *tmp;
+    CloogDomain *domain, *context, *t;
+
+    if (!loop)
+	return loop;
+
+    inner = loop->inner;
+    for (tmp = loop->next; tmp; tmp = tmp->next)
+	inner = cloog_loop_concat(inner, tmp->inner);
+
+    domain = cloog_domain_copy(loop->domain);
+    domain = cloog_domain_simple_convex(t = domain);
+    cloog_domain_free(t);
+    context = cloog_domain_project(domain, level - 1);
+    context = cloog_domain_extend(t = context, level);
+    cloog_domain_free(t);
+    domain = cloog_domain_simplify(t = domain, context);
+    cloog_domain_free(t);
+    cloog_domain_free(context);
+
+    res = cloog_loop_alloc(loop->state, domain, 0, NULL, NULL, inner, NULL);
+
+    cloog_loop_free_parts(loop, 1, 0, 0, 1);
+
+    return res;
+}
  
 CloogLoop *cloog_loop_generate_restricted_or_stop(CloogLoop *loop,
 	CloogDomain *context,
@@ -1541,7 +1594,9 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
   int separate = 0;
 
   /* 3. Separate all projections into disjoint polyhedra. */
-  if ((options->f > level+scalar) || (options->f < 0))
+  if (level > 0 && cloog_loop_is_constant(loop, level))
+    res = cloog_loop_constant(loop, level);
+  else if ((options->f > level+scalar) || (options->f < 0))
     res = cloog_loop_merge(loop, level, options);
   else {
     res = cloog_loop_separate(loop);

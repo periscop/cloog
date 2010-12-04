@@ -1,17 +1,12 @@
-/* Generated from ../../../git/cloog/test/cholesky2.cloog by CLooG 0.14.0-313-g0d7f67f gmp bits in 0.04s. */
+/* Generated from ../../../git/cloog/test/cholesky2.cloog by CLooG 0.14.0-333-g4442dac gmp bits in 0.04s. */
 if (M >= 1) {
-  if (M >= 2) {
-    for (c2=1;c2<=M-1;c2++) {
-      S1(c2);
-      for (c3=c2+1;c3<=M;c3++) {
-        S4(c2,c3);
-      }
+  for (c2=1;c2<=M-1;c2++) {
+    S1(c2);
+    for (c3=c2+1;c3<=M;c3++) {
+      S4(c2,c3);
     }
-    S1(M);
   }
-  if (M == 1) {
-    S1(1);
-  }
+  S1(M);
   if (M >= 3) {
     S3(1);
   }
