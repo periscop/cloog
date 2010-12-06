@@ -1506,18 +1506,33 @@ int cloog_loop_more(CloogLoop *loop, int level, int scalar, int nb_scattdims)
 /**
  * Return 1 if the domains of all loops in the given linked list
  * have a fixed value at the given level.
- * Note that there is no need to check that the fixed value is
+ * In principle, there would be no need to check that the fixed value is
  * the same for each of these loops because this function is only
- * called on a component.  If the loops were to have fixed, but
- * different values, the loops with different fixed values would
- * have been split over distinct components.
+ * called on a component.  However, not all backends perform a proper
+ * decomposition into components.
  */
 int cloog_loop_is_constant(CloogLoop *loop, int level)
 {
-    for (; loop; loop = loop->next)
-	if (!cloog_domain_lazy_isconstant(loop->domain, level - 1, NULL))
-	    return 0;
-    return 1;
+    cloog_int_t c1, c2;
+    int r = 1;
+
+    cloog_int_init(c1);
+    cloog_int_init(c2);
+
+    if (!cloog_domain_lazy_isconstant(loop->domain, level - 1, &c1))
+	r = 0;
+
+    for (loop = loop->next; r && loop; loop = loop->next) {
+	if (!cloog_domain_lazy_isconstant(loop->domain, level - 1, &c2))
+	    r = 0;
+	else if (cloog_int_ne(c1, c2))
+	    r = 0;
+    }
+
+    cloog_int_clear(c1);
+    cloog_int_clear(c2);
+
+    return r;
 }
 
 /**
