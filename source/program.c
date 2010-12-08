@@ -781,7 +781,7 @@ CloogOptions * options ;
 #endif
     
     if ((!options->nosimplify) && (program->loop != NULL))
-      loop = cloog_loop_simplify(loop, program->context, 1,
+      loop = cloog_loop_simplify(loop, program->context, 0,
                                  program->nb_scattdims, options);
    
     program->loop = loop ;
