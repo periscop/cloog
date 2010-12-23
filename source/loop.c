@@ -626,14 +626,35 @@ CloogLoop *cloog_loop_restrict_all(CloogLoop *loop, CloogDomain *context)
     return res;
 }
 
+
+/**
+ * Restrict the domains of the inner loops of each loop l in the given
+ * list of loops to the domain of the loop l.  If the domains of all
+ * inner loops of a given loop l turn out to be empty, then remove l
+ * from the list.
+ */
 CloogLoop *cloog_loop_restrict_inner(CloogLoop *loop)
 {
-    CloogLoop *l;
+    CloogLoop *next;
+    CloogLoop *res;
+    CloogLoop **res_next = &res;
 
-    for (l = loop; l; l = l->next)
-	l->inner = cloog_loop_restrict_all(l->inner, l->domain);
+    for (; loop; loop = next) {
+	next = loop->next;
 
-    return loop;
+	loop->inner = cloog_loop_restrict_all(loop->inner, loop->domain);
+	if (loop->inner) {
+	    *res_next = loop;
+	    res_next = &(*res_next)->next;
+	} else {
+	    loop->next = NULL;
+	    cloog_loop_free(loop);
+	}
+    }
+
+    *res_next = NULL;
+
+    return res;
 }
 
 /**

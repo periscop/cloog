@@ -127,6 +127,7 @@ FINITE_CLOOGTEST_C =                   \
 	vivien2                        \
 	walters                        \
 	walters2                       \
+	walters3                       \
 	wavefront                      \
 	yosr                           \
 	yosr2                          \
