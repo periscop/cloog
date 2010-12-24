@@ -204,6 +204,7 @@ SPECIAL_TESTS = \
 	merge \
 	equality \
 	equality2 \
+	otl \
 	param-split \
 	stride \
 	stride2 \
