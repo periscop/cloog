@@ -1412,7 +1412,9 @@ static int add_domain(__isl_take isl_set *set, void *user)
 
 	ctx = isl_set_get_ctx(set);
 	dim = isl_set_get_dim(set);
-	name = isl_dim_get_tuple_name(dim, isl_dim_in);
+	name = isl_dim_get_tuple_name(dim, isl_dim_set);
+	set = isl_set_flatten(set);
+	set = isl_set_set_tuple_name(set, NULL);
 	domain = cloog_domain_from_isl_set(set);
 	*ud = cloog_union_domain_add_domain(*ud, name, domain, NULL, NULL);
 
