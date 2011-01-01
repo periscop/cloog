@@ -970,8 +970,8 @@ CloogLoop *cloog_loop_merge(CloogLoop *loop, int level, CloogOptions *options)
     if (loop == NULL)
 	return loop;
 
-    if (loop->next == NULL)
-	return cloog_loop_disjoint(loop);
+    if (loop->next == NULL && cloog_domain_isconvex(loop->domain))
+	return loop;
 
     old = loop;
     temp = loop->domain;
