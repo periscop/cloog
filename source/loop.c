@@ -2387,7 +2387,7 @@ static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
   domain_dim = cloog_domain_dimension(domain);
   extended_context = cloog_domain_extend(context, domain_dim);
   inter = cloog_domain_intersection(domain,extended_context) ;
-  simp = cloog_domain_simplify(inter,extended_context) ;
+  simp = cloog_domain_simplify(domain, extended_context);
   cloog_domain_free(extended_context) ;
 
   /* If the constraint system is never true, go to the next one. */
