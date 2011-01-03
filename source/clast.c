@@ -17,6 +17,7 @@
 struct clooginfos {
   CloogState *state;         /**< State. */
   CloogStride **stride;
+  int stride_level;          /**< Number of valid entries in stride array. */
   int  nb_scattdims ;        /**< Scattering dimension number. */
   int * scaldims ;           /**< Boolean array saying whether a given
                               *   scattering dimension is scalar or not.
@@ -1303,7 +1304,10 @@ static int insert_modulo_guard_constraint(CloogConstraint *c, void *user)
 	nb_elts = 0;
 
 	/* First, the modulo guard : the iterators... */
-	for (i = level - 1; i >= 1; --i)
+	i = level - 1;
+	if (i > infos->stride_level)
+		i = infos->stride_level;
+	for (; i >= 1; --i)
 	    eliminate_using_stride_constraint(line, len, nb_iter,
 					infos->stride[i - 1], i, line[level]);
 	for (i=1;i<=nb_iter;i++) {
@@ -1743,8 +1747,10 @@ static void insert_loop(CloogLoop * loop, int level,
     constraints = cloog_constraint_set_simplify(temp,infos->equal,level,
 				   infos->names->nb_parameters);
     cloog_constraint_set_free(temp);
-    if (level)
+    if (level) {
 	infos->stride[level - 1] = loop->stride;
+	infos->stride_level++;
+    }
 
     /* First of all we have to print the guard. */
     insert_guard(constraints,level, next, infos);
@@ -1779,8 +1785,10 @@ static void insert_loop(CloogLoop * loop, int level,
 	    insert_loop(loop->inner, level+1, next, infos);
     }
 
-    if (level)
+    if (level) {
       cloog_equal_del(infos->equal,level);
+      infos->stride_level--;
+    }
     cloog_constraint_set_free(constraints);
 
     /* Go to the next loop on the same level. */
@@ -1810,6 +1818,7 @@ struct clast_stmt *cloog_clast_create(CloogProgram *program,
     */ 
     nb_levels = program->names->nb_scattering+program->names->nb_iterators+1;
     infos->stride = ALLOCN(CloogStride *, nb_levels);
+    infos->stride_level = 0;
 
     infos->equal = cloog_equal_alloc(nb_levels,
 			       nb_levels, program->names->nb_parameters);
