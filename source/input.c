@@ -105,7 +105,7 @@ void cloog_input_dump_cloog(FILE *file, CloogInput *input, CloogOptions *opt)
 
         /* Context. */
         fprintf(file, "# Context:\n");
-        cloog_domain_print_constraints(file, input->context, 0);
+        cloog_domain_print_constraints(file, input->context, 1);
 
         fprintf(file, "\n%d # Parameter name(s)\n",
                 ud->name[CLOOG_PARAM] ? 1 : 0);
