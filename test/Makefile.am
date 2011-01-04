@@ -196,6 +196,7 @@ CLOOGTEST_STRIDED =                    \
 	multi-stride		       \
 	multi-stride2		       \
 	stride3                        \
+	stride4                        \
 	reservoir/bastoul3	       \
 	reservoir/stride	       \
 	reservoir/stride2

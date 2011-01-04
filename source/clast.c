@@ -1200,7 +1200,7 @@ static void eliminate_using_stride_constraint(cloog_int_t *line, int len,
 		return;
 
 	if (stride->constraint) {
-		int i;
+		int i, s_len;
 		cloog_int_t t, v;
 
 		cloog_int_init(t);
@@ -1212,9 +1212,10 @@ static void eliminate_using_stride_constraint(cloog_int_t *line, int len,
 			cloog_int_addmul(line[i], t, v);
 			cloog_int_fdiv_r(line[i], line[i], m);
 		}
+		s_len = cloog_constraint_total_dimension(stride->constraint)+2;
 		for (i = nb_iter + 1; i <= len - 2; ++i) {
 			cloog_constraint_coefficient_get(stride->constraint,
-						i - nb_iter - 1 + level, &v);
+						i - (len - s_len) - 1, &v);
 			cloog_int_addmul(line[i], t, v);
 			cloog_int_fdiv_r(line[i], line[i], m);
 		}
