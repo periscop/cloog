@@ -606,7 +606,7 @@ int cloog_constraint_total_dimension(CloogConstraint *constraint)
  * a reduction on the upper equality (in this case lower is an invalid
  * CloogConstraint) or the pair of inequalities upper and lower
  * from within insert_modulo_guard.
- * In the isl backend, we return a CloogConstraintSet containting both
+ * In the isl backend, we return a CloogConstraintSet containing both
  * bounds, as the stride may change during the reduction and we may
  * need to recompute the bound on the modulo expression.
  */
@@ -639,7 +639,7 @@ static int add_constant_term(CloogConstraint *c, void *user)
 }
 
 /**
- * Reduce the modulo guard expressed by "contraints" using equalities
+ * Reduce the modulo guard expressed by "constraints" using equalities
  * found in outer nesting levels (stored in "equal").
  * The modulo guard may be an equality or a pair of inequalities.
  * In case of a pair of inequalities, *bound contains the bound on the
