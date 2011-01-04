@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <cloog/cloog.h>
 
 #define ALLOC(type) (type*)malloc(sizeof(type))
