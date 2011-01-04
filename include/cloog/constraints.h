@@ -74,6 +74,7 @@ int           cloog_constraint_set_n_iterators(CloogConstraintSet *constraints,
 CloogConstraintSet *cloog_constraint_set_copy(CloogConstraintSet *);
 CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *, CloogEqualities *, int, int);
 
+int cloog_constraint_needs_reduction(CloogConstraint *upper, int level);
 CloogConstraintSet *cloog_constraint_set_for_reduction(CloogConstraint *upper,
 	       CloogConstraint *lower);
 CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,

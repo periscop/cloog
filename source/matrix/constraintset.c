@@ -807,6 +807,18 @@ int cloog_constraint_is_valid(CloogConstraint *constraint)
 	return constraint != NULL;
 }
 
+
+/**
+ * Check whether there is any need for the constraint "upper" on
+ * "level" to get reduced.
+ * Yes.
+ */
+int cloog_constraint_needs_reduction(CloogConstraint *upper, int level)
+{
+	return 1;
+}
+
+
 /**
  * Create a CloogConstraintSet containing enough information to perform
  * a reduction on the upper equality (in this case lower is an invalid

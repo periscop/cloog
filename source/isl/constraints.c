@@ -50,15 +50,13 @@ struct cloog_isl_dim {
 	int		  pos;
 };
 
-static struct cloog_isl_dim set_cloog_dim_to_isl_dim(
-	CloogConstraintSet *constraints, int pos)
+static struct cloog_isl_dim basic_set_cloog_dim_to_isl_dim(
+	__isl_keep isl_basic_set *bset, int pos)
 {
-	isl_basic_set *bset;
 	enum isl_dim_type types[] = { isl_dim_set, isl_dim_div, isl_dim_param };
 	int i;
 	struct cloog_isl_dim ci_dim;
 
-	bset = cloog_constraints_set_to_isl(constraints);
 	for (i = 0; i < 3; ++i) {
 		unsigned dim = isl_basic_set_dim(bset, types[i]);
 		if (pos < dim) {
@@ -69,6 +67,15 @@ static struct cloog_isl_dim set_cloog_dim_to_isl_dim(
 		pos -= dim;
 	}
 	assert(0);
+}
+
+static struct cloog_isl_dim set_cloog_dim_to_isl_dim(
+	CloogConstraintSet *constraints, int pos)
+{
+	isl_basic_set *bset;
+
+	bset = cloog_constraints_set_to_isl(constraints);
+	return basic_set_cloog_dim_to_isl_dim(bset, pos);
 }
 
 /* Check if the variable at position level is defined by an
@@ -601,6 +608,29 @@ int cloog_constraint_total_dimension(CloogConstraint *constraint)
 	return isl_constraint_dim(&constraint->isl, isl_dim_all);
 }
 
+
+/**
+ * Check whether there is any need for the constraint "upper" on
+ * "level" to get reduced.
+ * In case of the isl backend, there should be no need to do so
+ * if the level corresponds to an existentially quantified variable.
+ * Moreover, the way reduction is performed does not work for such
+ * variables since its position might chance during the construction
+ * of a set for reduction.
+ */
+int cloog_constraint_needs_reduction(CloogConstraint *upper, int level)
+{
+	isl_basic_set *bset;
+	struct cloog_isl_dim dim;
+
+	bset = isl_basic_set_from_constraint(isl_constraint_copy(&upper->isl));
+	dim = basic_set_cloog_dim_to_isl_dim(bset, level - 1);
+	isl_basic_set_free(bset);
+
+	return dim.type == isl_dim_set;
+}
+
+
 /**
  * Create a CloogConstraintSet containing enough information to perform
  * a reduction on the upper equality (in this case lower is an invalid
@@ -646,10 +676,9 @@ static int add_constant_term(CloogConstraint *c, void *user)
  * corresponding modulo expression.  If any reduction is performed
  * then this bound is recomputed.
  *
- * We first check if "level" corresponds to an existentially quantified
- * variable.  If so, there is no need to reduce it as it would have
- * been removed already if it had been redundant.
- * Then we check if there are any equalities we can use.  If not,
+ * "level" may not correspond to an existentially quantified variable.
+ *
+ * We first check if there are any equalities we can use.  If not,
  * there is again nothing to reduce.
  * For the actual reduction, we use isl_basic_set_gist, but this
  * function will only perform the reduction we want hear if the
@@ -678,8 +707,7 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	bset = cloog_constraints_set_to_isl(constraints);
 	ctx = isl_basic_set_get_ctx(bset);
 	dim = set_cloog_dim_to_isl_dim(constraints, level - 1);
-	if (dim.type != isl_dim_set)
-		return constraints;
+	assert(dim.type == isl_dim_set);
 
 	eq = NULL;
 	for (j = 0; j < level - 1; ++j) {

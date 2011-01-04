@@ -167,7 +167,8 @@ FINITE_CLOOGTEST_C =                   \
 CLOOG_ISL_TEST_C =			\
 	isl/mod				\
 	isl/mod2			\
-	isl/mod3
+	isl/mod3			\
+	isl/mod4
 
 CLOOGTEST_C =                          \
 	infinite                       \

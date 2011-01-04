@@ -1403,12 +1403,16 @@ static int insert_modulo_guard(CloogConstraint *upper,
     }
   }
 
-  set = cloog_constraint_set_for_reduction(upper, lower);
-  set = cloog_constraint_set_reduce(set, level, infos->equal, nb_par, &data.bound);
-  cloog_constraint_set_foreach_constraint(set,
+  if (cloog_constraint_needs_reduction(upper, level)) {
+    set = cloog_constraint_set_for_reduction(upper, lower);
+    set = cloog_constraint_set_reduce(set, level, infos->equal,
+					nb_par, &data.bound);
+    cloog_constraint_set_foreach_constraint(set,
 					insert_modulo_guard_constraint, &data);
+    cloog_constraint_set_free(set);
+  } else
+    insert_modulo_guard_constraint(upper, &data);
 
-  cloog_constraint_set_free(set);
   cloog_int_clear(data.val);
   cloog_int_clear(data.bound);
 
