@@ -76,6 +76,21 @@ void cloog_input_free(CloogInput *input)
 	free(input);
 }
 
+static void print_names(FILE *file, CloogUnionDomain *ud,
+	enum cloog_dim_type type, const char *name)
+{
+	int i;
+
+	fprintf(file, "\n%d # %s name(s)\n", ud->name[type] ? 1 : 0, name);
+	if (!ud->name[type])
+		return;
+
+	for (i = 0; i < ud->n_name[type]; i++)
+		fprintf(file, "%s ", ud->name[type][i]);
+
+	fprintf(file, "\n");
+}
+
 /**
  * Dump the .cloog description of a CloogInput and a CloogOptions data structure
  * into a file. The generated .cloog file will contain the same information as
@@ -107,12 +122,7 @@ void cloog_input_dump_cloog(FILE *file, CloogInput *input, CloogOptions *opt)
         fprintf(file, "# Context:\n");
         cloog_domain_print_constraints(file, input->context, 1);
 
-        fprintf(file, "\n%d # Parameter name(s)\n",
-                ud->name[CLOOG_PARAM] ? 1 : 0);
-
-        if (ud->name[CLOOG_PARAM])
-                for (i = 0; i < ud->n_name[CLOOG_PARAM]; i++)
-                        fprintf(file, "%s ", ud->name[CLOOG_PARAM][i]);
+	print_names(file, ud, CLOOG_PARAM, "Parameter");
 
         /* Statement number. */
         i = 0;
@@ -137,12 +147,7 @@ void cloog_input_dump_cloog(FILE *file, CloogInput *input, CloogOptions *opt)
                 ndl = ndl->next;
         }
 
-        fprintf(file, "\n%d # Iterator name(s)\n\n",
-                ud->name[CLOOG_ITER] ? 1 : 0);
-
-        if (ud->name[CLOOG_ITER])
-                for (i = 0; i < ud->n_name[CLOOG_ITER]; i++)
-                        fprintf(file, "%s ", ud->name[CLOOG_ITER][i]);
+	print_names(file, ud, CLOOG_ITER, "Iterator");
 
         /* Exit, if no scattering is supplied. */
         if (!ud->domain || !ud->domain->scattering) {
@@ -168,10 +173,5 @@ void cloog_input_dump_cloog(FILE *file, CloogInput *input, CloogOptions *opt)
                 ndl = ndl->next;
         }
 
-        fprintf(file, "\n%d # Scattering dimension name(s)\n",
-                ud->name[CLOOG_SCAT] ? 1 : 0);
-
-        if (ud->name[CLOOG_SCAT])
-                for (i = 0; i < ud->n_name[CLOOG_SCAT]; i++)
-                        fprintf(file, "%s ", ud->name[CLOOG_SCAT][i]);
+	print_names(file, ud, CLOOG_SCAT, "Scattering dimension");
 }
