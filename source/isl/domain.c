@@ -1304,7 +1304,7 @@ CloogDomain *cloog_domain_cube(CloogState *state,
 	for (i = 0; i < dim; ++i)
 		list = isl_basic_set_list_add(list, isl_basic_set_copy(interval));
 	isl_basic_set_free(interval);
-	cube = isl_basic_set_product(list);
+	cube = isl_basic_set_list_product(list);
 	return cloog_domain_from_isl_set(isl_set_from_basic_set(cube));
 }
 
