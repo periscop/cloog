@@ -187,6 +187,9 @@ CLOOGTEST_FORTRAN =                    \
 	levenshtein-1-2-3f             \
 	yosrf
 
+CLOOG_ISL_TEST_STRIDED =		\
+	isl/mxm-shared
+
 CLOOGTEST_STRIDED =                    \
 	basic-bounds-2                 \
 	mod4                           \
@@ -199,7 +202,8 @@ CLOOGTEST_STRIDED =                    \
 	stride4                        \
 	reservoir/bastoul3	       \
 	reservoir/stride	       \
-	reservoir/stride2
+	reservoir/stride2              \
+	$(CLOOG_ISL_TEST_STRIDED)
 
 SPECIAL_TESTS = \
 	vasilache \

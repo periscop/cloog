@@ -817,6 +817,36 @@ CloogLoop *cloog_loop_specialize(CloogLoop *loop,
     return cloog_loop_remove_empty_domain_loops(loop);
 }
 
+/* For each loop with only one inner loop, propagate the bounds from
+ * the inner loop domain to the outer loop domain.  This is especially
+ * useful if the inner loop domain has a non-trivial stride which
+ * results in an update of the lower bound.
+ */
+CloogLoop *cloog_loop_propagate_lower_bound(CloogLoop *loop, int level)
+{
+    int dim;
+    CloogDomain *domain, *t;
+    CloogLoop *l;
+
+    for (l = loop; l; l = l->next) {
+	if (l->inner->next)
+	    continue;
+	if (!cloog_domain_isconvex(l->inner->domain))
+	    continue;
+
+	dim = cloog_domain_dimension(l->domain);
+	domain = cloog_domain_project(l->inner->domain, dim);
+	if (cloog_domain_isconvex(domain)) {
+	    t = cloog_domain_intersection(domain, l->domain);
+	    cloog_domain_free(l->domain);
+	    l->domain = t;
+	}
+	cloog_domain_free(domain);
+    }
+
+    return loop;
+}
+
 /**
  * cloog_loop_separate function:
  * This function implements the Quillere algorithm for separation of multiple
@@ -1701,6 +1731,9 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
     cloog_loop_add(&res,&now,new_loop) ;
     temp = next ;
   }
+
+  if (options->strides)
+    res = cloog_loop_propagate_lower_bound(res, level);
   
   /* 5. eliminate unused iterations of the current level for the new one. See
    *    the example called linearity-1-1 example with and without this part
