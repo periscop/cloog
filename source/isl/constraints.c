@@ -695,6 +695,7 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 {
 	int j;
 	isl_ctx *ctx;
+	isl_dim *idim;
 	struct isl_basic_set *eq;
 	struct isl_basic_map *id;
 	struct cloog_isl_dim dim;
@@ -724,7 +725,8 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	if (!eq)
 		return constraints;
 
-	id = isl_basic_map_identity(isl_basic_set_get_dim(bset));
+	idim = isl_dim_map_from_set(isl_basic_set_get_dim(bset));
+	id = isl_basic_map_identity(idim);
 	id = isl_basic_map_remove_dims(id, isl_dim_out, dim.pos, 1);
 	bset = isl_basic_set_apply(bset, isl_basic_map_copy(id));
 	bset = isl_basic_set_apply(bset, isl_basic_map_reverse(id));

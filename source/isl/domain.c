@@ -1127,7 +1127,7 @@ int cloog_scattering_lazy_block(CloogScattering *s1, CloogScattering *s2,
 		return 0;
 
 	dim = isl_map_get_dim(map1);
-	dim = isl_dim_domain(dim);
+	dim = isl_dim_map_from_set(isl_dim_domain(dim));
 	rel = isl_map_identity(dim);
 	rel = isl_map_apply_domain(rel, isl_map_copy(map1));
 	rel = isl_map_apply_range(rel, isl_map_copy(map2));
