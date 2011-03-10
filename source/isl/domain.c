@@ -1320,7 +1320,8 @@ CloogDomain *cloog_domain_scatter(CloogDomain *domain, CloogScattering *scatt)
 
 	map = isl_map_reverse(isl_map_copy(map));
 	map = isl_map_intersect_range(map, set);
-	return cloog_domain_from_isl_set(isl_set_from_map(map));
+	set = isl_set_flatten(isl_map_wrap(map));
+	return cloog_domain_from_isl_set(set);
 }
 
 static int add_domain_from_map(__isl_take isl_map *map, void *user)
