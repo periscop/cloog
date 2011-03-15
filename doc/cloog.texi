@@ -919,12 +919,14 @@ for (i=1;i<=N;i++) @{
 @end group
 @end example
 
-@node Simplify Convex Hull
-@subsection  Simplify Convex Hull @code{-sh <boolean>}
+@node Simple Convex Hull
+@subsection  Simple Convex Hull @code{-sh <boolean>}
 
      @code{-sh <boolean>}: this option enables (@code{boolean=1})
-     or forbids (@code{boolean=0}) a simplification step
-     that may simplify some constraints.
+     or forbids (@code{boolean=0}) the use of an overapproximation
+     of the convex hull that may be easier to compute
+     (especially in the isl backend) and that may result in
+     simpler bounds.
      This option works only for generated code without
      code duplication (it means, you have to tune @code{-f} and
      @code{-l} options first to generate only a loop nest with internal
@@ -1823,7 +1825,7 @@ As a reminder, the default values are:
 @item @math{l = -1} (optimize control until the innermost loops),
 @item @math{f = 1} (optimize control from the outermost loops),
 @item @math{strides = 0} (use only unit strides),
-@item @math{sh = 0} (do not simplify convex hulls),
+@item @math{sh = 0} (do not compute simple convex hulls),
 @item @math{esp = 1} (do not spread complex equalities),
 @item @math{fsp = 1} (start to spread from the first iterators),
 @item @math{otl = 1} (simplify loops running only once).
