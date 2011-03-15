@@ -1826,7 +1826,7 @@ As a reminder, the default values are:
 @item @math{f = 1} (optimize control from the outermost loops),
 @item @math{strides = 0} (use only unit strides),
 @item @math{sh = 0} (do not compute simple convex hulls),
-@item @math{esp = 1} (do not spread complex equalities),
+@item @math{esp = 1} (spread complex equalities),
 @item @math{fsp = 1} (start to spread from the first iterators),
 @item @math{otl = 1} (simplify loops running only once).
 @item @math{block = 0} (do not make statement blocks when not necessary).
