@@ -741,8 +741,8 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	div = isl_basic_set_div(isl_basic_set_copy(bset), 0);
 	c = isl_equality_alloc(isl_basic_set_get_dim(bset));
 	c = isl_constraint_add_div(c, div, &pos);
-	isl_constraint_set_coefficient(c, isl_dim_set, dim.pos, ctx->one);
-	isl_constraint_set_coefficient(c, isl_dim_div, pos, ctx->negone);
+	isl_constraint_set_coefficient_si(c, isl_dim_set, dim.pos, 1);
+	isl_constraint_set_coefficient_si(c, isl_dim_div, pos, -1);
 	bset = isl_basic_set_add_constraint(bset, c);
 
 	isl_int_set_si(*bound, 0);
