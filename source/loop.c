@@ -1520,6 +1520,10 @@ CloogLoop *cloog_loop_generate_backtrack(CloogLoop *loop,
       else
       new_loop = cloog_loop_project(inner, level);
 
+      domain = cloog_domain_intersection(new_loop->domain, temp->domain);
+      cloog_domain_free(new_loop->domain);
+      new_loop->domain = domain;
+
       cloog_loop_free_parts(inner,0,0,0,0) ;
       cloog_loop_add(&l,&now2,new_loop) ;
       inner = next ;

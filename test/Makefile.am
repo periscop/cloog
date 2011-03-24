@@ -206,6 +206,7 @@ CLOOGTEST_STRIDED =                    \
 	$(CLOOG_ISL_TEST_STRIDED)
 
 SPECIAL_TESTS = \
+	backtrack \
 	vasilache \
 	merge \
 	equality \
@@ -216,6 +217,7 @@ SPECIAL_TESTS = \
 	stride2 \
 	sor1d
 SPECIAL_OPTIONS = \
+	'backtrack -f 1 -backtrack' \
 	'vasilache -f 8 -l 9' \
 	'merge -f -1' \
 	'equality -f -1 -l 2 -override' \
