@@ -128,9 +128,6 @@ CloogDomain *cloog_domain_simple_convex(CloogDomain *domain)
 	if (cloog_domain_isconvex(domain))
 		return cloog_domain_copy(domain);
 
-	if (dim == 0)
-		return cloog_domain_convex(domain);
-
 	hull = isl_set_bounded_simple_hull(isl_set_copy(set));
 	return cloog_domain_from_isl_set(isl_set_from_basic_set(hull));
 }
