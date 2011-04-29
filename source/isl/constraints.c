@@ -689,6 +689,13 @@ static int add_constant_term(CloogConstraint *c, void *user)
  * function expects it (assuming there are any constraints left).
  * We do this by adding an equality between the given dimension and
  * the existentially quantified variable.
+ *
+ * If there are no existentially quantified variables left, then
+ * we don't need to add this equality.
+ * If, on the other hand, the resulting basic set involves more
+ * than one existentially quantified variable, then the caller
+ * will not be able to handle the result, so we just return the
+ * original input instead.
  */
 CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	int level, CloogEqualities *equal, int nb_par, cloog_int_t *bound)
@@ -702,10 +709,12 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	struct isl_constraint *c;
 	struct isl_div *div;
 	unsigned constraints_dim;
+	unsigned n_div;
 	int pos;
-	isl_basic_set *bset;
+	isl_basic_set *bset, *orig;
 
 	bset = cloog_constraints_set_to_isl(constraints);
+	orig = isl_basic_set_copy(bset);
 	ctx = isl_basic_set_get_ctx(bset);
 	dim = set_cloog_dim_to_isl_dim(constraints, level - 1);
 	assert(dim.type == isl_dim_set);
@@ -722,8 +731,10 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 			eq = isl_basic_set_intersect(eq,
 						    isl_basic_set_copy(bset_j));
 	}
-	if (!eq)
-		return constraints;
+	if (!eq) {
+		isl_basic_set_free(orig);
+		return cloog_constraint_set_from_isl_basic_set(bset);
+	}
 
 	idim = isl_dim_map_from_set(isl_basic_set_get_dim(bset));
 	id = isl_basic_map_identity(idim);
@@ -735,8 +746,15 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	eq = isl_basic_set_remove_dims(eq, isl_dim_set, constraints_dim,
 			isl_basic_set_dim(eq, isl_dim_set) - constraints_dim);
 	bset = isl_basic_set_gist(bset, eq);
-	if (isl_basic_set_dim(bset, isl_dim_div) != 1)
+	n_div = isl_basic_set_dim(bset, isl_dim_div);
+	if (n_div > 1) {
+		isl_basic_set_free(bset);
+		return cloog_constraint_set_from_isl_basic_set(orig);
+	}
+	if (n_div < 1) {
+		isl_basic_set_free(orig);
 		return cloog_constraint_set_from_isl_basic_set(bset);
+	}
 
 	div = isl_basic_set_div(isl_basic_set_copy(bset), 0);
 	c = isl_equality_alloc(isl_basic_set_get_dim(bset));
@@ -750,6 +768,7 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	cloog_constraint_set_foreach_constraint(constraints,
 						add_constant_term, bound);
 
+	isl_basic_set_free(orig);
 	return cloog_constraint_set_from_isl_basic_set(bset);
 }
 
