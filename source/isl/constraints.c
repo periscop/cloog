@@ -681,13 +681,13 @@ static int add_constant_term(CloogConstraint *c, void *user)
  * We first check if there are any equalities we can use.  If not,
  * there is again nothing to reduce.
  * For the actual reduction, we use isl_basic_set_gist, but this
- * function will only perform the reduction we want hear if the
+ * function will only perform the reduction we want here if the
  * the variable that imposes the modulo constraint has been projected
  * out (i.e., turned into an existentially quantified variable).
  * After the call to isl_basic_set_gist, we need to move the
  * existential variable back into the position where the calling
  * function expects it (assuming there are any constraints left).
- * We do this by adding equality between the given dimension and
+ * We do this by adding an equality between the given dimension and
  * the existentially quantified variable.
  */
 CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
