@@ -1093,6 +1093,40 @@ CloogDomain *cloog_domain_bound_splitter(CloogDomain *dom, int level)
 }
 
 
+/* Check whether the union of scattering functions over all domains
+ * is obviously injective.
+ */
+static int injective_scattering(CloogScatteringList *list)
+{
+	isl_map *map;
+	isl_union_map *umap;
+	int injective;
+	int i = 0;
+	char name[30];
+
+	if (!list)
+		return 1;
+	
+	map = isl_map_copy(isl_map_from_cloog_scattering(list->scatt));
+	snprintf(name, sizeof(name), "S%d", i);
+	map = isl_map_set_tuple_name(map, isl_dim_in, name);
+	umap = isl_union_map_from_map(map);
+
+	for (list = list->next, ++i; list; list = list->next, ++i) {
+		map = isl_map_copy(isl_map_from_cloog_scattering(list->scatt));
+		snprintf(name, sizeof(name), "S%d", i);
+		map = isl_map_set_tuple_name(map, isl_dim_in, name);
+		umap = isl_union_map_add_map(umap, map);
+	}
+
+	injective = isl_union_map_plain_is_injective(umap);
+
+	isl_union_map_free(umap);
+
+	return injective;
+}
+
+
 /**
  * cloog_scattering_lazy_block function:
  * This function returns 1 if the two scattering functions s1 and s2 given
@@ -1101,6 +1135,8 @@ CloogDomain *cloog_domain_bound_splitter(CloogDomain *dom, int level)
  * scatterings are applied are the same.
  * In fact this function answers the question "can I
  * safely consider the two domains as only one with two statements (a block) ?".
+ * A difference of 1 in the final dimension is only allowed if the
+ * entire scattering function is injective.
  * - s1 and s2 are the two domains to check for blocking,
  * - scattering is the linked list of all domains,
  * - scattdims is the total number of scattering dimentions.
@@ -1133,9 +1169,13 @@ int cloog_scattering_lazy_block(CloogScattering *s1, CloogScattering *s2,
 		fixed = isl_set_fast_dim_is_fixed(delta, i, &cst);
 		if (fixed != 1)
 			break;
-		if (i+1 < n_scat && !isl_int_is_zero(cst))
+		if (isl_int_is_zero(cst))
+			continue;
+		if (i + 1 < n_scat)
 			break;
-		if (!isl_int_is_zero(cst) && !isl_int_is_one(cst))
+		if (!isl_int_is_one(cst))
+			break;
+		if (!injective_scattering(scattering))
 			break;
 	}
 	block = i >= n_scat;

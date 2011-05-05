@@ -1,4 +1,4 @@
-/* Generated from /home/skimo/git/cloog/test/./reservoir/mg-interp.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.30s. */
+/* Generated from ../../../git/cloog/test/reservoir/mg-interp.cloog by CLooG 0.16.2-5-g590827b gmp bits in 0.29s. */
 if ((M >= 2) && (N >= 2)) {
   for (c2=1;c2<=O-1;c2++) {
     for (c6=1;c6<=M;c6++) {
@@ -66,10 +66,12 @@ if ((M >= 2) && (N >= 2)) {
       for (c6=1;c6<=M-1;c6++) {
         if (c4%2 == 0) {
           S6(c2,(c4+2)/2,c6);
-          S7(c2,(c4+2)/2,c6);
         }
         if ((c4+1)%2 == 0) {
           S1(c2,(c4+3)/2,c6);
+        }
+        if (c4%2 == 0) {
+          S7(c2,(c4+2)/2,c6);
         }
       }
       if ((c4+1)%2 == 0) {

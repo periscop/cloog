@@ -68,9 +68,11 @@ FINITE_CLOOGTEST_C =                   \
 	basic-bounds-6                 \
 	block                          \
 	block2                         \
+	block3                         \
 	byu98-1-2-3                    \
 	cholesky                       \
 	cholesky2                      \
+	christian                      \
 	classen                        \
 	classen2                       \
 	constant                       \
