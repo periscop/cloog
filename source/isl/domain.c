@@ -123,7 +123,6 @@ CloogDomain *cloog_domain_simple_convex(CloogDomain *domain)
 {
 	struct isl_basic_set *hull;
 	isl_set *set = isl_set_from_cloog_domain(domain);
-	unsigned dim = isl_set_dim(set, isl_dim_set);
 
 	if (cloog_domain_isconvex(domain))
 		return cloog_domain_copy(domain);
