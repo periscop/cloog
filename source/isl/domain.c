@@ -1569,7 +1569,7 @@ static void Euclid(cloog_int_t a, cloog_int_t b,
  * quantified variables and then remove any common factors it has
  * with the coefficient at the given level.
  * The result is the value of the stride and if it is not one,
- * the it is possible to construct a CloogStride.
+ * then it is possible to construct a CloogStride.
  * The constraint leading to the stride is stored in the CloogStride
  * as well a value (factor) such that the product of this value
  * and the coefficient at the given level is equal to -1 modulo the stride.
