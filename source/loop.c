@@ -1520,10 +1520,6 @@ CloogLoop *cloog_loop_generate_backtrack(CloogLoop *loop,
       else
       new_loop = cloog_loop_project(inner, level);
 
-      domain = cloog_domain_intersection(new_loop->domain, temp->domain);
-      cloog_domain_free(new_loop->domain);
-      new_loop->domain = domain;
-
       cloog_loop_free_parts(inner,0,0,0,0) ;
       cloog_loop_add(&l,&now2,new_loop) ;
       inner = next ;
@@ -1600,28 +1596,24 @@ int cloog_loop_is_constant(CloogLoop *loop, int level)
 CloogLoop *cloog_loop_constant(CloogLoop *loop, int level)
 {
     CloogLoop *res, *inner, *tmp;
-    CloogDomain *domain, *context, *t;
+    CloogDomain *domain, *t;
 
     if (!loop)
 	return loop;
 
     inner = loop->inner;
-    for (tmp = loop->next; tmp; tmp = tmp->next)
+    domain = loop->domain;
+    for (tmp = loop->next; tmp; tmp = tmp->next) {
 	inner = cloog_loop_concat(inner, tmp->inner);
+	domain = cloog_domain_union(domain, tmp->domain);
+    }
 
-    domain = cloog_domain_copy(loop->domain);
     domain = cloog_domain_simple_convex(t = domain);
     cloog_domain_free(t);
-    context = cloog_domain_project(domain, level - 1);
-    context = cloog_domain_extend(t = context, level);
-    cloog_domain_free(t);
-    domain = cloog_domain_simplify(t = domain, context);
-    cloog_domain_free(t);
-    cloog_domain_free(context);
 
     res = cloog_loop_alloc(loop->state, domain, 0, NULL, NULL, inner, NULL);
 
-    cloog_loop_free_parts(loop, 1, 0, 0, 1);
+    cloog_loop_free_parts(loop, 0, 0, 0, 1);
 
     return res;
 }
