@@ -1623,6 +1623,93 @@ CloogLoop *cloog_loop_generate_restricted_or_stop(CloogLoop *loop,
 	int level, int scalar, int *scaldims, int nb_scattdims,
 	CloogOptions *options);
 
+
+/**
+ * Recurse on the inner loops of the given single loop.
+ *
+ * - loop is the loop for which we have to generate scanning code,
+ * - level is the current non-scalar dimension,
+ * - scalar is the current scalar dimension,
+ * - scaldims is the boolean array saying whether a dimension is scalar or not,
+ * - nb_scattdims is the size of the scaldims array,
+ * - options are the general code generation options.
+ */
+static CloogLoop *loop_recurse(CloogLoop *loop,
+	int level, int scalar, int *scaldims, int nb_scattdims,
+	CloogOptions *options)
+{
+    CloogLoop *inner, *into, *end, *next, *l, *now;
+    CloogDomain *domain;
+
+    if (level && options->strides)
+      cloog_loop_stride(loop, level);
+    if (level && options->otl)
+      cloog_loop_otl(loop, level);
+    inner = loop->inner;
+    domain = loop->domain;
+    into = NULL ;
+    while (inner != NULL)
+    { /* 4b. -ced- recurse for each sub-list of non terminal loops. */
+      if (cloog_loop_more(inner, level + 1, scalar, nb_scattdims)) {
+	end = inner;
+        while ((end->next != NULL) &&
+               cloog_loop_more(end->next, level + 1, scalar, nb_scattdims))
+        end = end->next ;
+        
+	next = end->next ;
+        end->next = NULL ;
+
+        l = cloog_loop_generate_restricted_or_stop(inner, domain,
+			level + 1, scalar, scaldims, nb_scattdims, options);
+        
+	if (l != NULL)
+        cloog_loop_add_list(&into,&now,l) ;
+        
+        inner = next ;
+      }
+      else
+      { cloog_loop_add(&into,&now,inner) ;
+        inner = inner->next ;
+      }
+    }
+
+    loop->inner = into;
+    return loop;
+}
+
+
+/**
+ * Recurse on the inner loops of each of the loops in the loop list.
+ *
+ * - loop is the loop list for which we have to generate scanning code,
+ * - level is the current non-scalar dimension,
+ * - scalar is the current scalar dimension,
+ * - scaldims is the boolean array saying whether a dimension is scalar or not,
+ * - nb_scattdims is the size of the scaldims array,
+ * - options are the general code generation options.
+ */
+CloogLoop *cloog_loop_recurse(CloogLoop *loop,
+	int level, int scalar, int *scaldims, int nb_scattdims,
+	CloogOptions *options)
+{
+    CloogLoop *now, *next;
+    CloogLoop *res = NULL;
+    CloogLoop **next_res = &res;
+
+    for (now = loop; now; now = next) {
+	next = now->next;
+	now->next = NULL;
+
+	*next_res = loop_recurse(now, level, scalar, scaldims, nb_scattdims,
+				 options);
+
+	while (*next_res)
+	    next_res = &(*next_res)->next;
+    }
+
+    return res;
+}
+
 /**
  * cloog_loop_generate_general function:
  * Adaptation from LoopGen 0.4 by F. Quillere. This function implements the
@@ -1650,9 +1737,7 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
 	int level, int scalar, int *scaldims, int nb_scattdims,
 	CloogOptions *options)
 {
-  CloogLoop * res, * now, * temp, * l, * new_loop, * inner, * now2, * end,
-            * next, * into ;
-  CloogDomain * domain ;
+  CloogLoop *res, *now, *temp, *l, *new_loop, *next;
   int separate = 0;
 
   /* 3. Separate all projections into disjoint polyhedra. */
@@ -1677,44 +1762,8 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
   temp = res ;
   res = NULL ;
   if (!level || (level+scalar < options->l) || (options->l < 0))
-  while(temp != NULL)
-  { if (level && options->strides)
-    cloog_loop_stride(temp, level);
-    if (level && options->otl)
-      cloog_loop_otl(temp, level);
-    inner = temp->inner ;
-    domain = temp->domain ;
-    into = NULL ;
-    while (inner != NULL)
-    { /* 4b. -ced- recurse for each sub-list of non terminal loops. */
-      if (cloog_loop_more(inner, level + 1, scalar, nb_scattdims)) {
-	end = inner;
-        while ((end->next != NULL) &&
-               cloog_loop_more(end->next, level + 1, scalar, nb_scattdims))
-        end = end->next ;
-        
-	next = end->next ;
-        end->next = NULL ;
-
-        l = cloog_loop_generate_restricted_or_stop(inner, domain,
-			level + 1, scalar, scaldims, nb_scattdims, options);
-        
-	if (l != NULL)
-        cloog_loop_add_list(&into,&now,l) ;
-        
-        inner = next ;
-      }
-      else
-      { cloog_loop_add(&into,&now,inner) ;
-        inner = inner->next ;
-      }
-    }
-    next = temp->next ;
-    temp->next = NULL ;
-    temp->inner = into ;
-    cloog_loop_add(&res,&now2,temp) ;
-    temp = next ;
-  }
+    res = cloog_loop_recurse(temp, level, scalar, scaldims, nb_scattdims,
+			     options);
   else
   while (temp != NULL)
   { next = temp->next ;
