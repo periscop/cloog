@@ -144,6 +144,7 @@ cloog_int_t cloog_gcd(cloog_int_t a, cloog_int_t b);
 #define cloog_int_is_neg_one(i)	(cloog_int_cmp_si(i,-1) == 0)
 #define cloog_int_gt_si(i,si)	(cloog_int_cmp_si(i,si) > 0)
 #define cloog_int_ne_si(i,j)	(cloog_int_cmp_si(i,j) != 0)
+#define cloog_int_lt(i,j)	(cloog_int_cmp(i,j) < 0)
 #define cloog_int_le(i,j)	(cloog_int_cmp(i,j) <= 0)
 #define cloog_int_abs_ne(i,j)	(cloog_int_abs_cmp(i,j) != 0)
 #define cloog_int_abs_ge(i,j)	(cloog_int_abs_cmp(i,j) >= 0)
