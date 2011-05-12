@@ -134,6 +134,10 @@ int           cloog_domain_can_stride(CloogDomain *domain, int level);
 int           cloog_domain_is_otl(CloogDomain *domain, int level);
 CloogDomain * cloog_domain_stride_lower_bound(CloogDomain *domain, int level,
 					CloogStride *stride);
+int           cloog_domain_can_unroll(CloogDomain *domain, int level,
+				cloog_int_t *n, CloogConstraint **lb);
+CloogDomain * cloog_domain_fixed_offset(CloogDomain *domain, int level,
+				CloogConstraint *lb, cloog_int_t offset);
 int           cloog_domain_lazy_disjoint(CloogDomain *, CloogDomain *) ;
 int           cloog_domain_lazy_equal(CloogDomain *, CloogDomain *) ;
 int           cloog_scattering_lazy_block(CloogScattering *, CloogScattering *,

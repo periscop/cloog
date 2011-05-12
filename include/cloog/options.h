@@ -64,6 +64,7 @@ struct cloogoptions
                    * increment can be something else than one), 0 otherwise.
 		   */
   int sh;	  /* 1 for computing simple hulls */
+  int first_unroll;
 
   /* OPTIONS FOR PRETTY PRINTING */
   int esp ;       /* 1 if user wants to spread all equalities, i.e. when there

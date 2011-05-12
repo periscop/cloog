@@ -1617,11 +1617,87 @@ CloogLoop *cloog_loop_constant(CloogLoop *loop, int level)
 
     return res;
 }
+
+
+/* Unroll the given loop at the given level, provided it is allowed
+ * by cloog_domain_can_unroll.
+ * If so, we return a list of loops, one for each iteration of the original
+ * loop.  Otherwise, we simply return the original loop.
+ */
+static CloogLoop *loop_unroll(CloogLoop *loop, int level)
+{
+    int can_unroll;
+    cloog_int_t i;
+    cloog_int_t n;
+    CloogConstraint *lb;
+    CloogLoop *res = NULL;
+    CloogLoop **next_res = &res;
+    CloogDomain *domain;
+    CloogLoop *inner;
+
+    cloog_int_init(n);
+    can_unroll = cloog_domain_can_unroll(loop->domain, level, &n, &lb);
+    if (!can_unroll) {
+	cloog_int_clear(n);
+	return loop;
+    }
+
+    cloog_int_init(i);
+
+    for (cloog_int_set_si(i, 0); cloog_int_lt(i, n); cloog_int_add_ui(i, i, 1)) {
+	domain = cloog_domain_copy(loop->domain);
+	domain = cloog_domain_fixed_offset(domain, level, lb, i);
+	inner = cloog_loop_copy(loop->inner);
+	inner = cloog_loop_restrict_all(inner, domain);
+	if (!inner) {
+	    cloog_domain_free(domain);
+	    continue;
+	}
+	*next_res = cloog_loop_alloc(loop->state, domain, 1, NULL, NULL,
+					inner, NULL);
+	next_res = &(*next_res)->next;
+    }
+
+    cloog_int_clear(i);
+    cloog_int_clear(n);
+    cloog_constraint_release(lb);
+
+    cloog_loop_free(loop);
+
+    return res;
+}
+
+
+/* Unroll all loops in the given list at the given level, provided
+ * they can be unrolled.
+ */
+CloogLoop *cloog_loop_unroll(CloogLoop *loop, int level)
+{
+    CloogLoop *now, *next;
+    CloogLoop *res = NULL;
+    CloogLoop **next_res = &res;
+
+    for (now = loop; now; now = next) {
+	next = now->next;
+	now->next = NULL;
+
+	*next_res = loop_unroll(now, level);
+
+	while (*next_res)
+	    next_res = &(*next_res)->next;
+    }
+
+    return res;
+}
  
 CloogLoop *cloog_loop_generate_restricted_or_stop(CloogLoop *loop,
 	CloogDomain *context,
 	int level, int scalar, int *scaldims, int nb_scattdims,
 	CloogOptions *options);
+
+CloogLoop *cloog_loop_recurse(CloogLoop *loop,
+	int level, int scalar, int *scaldims, int nb_scattdims,
+	int constant, CloogOptions *options);
 
 
 /**
@@ -1632,17 +1708,27 @@ CloogLoop *cloog_loop_generate_restricted_or_stop(CloogLoop *loop,
  * - scalar is the current scalar dimension,
  * - scaldims is the boolean array saying whether a dimension is scalar or not,
  * - nb_scattdims is the size of the scaldims array,
+ * - constant is true if the loop is known to be executed at most once
  * - options are the general code generation options.
  */
 static CloogLoop *loop_recurse(CloogLoop *loop,
 	int level, int scalar, int *scaldims, int nb_scattdims,
-	CloogOptions *options)
+	int constant, CloogOptions *options)
 {
     CloogLoop *inner, *into, *end, *next, *l, *now;
     CloogDomain *domain;
 
-    if (level && options->strides)
+    if (level && options->strides && !constant)
       cloog_loop_stride(loop, level);
+
+    if (!constant &&
+	options->first_unroll >= 0 && level + scalar >= options->first_unroll) {
+	loop = cloog_loop_unroll(loop, level);
+	if (loop->next)
+	    return cloog_loop_recurse(loop, level, scalar, scaldims,
+					nb_scattdims, 1, options);
+    }
+
     if (level && options->otl)
       cloog_loop_otl(loop, level);
     inner = loop->inner;
@@ -1686,11 +1772,12 @@ static CloogLoop *loop_recurse(CloogLoop *loop,
  * - scalar is the current scalar dimension,
  * - scaldims is the boolean array saying whether a dimension is scalar or not,
  * - nb_scattdims is the size of the scaldims array,
+ * - constant is true if the loop is known to be executed at most once
  * - options are the general code generation options.
  */
 CloogLoop *cloog_loop_recurse(CloogLoop *loop,
 	int level, int scalar, int *scaldims, int nb_scattdims,
-	CloogOptions *options)
+	int constant, CloogOptions *options)
 {
     CloogLoop *now, *next;
     CloogLoop *res = NULL;
@@ -1701,7 +1788,7 @@ CloogLoop *cloog_loop_recurse(CloogLoop *loop,
 	now->next = NULL;
 
 	*next_res = loop_recurse(now, level, scalar, scaldims, nb_scattdims,
-				 options);
+				 constant, options);
 
 	while (*next_res)
 	    next_res = &(*next_res)->next;
@@ -1739,11 +1826,13 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
 {
   CloogLoop *res, *now, *temp, *l, *new_loop, *next;
   int separate = 0;
+  int constant = 0;
 
   /* 3. Separate all projections into disjoint polyhedra. */
-  if (level > 0 && cloog_loop_is_constant(loop, level))
+  if (level > 0 && cloog_loop_is_constant(loop, level)) {
     res = cloog_loop_constant(loop, level);
-  else if ((options->f > level+scalar) || (options->f < 0))
+    constant = 1;
+  } else if ((options->f > level+scalar) || (options->f < 0))
     res = cloog_loop_merge(loop, level, options);
   else {
     res = cloog_loop_separate(loop);
@@ -1763,7 +1852,7 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
   res = NULL ;
   if (!level || (level+scalar < options->l) || (options->l < 0))
     res = cloog_loop_recurse(temp, level, scalar, scaldims, nb_scattdims,
-			     options);
+			     constant, options);
   else
   while (temp != NULL)
   { next = temp->next ;

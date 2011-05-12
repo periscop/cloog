@@ -7,6 +7,7 @@
 #include <isl/list.h>
 #include <isl/constraint.h>
 #include <isl/div.h>
+#include <isl/ilp.h>
 
 CloogDomain *cloog_domain_from_isl_set(struct isl_set *set)
 {
@@ -1703,4 +1704,139 @@ CloogStride *cloog_domain_list_stride(CloogDomainList *list, int level)
 	isl_basic_set_free(aff);
 
 	return data.stride;
+}
+
+struct cloog_can_unroll {
+	int can_unroll;
+	int level;
+	isl_constraint *c;
+};
+
+
+/* Check if we can still unroll given the presence of the given
+ * constraint.
+ * Only lower bounds on the current level have any impact.
+ * If such a lower bound involves any existentially quantified
+ * variables, we currently punt.
+ * Otherwise, if we haven't recorded any other lower bound,
+ * we record the current one.  If we have already recorded another
+ * bound, then there are at least two lower bounds and we cannot unroll.
+ */
+static int constraint_can_unroll(__isl_take isl_constraint *c, void *user)
+{
+	struct cloog_can_unroll *ccu = (struct cloog_can_unroll *)user;
+	isl_int v;
+	unsigned n_div;
+
+	isl_int_init(v);
+	isl_constraint_get_coefficient(c, isl_dim_set, ccu->level - 1, &v);
+	if (isl_int_is_pos(v)) {
+		n_div = isl_constraint_dim(c, isl_dim_div);
+		if (ccu->c ||
+		    isl_constraint_involves_dims(c, isl_dim_div, 0, n_div))
+			ccu->can_unroll = 0;
+		else
+			ccu->c = isl_constraint_copy(c);
+	}
+	isl_int_clear(v);
+	isl_constraint_free(c);
+
+	return 0;
+}
+
+
+/* Check if we can unroll the domain at the current level.
+ * If the domain is a union, we cannot.  Otherwise, we check the
+ * constraints.
+ */
+static int basic_set_can_unroll(__isl_take isl_basic_set *bset, void *user)
+{
+	struct cloog_can_unroll *ccu = (struct cloog_can_unroll *)user;
+	int r = 0;
+
+	if (ccu->c || !ccu->can_unroll)
+		ccu->can_unroll = 0;
+	else {
+		bset = isl_basic_set_remove_redundancies(bset);
+		r = isl_basic_set_foreach_constraint(bset,
+						&constraint_can_unroll, ccu);
+	}
+	isl_basic_set_free(bset);
+	return r;
+}
+
+
+/* Check if we can unroll the given domain at the given level, and
+ * if so, return the single lower bound in *lb and an upper bound
+ * on the number of iterations in *n.
+ * If we cannot unroll, return 0 and set *lb to NULL.
+ *
+ * We can unroll, if we can identify a single lower bound on level
+ * and if the number of iterations is bounded by a constant.
+ * We first look for the lower bound, say l, on the iterator i
+ * and then compute the maximal value of (i - ceil(l) + 1).
+ */
+int cloog_domain_can_unroll(CloogDomain *domain, int level, cloog_int_t *n,
+	CloogConstraint **lb)
+{
+	struct cloog_can_unroll ccu = { 1, level, NULL };
+	isl_set *set = isl_set_from_cloog_domain(domain);
+	int r;
+	isl_aff *aff;
+	enum isl_lp_result res;
+
+	*lb = NULL;
+	r = isl_set_foreach_basic_set(set, &basic_set_can_unroll, &ccu);
+	assert(r == 0);
+	if (!ccu.c)
+		ccu.can_unroll = 0;
+	if (!ccu.can_unroll) {
+		isl_constraint_free(ccu.c);
+		return 0;
+	}
+
+	aff = isl_constraint_get_bound(ccu.c, isl_dim_set, level - 1);
+	aff = isl_aff_ceil(aff);
+	aff = isl_aff_neg(aff);
+	aff = isl_aff_add_coefficient_si(aff, isl_dim_set, level - 1, 1);
+	res = isl_set_max(set, aff, n);
+	isl_aff_free(aff);
+
+	if (res == isl_lp_unbounded) {
+		isl_constraint_free(ccu.c);
+		return 0;
+	}
+	assert(res == isl_lp_ok);
+
+	cloog_int_add_ui(*n, *n, 1);
+
+	*lb = cloog_constraint_from_isl_constraint(ccu.c);
+
+	return ccu.can_unroll;
+}
+
+
+/* Fix the iterator i at the given level to l + o,
+ * where l is prescribed by the constraint lb and o is equal to offset.
+ * In particular, if lb is the constraint
+ *
+ *	a i >= f(j)
+ *
+ * then l = ceil(f(j)/a).
+ */
+CloogDomain *cloog_domain_fixed_offset(CloogDomain *domain,
+	int level, CloogConstraint *lb, cloog_int_t offset)
+{
+	isl_aff *aff;
+	isl_set *set = isl_set_from_cloog_domain(domain);
+	isl_constraint *eq;
+
+	aff = isl_constraint_get_bound(&lb->isl, isl_dim_set, level - 1);
+	aff = isl_aff_ceil(aff);
+	aff = isl_aff_add_coefficient_si(aff, isl_dim_set, level - 1, -1);
+	aff = isl_aff_add_constant(aff, offset);
+	eq = isl_equality_from_aff(aff);
+	set = isl_set_add_constraint(set, eq);
+
+	return cloog_domain_from_isl_set(set);
 }

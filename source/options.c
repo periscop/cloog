@@ -299,6 +299,7 @@ CloogOptions *cloog_options_malloc(CloogState *state)
   options->stop        = -1 ;  /* Generate all the code. */
   options->strides     =  0 ;  /* Generate a code with unit strides. */
   options->sh	       =  0;   /* Compute actual convex hull. */
+  options->first_unroll = -1;  /* First level to unroll: none. */
   options->name	       = "";
   /* OPTIONS FOR PRETTY PRINTING */
   options->esp         =  1 ;  /* We want Equality SPreading.*/
@@ -357,6 +358,8 @@ void cloog_options_read(CloogState *state, int argc, char **argv,
     cloog_options_set(&(*options)->strides,argc,argv,&i) ;
     else if (strcmp(argv[i],"-sh")   == 0)
       cloog_options_set(&(*options)->sh,argc,argv,&i) ;
+    else if (!strcmp(argv[i], "-first-unroll"))
+      cloog_options_set(&(*options)->first_unroll, argc, argv, &i);
     else
     if (strcmp(argv[i],"-otl") == 0)
     cloog_options_set(&(*options)->otl,argc,argv,&i) ;
