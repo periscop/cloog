@@ -1732,7 +1732,8 @@ static CloogLoop *loop_recurse(CloogLoop *loop,
     if (level && options->otl)
       cloog_loop_otl(loop, level);
     inner = loop->inner;
-    domain = loop->domain;
+    domain = cloog_domain_copy(loop->domain);
+    domain = cloog_domain_add_stride_constraint(domain, loop->stride);
     into = NULL ;
     while (inner != NULL)
     { /* 4b. -ced- recurse for each sub-list of non terminal loops. */
@@ -1759,6 +1760,7 @@ static CloogLoop *loop_recurse(CloogLoop *loop,
       }
     }
 
+    cloog_domain_free(domain);
     loop->inner = into;
     return loop;
 }
@@ -2580,9 +2582,10 @@ static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
 				new_block, inner, NULL);
 
   /* Only save the domains, if it involves only scattering dimensions.  */
-  if (options->save_domains && domain_dim <= nb_scattdims)
+  if (options->save_domains && domain_dim <= nb_scattdims) {
+    inter = cloog_domain_add_stride_constraint(inter, loop->stride);
     simplified->unsimplified = inter;
-  else
+  } else
     cloog_domain_free(inter);
 
   return(simplified) ; 

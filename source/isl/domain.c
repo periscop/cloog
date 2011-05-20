@@ -1008,6 +1008,26 @@ CloogDomain *cloog_domain_stride_lower_bound(CloogDomain *domain, int level,
 }
 
 
+/* Add stride constraint, if any, to domain.
+ */
+CloogDomain *cloog_domain_add_stride_constraint(CloogDomain *domain,
+	CloogStride *stride)
+{
+	isl_constraint *c;
+	isl_set *set;
+
+	if (!stride || !stride->constraint)
+		return domain;
+
+	set = isl_set_from_cloog_domain(domain);
+	c = isl_constraint_copy(&stride->constraint->isl);
+
+	set = isl_set_add_constraint(set, c);
+
+	return cloog_domain_from_isl_set(set);
+}
+
+
 /**
  * cloog_domain_lazy_equal function:
  * This function returns 1 if the domains given as input are the same, 0 if it
