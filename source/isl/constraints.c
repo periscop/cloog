@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <cloog/isl/cloog.h>
 #include <cloog/isl/backend.h>
+#include <isl/aff.h>
 #include <isl/set.h>
 
 
@@ -822,4 +823,86 @@ CloogConstraint *cloog_equal_constraint(CloogEqualities *equal, int j)
 	bset = cloog_constraints_set_to_isl(equal->constraints[j]);
 	return cloog_constraint_from_isl_constraint(
 		    isl_basic_set_first_constraint(isl_basic_set_copy(bset)));
+}
+
+/* Given a stride constraint on iterator i (specified by level) of the form
+ *
+ *	i = f(outer iterators) + stride * f(existentials)
+ *
+ * extract f as an isl_aff.
+ */
+static isl_aff *extract_stride_offset(__isl_keep isl_constraint *c,
+	int level, CloogStride *stride)
+{
+	int i;
+	isl_dim *dim = isl_constraint_get_dim(c);
+	isl_local_space *ls = isl_local_space_from_dim(dim);
+	isl_aff *offset = isl_aff_zero(ls);
+	isl_int u;
+	unsigned nparam, nvar;
+
+	isl_int_init(u);
+
+	nparam = isl_constraint_dim(c, isl_dim_param);
+	nvar = isl_constraint_dim(c, isl_dim_set);
+
+	for (i = 0; i < nparam; ++i) {
+		isl_constraint_get_coefficient(c, isl_dim_param, i, &u);
+		isl_int_mul(u, u, stride->factor);
+		offset = isl_aff_set_coefficient(offset, isl_dim_param, i, u);
+	}
+	for (i = 0; i < nvar; ++i) {
+		if (i == level - 1)
+			continue;
+		isl_constraint_get_coefficient(c, isl_dim_set, i, &u);
+		isl_int_mul(u, u, stride->factor);
+		offset = isl_aff_set_coefficient(offset, isl_dim_set, i, u);
+	}
+	isl_constraint_get_constant(c, &u);
+	isl_int_mul(u, u, stride->factor);
+	offset = isl_aff_set_constant(offset, u);
+
+	isl_int_clear(u);
+
+	return offset;
+}
+
+/* Update the given lower bound on level such that it satisfies the stride
+ * constraint.  The computation performed here is essentially the same
+ * as that performed in constraint_stride_lower_c.
+ *
+ * We update the constraint
+ *
+ *	a i + f >= 0
+ *
+ * to
+ *
+ *	i >= s * ceil((-f/a - d)/s) + d
+ *
+ * with s the stride and d the offset encoded in the stride constraint.
+ */
+CloogConstraint *cloog_constraint_stride_lower_bound(CloogConstraint *c,
+	int level, CloogStride *stride)
+{
+	isl_constraint *stride_c = &stride->constraint->isl;
+	isl_constraint *bound = &c->isl;
+	isl_aff *offset;
+	isl_aff *lower;
+
+	lower = isl_constraint_get_bound(bound, isl_dim_set, level - 1);
+	isl_constraint_free(bound);
+
+	offset = extract_stride_offset(stride_c, level, stride);
+
+	lower = isl_aff_sub(lower, isl_aff_copy(offset));
+	lower = isl_aff_scale_down(lower, stride->stride);
+	lower = isl_aff_ceil(lower);
+	lower = isl_aff_scale(lower, stride->stride);
+	lower = isl_aff_add(lower, offset);
+	lower = isl_aff_neg(lower);
+	lower = isl_aff_add_coefficient_si(lower, isl_dim_set, level - 1, 1);
+
+	bound = isl_inequality_from_aff(lower);
+
+	return cloog_constraint_from_isl_constraint(bound);
 }

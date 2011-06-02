@@ -793,13 +793,29 @@ static int count_bounds(CloogConstraint *c, void *user)
 }
 
 
+/* Update the given lower bound based on stride information,
+ * for those cases where the stride offset is represented by
+ * a constraint.
+ * Note that cloog_loop_stride may have already performed a
+ * similar update of the lower bounds, but the updated lower
+ * bounds may have been eliminated because they are redundant
+ * by definition.  On the other hand, performing the update
+ * on an already updated constraint is an identity operation
+ * and is therefore harmless.
+ */
+static CloogConstraint *update_lower_bound_c(CloogConstraint *c, int level,
+	CloogStride *stride)
+{
+    if (!stride->constraint)
+	return c;
+    return cloog_constraint_stride_lower_bound(c, level, stride);
+}
+
+
 /* Update the given lower bound based on stride information.
- * In some backends, the lower bounds are updated from within
- * cloog_loop_stride, but other backends leave the updating to
- * this function.  In the later case, the original lower bound
- * is known to be a constant.
- * If the bound turns out not to be a constant, we know we
- * are in the former case and nothing needs to be done.
+ * If the stride offset is represented by a constraint,
+ * then we have already performed the update in update_lower_bound_c.
+ * Otherwise, the original lower bound is known to be a constant.
  * If the bound has already been updated and it just happens
  * to be a constant, then this function performs an identity
  * operation on the constant.
@@ -832,12 +848,19 @@ static int collect_bounds(CloogConstraint *c, void *user)
     if (!valid_bound(c, d))
 	return 0;
 
+    c = cloog_constraint_copy(c);
+
+    if (d->lower_bound && d->infos->stride[d->level - 1])
+	c = update_lower_bound_c(c, d->level, d->infos->stride[d->level - 1]);
+
     d->r->elts[d->n] = clast_bound_from_constraint(c, d->level,
 							    d->infos->names);
     if (d->lower_bound && d->infos->stride[d->level - 1]) {
 	update_lower_bound(d->r->elts[d->n], d->level,
 			   d->infos->stride[d->level - 1]);
     }
+
+    cloog_constraint_release(c);
 
     d->n++;
 

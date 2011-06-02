@@ -23,6 +23,9 @@ CloogStride *cloog_stride_alloc_from_constraint(cloog_int_t stride,
 CloogStride *cloog_stride_copy(CloogStride *stride);
 void cloog_stride_free(CloogStride *stride);
 
+CloogConstraint *cloog_constraint_stride_lower_bound(CloogConstraint *c,
+	int level, CloogStride *stride);
+
 #if defined(__cplusplus)
 }
 #endif 
