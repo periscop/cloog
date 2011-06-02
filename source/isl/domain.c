@@ -720,6 +720,11 @@ static int constraint_can_stride(__isl_take isl_constraint *c, void *user)
 	isl_int v;
 	unsigned n_div;
 
+	if (isl_constraint_is_equality(c)) {
+		isl_constraint_free(c);
+		return 0;
+	}
+
 	isl_int_init(v);
 	isl_constraint_get_coefficient(c, isl_dim_set, ccs->level - 1, &v);
 	if (isl_int_is_pos(v)) {
@@ -827,6 +832,11 @@ static int constraint_stride_lower(__isl_take isl_constraint *c, void *user)
 	int pos;
 	unsigned nparam, nvar;
 
+	if (isl_constraint_is_equality(c)) {
+		isl_constraint_free(c);
+		return 0;
+	}
+
 	isl_int_init(v);
 	isl_constraint_get_coefficient(c, isl_dim_set, csl->level - 1, &v);
 	if (!isl_int_is_pos(v)) {
@@ -901,6 +911,11 @@ static int constraint_stride_lower_c(__isl_take isl_constraint *c, void *user)
 	isl_div *div;
 	int pos;
 	unsigned nparam, nvar;
+
+	if (isl_constraint_is_equality(c)) {
+		isl_constraint_free(c);
+		return 0;
+	}
 
 	isl_int_init(v);
 	isl_constraint_get_coefficient(c, isl_dim_set, csl->level - 1, &v);
