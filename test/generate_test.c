@@ -57,6 +57,17 @@ static const char postamble[] =
 
 static const char *call[] = {"good", "test"};
 
+static void print_macros(FILE *file)
+{
+	fprintf(file, "/* Useful macros. */\n") ;
+	fprintf(file,
+	    "#define floord(n,d) (((n)<0) ? -((-(n)+(d)-1)/(d)) : (n)/(d))\n");
+	fprintf(file,
+	    "#define ceild(n,d) (((n)<0) ? -((-(n))/(d)) : ((n)+(d)-1)/(d))\n");
+	fprintf(file, "#define max(x,y)    ((x) > (y) ? (x) : (y))\n") ; 
+	fprintf(file, "#define min(x,y)    ((x) < (y) ? (x) : (y))\n\n") ; 
+}
+
 int main()
 {
 	int dim;
@@ -128,6 +139,7 @@ int main()
 	}
 	printf(" assert(h_good == h_test);");
 	printf(" } while (0)\n");
+	print_macros(stdout);
 	cloog_program_pprint(stdout, p, options);
 	printf("%s", postamble);
 
