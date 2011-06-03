@@ -1115,8 +1115,8 @@ for (i=2;i<=n;i+=2) @{
     @code{-first-unroll <depth>}: this option sets the first loop depth
     to unroll.  Note that a loop is only unrolled when it is supported
     by the backend.  In case of the isl backend, a loop is unrolled
-    if it has a single lower bound and if it there is a fixed (non-parametric)
-    bound on the number of iterations.
+    if it has a lower bound that can only be incremented
+    a fixed (non-parametric) amount of times.
 
 
 @node Compilable Code

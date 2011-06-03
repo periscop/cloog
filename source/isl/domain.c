@@ -1745,32 +1745,61 @@ struct cloog_can_unroll {
 	int can_unroll;
 	int level;
 	isl_constraint *c;
+	isl_set *set;
+	isl_int *n;
 };
 
 
-/* Check if we can still unroll given the presence of the given
- * constraint.
- * Only lower bounds on the current level have any impact.
- * If such a lower bound involves any existentially quantified
+/*
+ * Check if the given lower bound can be used for unrolling.
+ * If the lower bound involves any existentially quantified
  * variables, we currently punt.
- * Otherwise, if we haven't recorded any other lower bound,
- * we record the current one.  If we have already recorded another
- * bound, then there are at least two lower bounds and we cannot unroll.
+ * Otherwise we compute the maximal value of (i - ceil(l) + 1),
+ * with l the given lower bound and i the iterator identified by level.
+ */
+static int is_valid_unrolling_lower_bound(struct cloog_can_unroll *ccu,
+	__isl_keep isl_constraint *c)
+{
+	unsigned n_div;
+	isl_aff *aff;
+	enum isl_lp_result res;
+
+	n_div = isl_constraint_dim(c, isl_dim_div);
+	if (isl_constraint_involves_dims(c, isl_dim_div, 0, n_div))
+		return 0;
+
+	aff = isl_constraint_get_bound(c, isl_dim_set, ccu->level - 1);
+	aff = isl_aff_ceil(aff);
+	aff = isl_aff_neg(aff);
+	aff = isl_aff_add_coefficient_si(aff, isl_dim_set, ccu->level - 1, 1);
+	res = isl_set_max(ccu->set, aff, ccu->n);
+	isl_aff_free(aff);
+
+	if (res == isl_lp_unbounded)
+		return 0;
+
+	assert(res == isl_lp_ok);
+
+	cloog_int_add_ui(*ccu->n, *ccu->n, 1);
+
+	return 1;
+}
+
+
+/* Check if we can unroll based on the given constraint.
+ * Only lower bounds can be used.
+ * Record it if it turns out to be usable and if we haven't recorded
+ * any other constraint already.
  */
 static int constraint_can_unroll(__isl_take isl_constraint *c, void *user)
 {
 	struct cloog_can_unroll *ccu = (struct cloog_can_unroll *)user;
 	isl_int v;
-	unsigned n_div;
 
 	isl_int_init(v);
 	isl_constraint_get_coefficient(c, isl_dim_set, ccu->level - 1, &v);
 	if (isl_int_is_pos(v)) {
-		n_div = isl_constraint_dim(c, isl_dim_div);
-		if (ccu->c ||
-		    isl_constraint_involves_dims(c, isl_dim_div, 0, n_div))
-			ccu->can_unroll = 0;
-		else
+		if (!ccu->c && is_valid_unrolling_lower_bound(ccu, c))
 			ccu->c = isl_constraint_copy(c);
 	}
 	isl_int_clear(v);
@@ -1806,19 +1835,15 @@ static int basic_set_can_unroll(__isl_take isl_basic_set *bset, void *user)
  * on the number of iterations in *n.
  * If we cannot unroll, return 0 and set *lb to NULL.
  *
- * We can unroll, if we can identify a single lower bound on level
- * and if the number of iterations is bounded by a constant.
- * We first look for the lower bound, say l, on the iterator i
- * and then compute the maximal value of (i - ceil(l) + 1).
+ * We can unroll, if we can identify a lower bound on level
+ * such that the number of iterations is bounded by a constant.
  */
 int cloog_domain_can_unroll(CloogDomain *domain, int level, cloog_int_t *n,
 	CloogConstraint **lb)
 {
-	struct cloog_can_unroll ccu = { 1, level, NULL };
 	isl_set *set = isl_set_from_cloog_domain(domain);
+	struct cloog_can_unroll ccu = { 1, level, NULL, set, n };
 	int r;
-	isl_aff *aff;
-	enum isl_lp_result res;
 
 	*lb = NULL;
 	r = isl_set_foreach_basic_set(set, &basic_set_can_unroll, &ccu);
@@ -1829,21 +1854,6 @@ int cloog_domain_can_unroll(CloogDomain *domain, int level, cloog_int_t *n,
 		isl_constraint_free(ccu.c);
 		return 0;
 	}
-
-	aff = isl_constraint_get_bound(ccu.c, isl_dim_set, level - 1);
-	aff = isl_aff_ceil(aff);
-	aff = isl_aff_neg(aff);
-	aff = isl_aff_add_coefficient_si(aff, isl_dim_set, level - 1, 1);
-	res = isl_set_max(set, aff, n);
-	isl_aff_free(aff);
-
-	if (res == isl_lp_unbounded) {
-		isl_constraint_free(ccu.c);
-		return 0;
-	}
-	assert(res == isl_lp_ok);
-
-	cloog_int_add_ui(*n, *n, 1);
 
 	*lb = cloog_constraint_from_isl_constraint(ccu.c);
 
