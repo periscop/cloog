@@ -39,18 +39,24 @@ dnl * Written by Cedric Bastoul, Cedric.Bastoul@inria.fr                      *
 dnl *                                                                         *
 dnl ***************************************************************************/
 
+m4_define([version_major], [0])
+m4_define([version_minor], [16])
+m4_define([version_revision], [2])
+
 AC_PREREQ(2.53)
-AC_INIT(source/cloog.c)
+AC_INIT([cloog], [version_major.version_minor.version_revision],
+	[cloog-development@googlegroups.com])
+AC_CONFIG_SRCDIR(source/cloog.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_MACRO_DIR([m4])
 
-VERSION_MAJOR=0
-VERSION_MINOR=16
-VERSION_REVISION=2
+VERSION_MAJOR=version_major
+VERSION_MINOR=version_minor
+VERSION_REVISION=version_revision
 AC_SUBST(versioninfo)
 versioninfo=1:2:0
 
-AM_INIT_AUTOMAKE(cloog, "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REVISION}")
+AM_INIT_AUTOMAKE([foreign])
 
 dnl /**************************************************************************
 dnl  *                              Checking                                  *
