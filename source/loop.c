@@ -247,6 +247,7 @@ int domain, block, inner, next ;
     if ((inner) && (loop->inner != NULL))
     cloog_loop_free_parts(loop->inner,domain,block,inner,1) ;
     
+    cloog_domain_free(loop->unsimplified);
     cloog_stride_free(loop->stride);
     free(loop) ;
     if (next)
