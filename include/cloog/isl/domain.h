@@ -13,9 +13,11 @@ extern "C"
 
 
 struct cloogdomain {
+	int dummy;	/* Solaris cc doesn't like zero-sized structs */
 };
 
 struct cloogscattering {
+	int dummy;	/* Solaris cc doesn't like zero-sized structs */
 };
 
 CloogDomain *cloog_domain_from_isl_set(struct isl_set *set);

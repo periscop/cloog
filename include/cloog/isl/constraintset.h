@@ -9,6 +9,7 @@ extern "C"
 #endif 
 
 struct cloogconstraintset {
+	int dummy;	/* Solaris cc doesn't like zero-sized structs */
 };
 
 struct cloogequalities {
