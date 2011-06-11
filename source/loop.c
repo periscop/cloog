@@ -2549,9 +2549,6 @@ static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
   CloogLoop *simplified, *inner;
   CloogDomain * domain, * simp, * inter, * extended_context ;
 
-  if (!cloog_domain_isconvex(loop->domain))
-    loop->domain = cloog_domain_simplify_union(loop->domain);
-
   domain = loop->domain ;
   
   domain_dim = cloog_domain_dimension(domain);
@@ -2625,6 +2622,21 @@ CloogLoop *cloog_loop_simplify(CloogLoop *loop, CloogDomain *context, int level,
   CloogLoop *now;
   CloogLoop *res = NULL;
   CloogLoop **next = &res;
+  int need_split = 0;
+
+  for (now = loop; now; now = now->next)
+    if (!cloog_domain_isconvex(now->domain)) {
+      now->domain = cloog_domain_simplify_union(now->domain);
+      if (!cloog_domain_isconvex(now->domain))
+	need_split = 1;
+    }
+  
+  /* If the input of CLooG contains any union domains, then they
+   * may not have been split yet at this point.  Do so now as the
+   * clast construction assumes there are no union domains.
+   */
+  if (need_split)
+    loop = cloog_loop_disjoint(loop);
 
   for (now = loop; now; now = now->next) {
     *next = loop_simplify(now, context, level, nb_scattdims, options);
@@ -2637,12 +2649,6 @@ CloogLoop *cloog_loop_simplify(CloogLoop *loop, CloogDomain *context, int level,
       next = &(*next)->next;
   }
   cloog_loop_free(loop);
-  
-  /* Examples like test/iftest2.cloog give unions of polyhedra after
-   * simplifying, thus we have to make them disjoint. Another good reason to
-   * put the simplifying step in the Quillere backtrack.
-   */
-  res = cloog_loop_disjoint(res);
 
   return res;
 }
