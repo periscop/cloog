@@ -769,6 +769,13 @@ void cloog_constraint_clear(CloogConstraint *constraint)
 		cloog_int_set_si(constraint->line[0][k], 0);
 }
 
+CloogConstraintSet *cloog_constraint_set_drop_constraint(
+	CloogConstraintSet *constraints, CloogConstraint *constraint)
+{
+	cloog_constraint_clear(constraint);
+	return constraints;
+}
+
 void cloog_constraint_coefficient_get(CloogConstraint *constraint,
 			int var, cloog_int_t *val)
 {

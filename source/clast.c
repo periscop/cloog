@@ -45,7 +45,7 @@ static int clast_equal_add(CloogEqualities *equal,
 static struct clast_stmt *clast_equal(int level, CloogInfos *infos);
 static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
 					int level, int max, int guard, 
-					int lower_bound,
+					int lower_bound, int no_earlier,
 					CloogInfos *infos);
 static void insert_guard(CloogConstraintSet *constraints, int level,
 			  struct clast_stmt ***next, CloogInfos *infos);
@@ -755,6 +755,7 @@ struct clast_minmax_data {
     int max;
     int guard;
     int lower_bound;
+    int no_earlier;
     CloogInfos *infos;
     int n;
     struct clast_reduction *r;
@@ -762,9 +763,14 @@ struct clast_minmax_data {
 
 
 /* Should constraint "c" be considered by clast_minmax?
+ *
+ * If d->no_earlier is set, then the constraint may not involve
+ * any earlier variables.
  */
 static int valid_bound(CloogConstraint *c, struct clast_minmax_data *d)
 {
+    int i;
+
     if (d->max && !cloog_constraint_is_lower_bound(c, d->level - 1))
 	return 0;
     if (!d->max && !cloog_constraint_is_upper_bound(c, d->level - 1))
@@ -773,6 +779,11 @@ static int valid_bound(CloogConstraint *c, struct clast_minmax_data *d)
 	return 0;
     if (d->guard && cloog_constraint_involves(c, d->guard - 1))
 	return 0;
+
+    if (d->no_earlier)
+	for (i = 0; i < d->level - 1; ++i)
+	    if (cloog_constraint_involves(c, i))
+		return 0;
 
     return 1;
 }
@@ -885,6 +896,8 @@ static int collect_bounds(CloogConstraint *c, void *user)
  *   with a guard otherwise (then the function gives the max or the min only
  *   for the constraint where the guarded coefficient is 0), 
  * - lower is set to 1 if the maximum is to be used a lower bound on a loop
+ * - no_earlier is set if no constraints should be used that involve
+ *   earlier dimensions,
  * - the infos structure gives the user some options about code printing,
  *   the number of parameters in domain (nb_par), and the arrays of iterator
  *   names and parameters (iters and params). 
@@ -893,10 +906,11 @@ static int collect_bounds(CloogConstraint *c, void *user)
  */
 static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
 				       int level, int max, int guard,
-				       int lower_bound,
+				       int lower_bound, int no_earlier,
 				       CloogInfos *infos)
 {
-    struct clast_minmax_data data = { level, max, guard, lower_bound, infos };
+    struct clast_minmax_data data = { level, max, guard, lower_bound,
+				      no_earlier, infos };
   
     data.n = 0;
 
@@ -922,9 +936,12 @@ static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
  * Any constraint used in constructing a modulo guard is removed
  * from the constraint set to avoid insert_guard
  * adding a duplicate (pair of) constraint(s).
+ *
+ * Return the updated CloogConstraintSet.
  */
-static void insert_extra_modulo_guards(CloogConstraintSet *constraints,
-		int level, struct clast_stmt ***next, CloogInfos *infos)
+static CloogConstraintSet *insert_extra_modulo_guards(
+	CloogConstraintSet *constraints, int level,
+	struct clast_stmt ***next, CloogInfos *infos)
 {
     int i;
     int nb_iter;
@@ -942,7 +959,8 @@ static void insert_extra_modulo_guards(CloogConstraintSet *constraints,
 		    !cloog_constraint_involves(upper, level-1)) {
 		insert_modulo_guard(upper,
 				cloog_constraint_invalid(), i, next, infos);
-		cloog_constraint_clear(upper);
+		constraints = cloog_constraint_set_drop_constraint(constraints,
+									upper);
 	    }
 	    cloog_constraint_release(upper);
 	} else if (cloog_constraint_is_valid(upper =
@@ -951,35 +969,17 @@ static void insert_extra_modulo_guards(CloogConstraintSet *constraints,
 	    if (!level || (nb_iter < level) ||
 		    !cloog_constraint_involves(upper, level-1)) {
 		insert_modulo_guard(upper, lower, i, next, infos);
-		cloog_constraint_clear(upper);
-		cloog_constraint_clear(lower);
+		constraints = cloog_constraint_set_drop_constraint(constraints,
+									upper);
+		constraints = cloog_constraint_set_drop_constraint(constraints,
+									lower);
 	    }
 	    cloog_constraint_release(upper);
 	    cloog_constraint_release(lower);
 	}
     }
-}
 
-
-static int clear_lower_bound_at_level(CloogConstraint *c, void *user)
-{
-    int level = *(int *)user;
-
-    if (cloog_constraint_is_lower_bound(c, level - 1))
-	cloog_constraint_clear(c);
-
-    return 0;
-}
-
-
-static int clear_upper_bound_at_level(CloogConstraint *c, void *user)
-{
-    int level = *(int *)user;
-
-    if (cloog_constraint_is_upper_bound(c, level - 1))
-	cloog_constraint_clear(c);
-
-    return 0;
+    return constraints;
 }
 
 
@@ -994,6 +994,9 @@ struct clast_guard_data {
     int nb_iter;
     CloogConstraintSet *copy;
     struct clast_guard *g;
+
+    int min;
+    int max;
 };
 
 
@@ -1008,24 +1011,46 @@ static int guard_count_bounds(CloogConstraint *c, void *user)
 
 
 /* Insert a guard, if necesessary, for constraint j.
+ *
+ * If the constraint involves any earlier dimensions, then we have
+ * already considered it during a previous iteration over the constraints.
+ *
+ * If we have already generated a min [max] for the current level d->i
+ * and if the current constraint is an upper [lower] bound, then we
+ * can skip the constraint as it will already have been used
+ * in that previously generated min [max].
  */
 static int insert_guard_constraint(CloogConstraint *j, void *user)
 {
+    int i;
     struct clast_guard_data *d = (struct clast_guard_data *) user;
     int minmax = -1;
+    int individual_constraint;
     struct clast_expr *v;
     struct clast_term *t;
 
     if (!cloog_constraint_involves(j, d->i - 1))
 	return 0;
 
+    for (i = 0; i < d->i - 1; ++i)
+	if (cloog_constraint_involves(j, i))
+	    return 0;
+
     if (d->level && d->nb_iter >= d->level &&
 	    cloog_constraint_involves(j, d->level - 1))
 	return 0;
 
+    individual_constraint = !d->level || cloog_constraint_is_equality(j);
+    if (!individual_constraint) {
+	if (d->max && cloog_constraint_is_lower_bound(j, d->i - 1))
+	    return 0;
+	if (d->min && cloog_constraint_is_upper_bound(j, d->i - 1))
+	    return 0;
+    }
+
     v = cloog_constraint_variable_expr(j, d->i, d->infos->names);
     d->g->eq[d->n].LHS = &(t = new_clast_term(d->infos->state->one, v))->expr;
-    if (!d->level || cloog_constraint_is_equality(j)) {
+    if (individual_constraint) {
 	/* put the "denominator" in the LHS */
 	cloog_constraint_coefficient_get(j, d->i - 1, &t->val);
 	cloog_constraint_coefficient_set(j, d->i - 1, d->infos->state->one);
@@ -1045,33 +1070,20 @@ static int insert_guard_constraint(CloogConstraint *j, void *user)
 
 	if (cloog_constraint_is_lower_bound(j, d->i - 1)) {
 	    minmax = 1;
+	    d->max = 1;
 	    d->g->eq[d->n].sign = 1;
 	} else {
 	    minmax = 0;
+	    d->min = 1;
 	    d->g->eq[d->n].sign = -1;
 	}
 	  
 	guarded = (d->nb_iter >= d->level) ? d->level : 0 ;
-	d->g->eq[d->n].RHS = clast_minmax(d->copy,  d->i, minmax, guarded, 0,
+	d->g->eq[d->n].RHS = clast_minmax(d->copy,  d->i, minmax, guarded, 0, 1,
 					  d->infos);
     }
     d->n++;
-
-    /* 'elimination' of the current constraint, this avoid to use one
-     * constraint more than once. The current line is always eliminated,
-     * and the next lines if they are in a min or a max.
-     */
-    cloog_constraint_clear(j);
 	
-    if (minmax == -1)
-	return 0;
-    if (minmax == 1)
-	cloog_constraint_set_foreach_constraint(d->copy,
-					    clear_lower_bound_at_level, &d->i);
-    else if (minmax == 0)
-	cloog_constraint_set_foreach_constraint(d->copy,
-					    clear_upper_bound_at_level, &d->i);
-
     return 0;
 }
 
@@ -1114,7 +1126,7 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 
     data.copy = cloog_constraint_set_copy(constraints);
 
-    insert_extra_modulo_guards(data.copy, level, next, infos);
+    data.copy = insert_extra_modulo_guards(data.copy, level, next, infos);
 
     cloog_constraint_set_foreach_constraint(constraints,
 						guard_count_bounds, &data);
@@ -1130,9 +1142,12 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
  
     /* We search for guard parts. */
     total_dim = cloog_constraint_set_total_dimension(constraints);
-    for (data.i = 1; data.i <= total_dim; data.i++)
+    for (data.i = 1; data.i <= total_dim; data.i++) {
+	data.min = 0;
+	data.max = 0;
 	cloog_constraint_set_foreach_constraint(data.copy,
 						insert_guard_constraint, &data);
+    }
 
     cloog_constraint_set_free(data.copy);
 
@@ -1653,8 +1668,8 @@ static int insert_for(CloogDomain *domain, CloogConstraintSet *constraints,
   struct clast_expr *e1;
   struct clast_expr *e2;
   
-  e1 = clast_minmax(constraints, level, 1, 0, 1, infos);
-  e2 = clast_minmax(constraints, level, 0, 0, 0, infos);
+  e1 = clast_minmax(constraints, level, 1, 0, 1, 0, infos);
+  e2 = clast_minmax(constraints, level, 0, 0, 0, 0, infos);
 
   if (clast_expr_is_bigger_constant(e1, e2)) {
     free_clast_expr(e1);

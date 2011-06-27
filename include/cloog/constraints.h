@@ -107,9 +107,10 @@ void          cloog_constraint_coefficient_get(CloogConstraint *constraint,
 			int var, cloog_int_t *val);
 void          cloog_constraint_coefficient_set(CloogConstraint *constraint,
 			int var, cloog_int_t val);
-void          cloog_constraint_clear(CloogConstraint *constraint);
 void          cloog_constraint_copy_coefficients(CloogConstraint *constraint,
 			cloog_int_t *dst);
+CloogConstraintSet *cloog_constraint_set_drop_constraint(
+	CloogConstraintSet *constraints, CloogConstraint *constraint);
 
 struct clast_expr *cloog_constraint_variable_expr(CloogConstraint *constraint,
 			int level, CloogNames *names);
