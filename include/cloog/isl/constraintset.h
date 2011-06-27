@@ -20,11 +20,12 @@ struct cloogequalities {
 };
 
 struct cloogconstraint {
-	struct isl_constraint isl;
+	int dummy;	/* Solaris cc doesn't like zero-sized structs */
 };
 
 CloogConstraintSet *cloog_constraint_set_from_isl_basic_set(struct isl_basic_set *bset);
 CloogConstraint *cloog_constraint_from_isl_constraint(struct isl_constraint *constraint);
+isl_constraint *cloog_constraint_to_isl(CloogConstraint *constraint);
 
 #if defined(__cplusplus)
   }

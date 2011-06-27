@@ -927,7 +927,7 @@ static int constraint_stride_lower_c(__isl_take isl_constraint *c, void *user)
 		return 0;
 	}
 
-	csl_c = &csl->stride->constraint->isl;
+	csl_c = cloog_constraint_to_isl(csl->stride->constraint);
 
 	isl_int_init(t);
 	isl_int_init(u);
@@ -1036,7 +1036,7 @@ CloogDomain *cloog_domain_add_stride_constraint(CloogDomain *domain,
 		return domain;
 
 	set = isl_set_from_cloog_domain(domain);
-	c = isl_constraint_copy(&stride->constraint->isl);
+	c = isl_constraint_copy(cloog_constraint_to_isl(stride->constraint));
 
 	set = isl_set_add_constraint(set, c);
 
@@ -1875,9 +1875,11 @@ CloogDomain *cloog_domain_fixed_offset(CloogDomain *domain,
 {
 	isl_aff *aff;
 	isl_set *set = isl_set_from_cloog_domain(domain);
+	isl_constraint *c;
 	isl_constraint *eq;
 
-	aff = isl_constraint_get_bound(&lb->isl, isl_dim_set, level - 1);
+	c = cloog_constraint_to_isl(lb);
+	aff = isl_constraint_get_bound(c, isl_dim_set, level - 1);
 	aff = isl_aff_ceil(aff);
 	aff = isl_aff_add_coefficient_si(aff, isl_dim_set, level - 1, -1);
 	aff = isl_aff_add_constant(aff, offset);
