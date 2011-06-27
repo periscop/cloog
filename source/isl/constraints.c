@@ -187,7 +187,7 @@ CloogEqualities *cloog_equal_alloc(int n, int nb_levels, int nb_parameters)
 
 	equal->total_dim = nb_levels - 1 + nb_parameters;
 	equal->n = n;
-	equal->constraints = ALLOCN(CloogConstraintSet *, n);
+	equal->constraints = ALLOCN(isl_constraint *, n);
 	equal->types = ALLOCN(int, n);
 	for (i = 0; i < n; ++i) {
 		equal->constraints[i] = NULL;
@@ -204,12 +204,9 @@ int cloog_equal_total_dimension(CloogEqualities *equal)
 void cloog_equal_free(CloogEqualities *equal)
 {
 	int i;
-	isl_basic_set *bset;
 
-	for (i = 0; i < equal->n; ++i) {
-		bset = cloog_constraints_set_to_isl(equal->constraints[i]);
-		isl_basic_set_free(bset);
-	}
+	for (i = 0; i < equal->n; ++i)
+		isl_constraint_free(equal->constraints[i]);
 	free(equal->constraints);
 	free(equal->types);
 	free(equal);
@@ -317,18 +314,10 @@ int cloog_equal_type(CloogEqualities *equal, int level)
 void cloog_equal_add(CloogEqualities *equal, CloogConstraintSet *matrix,
 			int level, CloogConstraint *line, int nb_par)
 { 
-	struct isl_basic_set *bset;
-	unsigned nparam;
 	assert(cloog_constraint_is_valid(line));
   
 	equal->types[level-1] = cloog_constraint_equal_type(line, level);
-	bset = isl_basic_set_from_constraint(isl_constraint_copy(&line->isl));
-	nparam = isl_basic_set_n_param(bset);
-	bset = isl_basic_set_extend(bset, nparam,
-				    equal->total_dim - nparam, 0, 0, 0);
-	bset = isl_basic_set_finalize(bset);
-	equal->constraints[level-1] =
-		cloog_constraint_set_from_isl_basic_set(bset);
+	equal->constraints[level - 1] = isl_constraint_copy(&line->isl);
 }
 
 
@@ -340,10 +329,8 @@ void cloog_equal_add(CloogEqualities *equal, CloogConstraintSet *matrix,
  */
 void cloog_equal_del(CloogEqualities *equal, int level)
 { 
-	isl_basic_set *bset;
-	bset = cloog_constraints_set_to_isl(equal->constraints[level - 1]);
 	equal->types[level-1] = EQTYPE_NONE;
-	isl_basic_set_free(bset);
+	isl_constraint_free(equal->constraints[level - 1]);
 	equal->constraints[level-1] = NULL;
 }
 
@@ -669,6 +656,27 @@ static int add_constant_term(CloogConstraint *c, void *user)
 	return 0;
 }
 
+
+/* Return an isl_basic_set representation of the equality stored
+ * at position i in the given CloogEqualities.
+ */
+static __isl_give isl_basic_set *equality_to_basic_set(CloogEqualities *equal,
+	int i)
+{
+	isl_constraint *c;
+	isl_basic_set *bset;
+	unsigned nparam;
+	unsigned nvar;
+
+	c = isl_constraint_copy(equal->constraints[i]);
+	bset = isl_basic_set_from_constraint(c);
+	nparam = isl_basic_set_dim(bset, isl_dim_param);
+	nvar = isl_basic_set_dim(bset, isl_dim_set);
+	bset = isl_basic_set_add(bset, isl_dim_set,
+				 equal->total_dim - (nparam + nvar));
+	return bset;
+}
+
 /**
  * Reduce the modulo guard expressed by "constraints" using equalities
  * found in outer nesting levels (stored in "equal").
@@ -725,12 +733,11 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 		isl_basic_set *bset_j;
 		if (equal->types[j] != EQTYPE_EXAFFINE)
 			continue;
-		bset_j = cloog_constraints_set_to_isl(equal->constraints[j]);
+		bset_j = equality_to_basic_set(equal, j);
 		if (!eq)
-			eq = isl_basic_set_copy(bset_j);
+			eq = bset_j;
 		else
-			eq = isl_basic_set_intersect(eq,
-						    isl_basic_set_copy(bset_j));
+			eq = isl_basic_set_intersect(eq, bset_j);
 	}
 	if (!eq) {
 		isl_basic_set_free(orig);
@@ -819,10 +826,10 @@ int cloog_constraint_set_foreach_constraint(CloogConstraintSet *constraints,
 
 CloogConstraint *cloog_equal_constraint(CloogEqualities *equal, int j)
 {
-	isl_basic_set *bset;
-	bset = cloog_constraints_set_to_isl(equal->constraints[j]);
-	return cloog_constraint_from_isl_constraint(
-		    isl_basic_set_first_constraint(isl_basic_set_copy(bset)));
+	isl_constraint *c;
+
+	c = isl_constraint_copy(equal->constraints[j]);
+	return cloog_constraint_from_isl_constraint(c);
 }
 
 /* Given a stride constraint on iterator i (specified by level) of the form

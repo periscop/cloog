@@ -15,7 +15,7 @@ struct cloogconstraintset {
 struct cloogequalities {
 	int			  n;
 	unsigned		  total_dim;
-	CloogConstraintSet	**constraints;
+	isl_constraint		**constraints;
 	int			 *types;
 };
 
