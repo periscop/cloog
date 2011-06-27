@@ -103,6 +103,35 @@ CloogConstraint *cloog_constraint_set_defining_equality(
 }
 
 
+struct cloog_isl_other {
+	int level;
+	int found;
+	isl_constraint *u;
+	isl_constraint *l;
+};
+
+
+/* Set other->found to 1 if the given constraint involves other->level
+ * and is different from other->u and other->l.
+ */
+static int check_other_constraint(__isl_take isl_constraint *c, void *user)
+{
+	struct cloog_isl_other *other = user;
+	CloogConstraint *cc;
+
+	if (!isl_constraint_is_equal(c, other->l) &&
+	    !isl_constraint_is_equal(c, other->u)) {
+		cc = cloog_constraint_from_isl_constraint(c);
+		if (cloog_constraint_involves(cc, other->level - 1))
+			other->found = 1;
+	}
+
+	isl_constraint_free(c);
+
+	return other->found ? -1 : 0;
+}
+
+
 /* Check if the variable (e) at position level is defined by a
  * pair of inequalities
  *		 <a, i> + -m e +  <b, p> + k1 >= 0
@@ -123,29 +152,26 @@ CloogConstraint *cloog_constraint_set_defining_inequalities(
 {
 	struct isl_constraint *u;
 	struct isl_constraint *l;
-	struct isl_constraint *c;
 	struct cloog_isl_dim dim;
 	struct isl_basic_set *bset;
+	struct cloog_isl_other other;
 
 	bset = cloog_constraints_set_to_isl(constraints);
 	dim = set_cloog_dim_to_isl_dim(constraints, level - 1);
 	if (!isl_basic_set_has_defining_inequalities(bset, dim.type, dim.pos,
 								&l, &u))
 		return cloog_constraint_invalid();
-	for (c = isl_basic_set_first_constraint(isl_basic_set_copy(bset)); c;
-	     c = isl_constraint_next(c)) {
-		if (isl_constraint_is_equal(c, l))
-			continue;
-		if (isl_constraint_is_equal(c, u))
-			continue;
-		*lower = cloog_constraint_from_isl_constraint(c);
-		if (cloog_constraint_involves(*lower, level-1)) {
-			isl_constraint_free(l);
-			isl_constraint_free(u);
-			*lower = NULL;
-			isl_constraint_free(c);
-			return NULL;
-		}
+
+	other.l = l;
+	other.u = u;
+	other.found = 0;
+	other.level = level;
+	isl_basic_set_foreach_constraint(bset, &check_other_constraint, &other);
+	if (other.found) {
+		isl_constraint_free(l);
+		isl_constraint_free(u);
+		*lower = NULL;
+		return NULL;
 	}
 	*lower = cloog_constraint_from_isl_constraint(l);
 	return cloog_constraint_from_isl_constraint(u);
