@@ -564,16 +564,16 @@ int cloog_constraint_is_equality(CloogConstraint *constraint)
 	return isl_constraint_is_equality(cloog_constraint_to_isl(constraint));
 }
 
-void cloog_constraint_clear(CloogConstraint *constraint)
-{
-	isl_constraint_clear(cloog_constraint_to_isl(constraint));
-}
-
 CloogConstraintSet *cloog_constraint_set_drop_constraint(
 	CloogConstraintSet *constraints, CloogConstraint *constraint)
 {
-	cloog_constraint_clear(constraint);
-	return constraints;
+	isl_basic_set *bset;
+	isl_constraint *c;
+
+	bset = cloog_constraints_set_to_isl(constraints);
+	c = cloog_constraint_to_isl(cloog_constraint_copy(constraint));
+	bset = isl_basic_set_drop_constraint(bset, c);
+	return cloog_constraint_set_from_isl_basic_set(bset);
 }
 
 void cloog_constraint_coefficient_get(CloogConstraint *constraint,
