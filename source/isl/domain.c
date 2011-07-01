@@ -8,6 +8,7 @@
 #include <isl/constraint.h>
 #include <isl/div.h>
 #include <isl/ilp.h>
+#include <isl/aff.h>
 
 CloogDomain *cloog_domain_from_isl_set(struct isl_set *set)
 {
