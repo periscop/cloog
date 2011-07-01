@@ -825,13 +825,9 @@ struct cloog_stride_lower {
 static int constraint_stride_lower(__isl_take isl_constraint *c, void *user)
 {
 	struct cloog_stride_lower *csl = (struct cloog_stride_lower *)user;
-	int i;
 	isl_int v;
-	isl_int t;
 	isl_constraint *bound;
-	isl_div *div;
-	int pos;
-	unsigned nparam, nvar;
+	isl_aff *b;
 
 	if (isl_constraint_is_equality(c)) {
 		isl_constraint_free(c);
@@ -847,40 +843,22 @@ static int constraint_stride_lower(__isl_take isl_constraint *c, void *user)
 		return 0;
 	}
 
-	isl_int_init(t);
+	b = isl_constraint_get_bound(c, isl_dim_set, csl->level - 1);
 
-	nparam = isl_constraint_dim(c, isl_dim_param);
-	nvar = isl_constraint_dim(c, isl_dim_set);
-	bound = isl_inequality_alloc(isl_basic_set_get_dim(csl->bounds));
-	div = isl_div_alloc(isl_basic_set_get_dim(csl->bounds));
-	isl_int_mul(t, v, csl->stride->stride);
-	isl_div_set_denominator(div, t);
-	for (i = 0; i < nparam; ++i) {
-		isl_constraint_get_coefficient(c, isl_dim_param, i, &t);
-		isl_div_set_coefficient(div, isl_dim_param, i, t);
-	}
-	for (i = 0; i < nvar; ++i) {
-		if (i == csl->level - 1)
-			continue;
-		isl_constraint_get_coefficient(c, isl_dim_set, i, &t);
-		isl_div_set_coefficient(div, isl_dim_set, i, t);
-	}
-	isl_constraint_get_constant(c, &t);
-	isl_int_addmul(t, v, csl->stride->offset);
-	isl_div_set_constant(div, t);
+	b = isl_aff_neg(b);
+	b = isl_aff_add_constant(b, csl->stride->offset);
+	b = isl_aff_scale_down(b, csl->stride->stride);
+	b = isl_aff_floor(b);
+	b = isl_aff_scale(b, csl->stride->stride);
+	isl_int_neg(v, csl->stride->offset);
+	b = isl_aff_add_constant(b, v);
+	b = isl_aff_add_coefficient_si(b, isl_dim_set, csl->level - 1, 1);
 
-	bound = isl_constraint_add_div(bound, div, &pos);
-	isl_int_set_si(t, 1);
-	isl_constraint_set_coefficient(bound, isl_dim_set,
-					csl->level - 1, t);
-	isl_constraint_set_coefficient(bound, isl_dim_div, pos,
-					csl->stride->stride);
-	isl_int_neg(t, csl->stride->offset);
-	isl_constraint_set_constant(bound, t);
+	bound = isl_inequality_from_aff(b);
+
 	csl->bounds = isl_basic_set_add_constraint(csl->bounds, bound);
 
 	isl_int_clear(v);
-	isl_int_clear(t);
 	isl_constraint_free(c);
 
 	return 0;
@@ -904,14 +882,10 @@ static int constraint_stride_lower(__isl_take isl_constraint *c, void *user)
 static int constraint_stride_lower_c(__isl_take isl_constraint *c, void *user)
 {
 	struct cloog_stride_lower *csl = (struct cloog_stride_lower *)user;
-	int i;
 	isl_int v;
-	isl_int t, u;
 	isl_constraint *bound;
 	isl_constraint *csl_c;
-	isl_div *div;
-	int pos;
-	unsigned nparam, nvar;
+	isl_aff *d, *b;
 
 	if (isl_constraint_is_equality(c)) {
 		isl_constraint_free(c);
@@ -929,53 +903,25 @@ static int constraint_stride_lower_c(__isl_take isl_constraint *c, void *user)
 
 	csl_c = cloog_constraint_to_isl(csl->stride->constraint);
 
-	isl_int_init(t);
-	isl_int_init(u);
+	d = isl_constraint_get_aff(csl_c);
+	d = isl_aff_drop_dims(d, isl_dim_div, 0, isl_aff_dim(d, isl_dim_div));
+	d = isl_aff_set_coefficient_si(d, isl_dim_set, csl->level - 1, 0);
+	d = isl_aff_scale(d, csl->stride->factor);
 
-	nparam = isl_constraint_dim(c, isl_dim_param);
-	nvar = isl_constraint_dim(c, isl_dim_set);
-	bound = isl_inequality_alloc(isl_basic_set_get_dim(csl->bounds));
-	div = isl_div_alloc(isl_basic_set_get_dim(csl->bounds));
-	isl_int_mul(t, v, csl->stride->stride);
-	isl_div_set_denominator(div, t);
-	for (i = 0; i < nparam; ++i) {
-		isl_constraint_get_coefficient(c, isl_dim_param, i, &t);
-		isl_constraint_get_coefficient(csl_c, isl_dim_param, i, &u);
-		isl_int_mul(u, u, csl->stride->factor);
-		isl_int_addmul(t, v, u);
-		isl_div_set_coefficient(div, isl_dim_param, i, t);
-		isl_int_neg(u, u);
-		isl_constraint_set_coefficient(bound, isl_dim_param, i, u);
-	}
-	for (i = 0; i < nvar; ++i) {
-		if (i == csl->level - 1)
-			continue;
-		isl_constraint_get_coefficient(c, isl_dim_set, i, &t);
-		isl_constraint_get_coefficient(csl_c, isl_dim_set, i, &u);
-		isl_int_mul(u, u, csl->stride->factor);
-		isl_int_addmul(t, v, u);
-		isl_div_set_coefficient(div, isl_dim_set, i, t);
-		isl_int_neg(u, u);
-		isl_constraint_set_coefficient(bound, isl_dim_set, i, u);
-	}
-	isl_constraint_get_constant(c, &t);
-	isl_constraint_get_constant(csl_c, &u);
-	isl_int_mul(u, u, csl->stride->factor);
-	isl_int_addmul(t, v, u);
-	isl_div_set_constant(div, t);
-	isl_int_neg(u, u);
-	isl_constraint_set_constant(bound, u);
+	b = isl_constraint_get_bound(c, isl_dim_set, csl->level - 1);
 
-	bound = isl_constraint_add_div(bound, div, &pos);
-	isl_int_set_si(t, 1);
-	isl_constraint_set_coefficient(bound, isl_dim_set,
-					csl->level - 1, t);
-	isl_constraint_set_coefficient(bound, isl_dim_div, pos,
-					csl->stride->stride);
+	b = isl_aff_neg(b);
+	b = isl_aff_add(b, isl_aff_copy(d));
+	b = isl_aff_scale_down(b, csl->stride->stride);
+	b = isl_aff_floor(b);
+	b = isl_aff_scale(b, csl->stride->stride);
+	b = isl_aff_sub(b, d);
+	b = isl_aff_add_coefficient_si(b, isl_dim_set, csl->level - 1, 1);
+
+	bound = isl_inequality_from_aff(b);
+
 	csl->bounds = isl_basic_set_add_constraint(csl->bounds, bound);
 
-	isl_int_clear(u);
-	isl_int_clear(t);
 	isl_int_clear(v);
 	isl_constraint_free(c);
 
