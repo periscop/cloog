@@ -41,7 +41,7 @@ dnl ***************************************************************************/
 
 m4_define([version_major], [0])
 m4_define([version_minor], [16])
-m4_define([version_revision], [2])
+m4_define([version_revision], [3])
 
 AC_PREREQ(2.53)
 AC_INIT([cloog], [version_major.version_minor.version_revision],
@@ -54,7 +54,7 @@ VERSION_MAJOR=version_major
 VERSION_MINOR=version_minor
 VERSION_REVISION=version_revision
 AC_SUBST(versioninfo)
-versioninfo=1:2:0
+versioninfo=2:0:0
 
 AM_INIT_AUTOMAKE([foreign])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])

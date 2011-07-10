@@ -1,0 +1,11 @@
+version: 0.16.3
+date: Wed Jul 13 18:18:19 CEST 2011
+changes:
+	- update isl backend to recent changes in isl
+	- add support for unrolling
+---
+version: 0.16.2
+date: Sun Mar 20 15:51:13 CET 2011
+changes:
+	- update isl backend to recent changes in isl
+	- improved output in case of stride detection
