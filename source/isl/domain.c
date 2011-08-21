@@ -480,12 +480,12 @@ CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *input)
  * Returns a pointer to the constraint if successful; NULL otherwise.
  */
 static struct isl_constraint *isl_constraint_read_from_matrix(
-	struct isl_dim *dim, cloog_int_t *row)
+	struct isl_space *dim, cloog_int_t *row)
 {
 	struct isl_constraint *constraint;
 	int j;
-	int nvariables = isl_dim_size(dim, isl_dim_set);
-	int nparam = isl_dim_size(dim, isl_dim_param);
+	int nvariables = isl_space_dim(dim, isl_dim_set);
+	int nparam = isl_space_dim(dim, isl_dim_param);
 
 	if (cloog_int_is_zero(row[0]))
 		constraint = isl_equality_alloc(dim);
@@ -513,7 +513,7 @@ static struct isl_constraint *isl_constraint_read_from_matrix(
 static struct isl_basic_set *isl_basic_set_read_from_matrix(struct isl_ctx *ctx,
 	CloogMatrix* matrix, int nparam)
 {
-	struct isl_dim *dim;
+	struct isl_space *dim;
 	struct isl_basic_set *bset;
 	int i;
 	unsigned nrows, ncolumns;
@@ -522,18 +522,18 @@ static struct isl_basic_set *isl_basic_set_read_from_matrix(struct isl_ctx *ctx,
 	ncolumns = matrix->NbColumns;
 	int nvariables = ncolumns - 2 - nparam;
 
-	dim = isl_dim_set_alloc(ctx, nparam, nvariables);
+	dim = isl_space_set_alloc(ctx, nparam, nvariables);
 
-	bset = isl_basic_set_universe(isl_dim_copy(dim));
+	bset = isl_basic_set_universe(isl_space_copy(dim));
 
 	for (i = 0; i < nrows; ++i) {
 		cloog_int_t *row = matrix->p[i];
 		struct isl_constraint *constraint =
-			isl_constraint_read_from_matrix(isl_dim_copy(dim), row);
+			isl_constraint_read_from_matrix(isl_space_copy(dim), row);
 		bset = isl_basic_set_add_constraint(bset, constraint);
 	}
 
-	isl_dim_free(dim);
+	isl_space_free(dim);
 
 	return bset;
 }
@@ -567,12 +567,12 @@ CloogScattering *cloog_scattering_from_cloog_matrix(CloogState *state,
 	struct isl_ctx *ctx = state->backend->ctx;
 	struct isl_basic_set *bset;
 	struct isl_basic_map *scat;
-	struct isl_dim *dims;
+	struct isl_space *dims;
 	unsigned dim;
 
 	bset = isl_basic_set_read_from_matrix(ctx, matrix, nb_par);
 	dim = isl_basic_set_n_dim(bset) - nb_scat;
-	dims = isl_dim_alloc(ctx, nb_par, nb_scat, dim);
+	dims = isl_space_alloc(ctx, nb_par, nb_scat, dim);
 
 	scat = isl_basic_map_from_basic_set(bset, dims);
 	scat = isl_basic_map_reverse(scat);
@@ -602,10 +602,10 @@ int cloog_domain_isempty(CloogDomain *domain)
  */
 CloogDomain *cloog_domain_universe(CloogState *state, unsigned dim)
 {
-	struct isl_dim *dims;
+	struct isl_space *dims;
 	struct isl_basic_set *bset;
 
-	dims = isl_dim_set_alloc(state->backend->ctx, 0, dim);
+	dims = isl_space_set_alloc(state->backend->ctx, 0, dim);
 	bset = isl_basic_set_universe(dims);
 	return cloog_domain_from_isl_set(isl_set_from_basic_set(bset));
 }
@@ -1129,7 +1129,7 @@ int cloog_scattering_lazy_block(CloogScattering *s1, CloogScattering *s2,
 			    CloogScatteringList *scattering, int scattdims)
 {
 	int i;
-	struct isl_dim *dim;
+	struct isl_space *dim;
 	struct isl_map *rel;
 	struct isl_set *delta;
 	isl_map *map1 = isl_map_from_cloog_scattering(s1);
@@ -1142,8 +1142,8 @@ int cloog_scattering_lazy_block(CloogScattering *s1, CloogScattering *s2,
 	if (n_scat != isl_map_dim(map2, isl_dim_out))
 		return 0;
 
-	dim = isl_map_get_dim(map1);
-	dim = isl_dim_map_from_set(isl_dim_domain(dim));
+	dim = isl_map_get_space(map1);
+	dim = isl_space_map_from_set(isl_space_domain(dim));
 	rel = isl_map_identity(dim);
 	rel = isl_map_apply_domain(rel, isl_map_copy(map1));
 	rel = isl_map_apply_range(rel, isl_map_copy(map2));
@@ -1346,18 +1346,18 @@ CloogDomain *cloog_domain_scatter(CloogDomain *domain, CloogScattering *scatt)
 
 static int add_domain_from_map(__isl_take isl_map *map, void *user)
 {
-	isl_dim *dim;
+	isl_space *dim;
 	const char *name;
 	CloogDomain *domain;
 	CloogScattering *scat;
 	CloogUnionDomain **ud = (CloogUnionDomain **)user;
 
-	dim = isl_map_get_dim(map);
-	name = isl_dim_get_tuple_name(dim, isl_dim_in);
+	dim = isl_map_get_space(map);
+	name = isl_space_get_tuple_name(dim, isl_dim_in);
 	domain = cloog_domain_from_isl_set(isl_map_domain(isl_map_copy(map)));
 	scat = cloog_scattering_from_isl_map(map);
 	*ud = cloog_union_domain_add_domain(*ud, name, domain, scat, NULL);
-	isl_dim_free(dim);
+	isl_space_free(dim);
 
 	return 0;
 }
@@ -1377,19 +1377,19 @@ CloogUnionDomain *cloog_union_domain_from_isl_union_map(
 {
 	int i;
 	int nparam;
-	isl_dim *dim;
+	isl_space *dim;
 	CloogUnionDomain *ud;
 
-	dim = isl_union_map_get_dim(umap);
-	nparam = isl_dim_size(dim, isl_dim_param);
+	dim = isl_union_map_get_space(umap);
+	nparam = isl_space_dim(dim, isl_dim_param);
 
 	ud = cloog_union_domain_alloc(nparam);
 
 	for (i = 0; i < nparam; ++i) {
-		const char *s = isl_dim_get_name(dim, isl_dim_param, i);
+		const char *s = isl_space_get_dim_name(dim, isl_dim_param, i);
 		ud = cloog_union_domain_set_name(ud, CLOOG_PARAM, i, s);
 	}
-	isl_dim_free(dim);
+	isl_space_free(dim);
 
 	if (isl_union_map_foreach_map(umap, &add_domain_from_map, &ud) < 0) {
 		isl_union_map_free(umap);
@@ -1402,7 +1402,7 @@ CloogUnionDomain *cloog_union_domain_from_isl_union_map(
 	return ud;
 }
 
-static int count_same_name(__isl_keep isl_dim *dim,
+static int count_same_name(__isl_keep isl_space *dim,
 	enum isl_dim_type type, unsigned pos, const char *name)
 {
 	enum isl_dim_type t;
@@ -1411,9 +1411,9 @@ static int count_same_name(__isl_keep isl_dim *dim,
 	int len = strlen(name);
 
 	for (t = isl_dim_param; t <= type && t <= isl_dim_out; ++t) {
-		s = t == type ? pos : isl_dim_size(dim, t);
+		s = t == type ? pos : isl_space_dim(dim, t);
 		for (p = 0; p < s; ++p) {
-			const char *n = isl_dim_get_name(dim, t, p);
+			const char *n = isl_space_get_dim_name(dim, t, p);
 			if (n && !strncmp(n, name, len))
 				count++;
 		}
@@ -1425,26 +1425,26 @@ static int add_domain(__isl_take isl_set *set, void *user)
 {
 	int i, nvar;
 	isl_ctx *ctx;
-	isl_dim *dim;
+	isl_space *dim;
 	char buffer[20];
 	const char *name;
 	CloogDomain *domain;
 	CloogUnionDomain **ud = (CloogUnionDomain **)user;
 
 	ctx = isl_set_get_ctx(set);
-	dim = isl_set_get_dim(set);
-	name = isl_dim_get_tuple_name(dim, isl_dim_set);
+	dim = isl_set_get_space(set);
+	name = isl_space_get_tuple_name(dim, isl_dim_set);
 	set = isl_set_flatten(set);
 	set = isl_set_set_tuple_name(set, NULL);
 	domain = cloog_domain_from_isl_set(set);
 	*ud = cloog_union_domain_add_domain(*ud, name, domain, NULL, NULL);
 
-	nvar = isl_dim_size(dim, isl_dim_set);
+	nvar = isl_space_dim(dim, isl_dim_set);
 	for (i = 0; i < nvar; ++i) {
 		char *long_name = NULL;
 		int n;
 
-		name = isl_dim_get_name(dim, isl_dim_set, i);
+		name = isl_space_get_dim_name(dim, isl_dim_set, i);
 		if (!name) {
 			snprintf(buffer, sizeof(buffer), "i%d", i);
 			name = buffer;
@@ -1461,7 +1461,7 @@ static int add_domain(__isl_take isl_set *set, void *user)
 		*ud = cloog_union_domain_set_name(*ud, CLOOG_ITER, i, name);
 		free(long_name);
 	}
-	isl_dim_free(dim);
+	isl_space_free(dim);
 
 	return 0;
 }
@@ -1477,19 +1477,19 @@ CloogUnionDomain *cloog_union_domain_from_isl_union_set(
 {
 	int i;
 	int nparam;
-	isl_dim *dim;
+	isl_space *dim;
 	CloogUnionDomain *ud;
 
-	dim = isl_union_set_get_dim(uset);
-	nparam = isl_dim_size(dim, isl_dim_param);
+	dim = isl_union_set_get_space(uset);
+	nparam = isl_space_dim(dim, isl_dim_param);
 
 	ud = cloog_union_domain_alloc(nparam);
 
 	for (i = 0; i < nparam; ++i) {
-		const char *s = isl_dim_get_name(dim, isl_dim_param, i);
+		const char *s = isl_space_get_dim_name(dim, isl_dim_param, i);
 		ud = cloog_union_domain_set_name(ud, CLOOG_PARAM, i, s);
 	}
-	isl_dim_free(dim);
+	isl_space_free(dim);
 
 	if (isl_union_set_foreach_set(uset, &add_domain, &ud) < 0) {
 		isl_union_set_free(uset);

@@ -764,7 +764,7 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 {
 	int j;
 	isl_ctx *ctx;
-	isl_dim *idim;
+	isl_space *idim;
 	struct isl_basic_set *eq;
 	struct isl_basic_map *id;
 	struct cloog_isl_dim dim;
@@ -797,7 +797,7 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 		return cloog_constraint_set_from_isl_basic_set(bset);
 	}
 
-	idim = isl_dim_map_from_set(isl_basic_set_get_dim(bset));
+	idim = isl_space_map_from_set(isl_basic_set_get_space(bset));
 	id = isl_basic_map_identity(idim);
 	id = isl_basic_map_remove_dims(id, isl_dim_out, dim.pos, 1);
 	bset = isl_basic_set_apply(bset, isl_basic_map_copy(id));
@@ -894,8 +894,8 @@ static isl_aff *extract_stride_offset(__isl_keep isl_constraint *c,
 	int level, CloogStride *stride)
 {
 	int i;
-	isl_dim *dim = isl_constraint_get_dim(c);
-	isl_local_space *ls = isl_local_space_from_dim(dim);
+	isl_space *dim = isl_constraint_get_space(c);
+	isl_local_space *ls = isl_local_space_from_space(dim);
 	isl_aff *offset = isl_aff_zero(ls);
 	isl_int u;
 	unsigned nparam, nvar;
