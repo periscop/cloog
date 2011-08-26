@@ -638,7 +638,8 @@ CloogDomain *cloog_domain_project(CloogDomain *domain, int level)
 CloogDomain *cloog_domain_extend(CloogDomain *domain, int dim)
 {
 	isl_set *set = isl_set_from_cloog_domain(domain);
-	set = isl_set_extend(isl_set_copy(set), isl_set_n_param(set), dim);
+	int n = isl_set_dim(set, isl_dim_set);
+	set = isl_set_add_dims(isl_set_copy(set), isl_dim_set, dim - n);
 	return cloog_domain_from_isl_set(set);
 }
 
