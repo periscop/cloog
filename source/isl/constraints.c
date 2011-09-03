@@ -819,7 +819,7 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 
 	div = isl_basic_set_div(isl_basic_set_copy(bset), 0);
 	aff = isl_aff_from_div(div);
-	aff = isl_aff_add_coefficient_si(aff, isl_dim_set, dim.pos, -1);
+	aff = isl_aff_add_coefficient_si(aff, isl_dim_in, dim.pos, -1);
 	c = isl_equality_from_aff(aff);
 	bset = isl_basic_set_add_constraint(bset, c);
 
@@ -896,7 +896,7 @@ static isl_aff *extract_stride_offset(__isl_keep isl_constraint *c,
 	int i;
 	isl_space *dim = isl_constraint_get_space(c);
 	isl_local_space *ls = isl_local_space_from_space(dim);
-	isl_aff *offset = isl_aff_zero(ls);
+	isl_aff *offset = isl_aff_zero_on_domain(ls);
 	isl_int u;
 	unsigned nparam, nvar;
 
@@ -915,7 +915,7 @@ static isl_aff *extract_stride_offset(__isl_keep isl_constraint *c,
 			continue;
 		isl_constraint_get_coefficient(c, isl_dim_set, i, &u);
 		isl_int_mul(u, u, stride->factor);
-		offset = isl_aff_set_coefficient(offset, isl_dim_set, i, u);
+		offset = isl_aff_set_coefficient(offset, isl_dim_in, i, u);
 	}
 	isl_constraint_get_constant(c, &u);
 	isl_int_mul(u, u, stride->factor);
@@ -959,7 +959,7 @@ CloogConstraint *cloog_constraint_stride_lower_bound(CloogConstraint *c,
 	lower = isl_aff_scale(lower, stride->stride);
 	lower = isl_aff_add(lower, offset);
 	lower = isl_aff_neg(lower);
-	lower = isl_aff_add_coefficient_si(lower, isl_dim_set, level - 1, 1);
+	lower = isl_aff_add_coefficient_si(lower, isl_dim_in, level - 1, 1);
 
 	bound = isl_inequality_from_aff(lower);
 

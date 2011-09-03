@@ -853,7 +853,7 @@ static int constraint_stride_lower(__isl_take isl_constraint *c, void *user)
 	b = isl_aff_scale(b, csl->stride->stride);
 	isl_int_neg(v, csl->stride->offset);
 	b = isl_aff_add_constant(b, v);
-	b = isl_aff_add_coefficient_si(b, isl_dim_set, csl->level - 1, 1);
+	b = isl_aff_add_coefficient_si(b, isl_dim_in, csl->level - 1, 1);
 
 	bound = isl_inequality_from_aff(b);
 
@@ -906,7 +906,7 @@ static int constraint_stride_lower_c(__isl_take isl_constraint *c, void *user)
 
 	d = isl_constraint_get_aff(csl_c);
 	d = isl_aff_drop_dims(d, isl_dim_div, 0, isl_aff_dim(d, isl_dim_div));
-	d = isl_aff_set_coefficient_si(d, isl_dim_set, csl->level - 1, 0);
+	d = isl_aff_set_coefficient_si(d, isl_dim_in, csl->level - 1, 0);
 	d = isl_aff_scale(d, csl->stride->factor);
 
 	b = isl_constraint_get_bound(c, isl_dim_set, csl->level - 1);
@@ -917,7 +917,7 @@ static int constraint_stride_lower_c(__isl_take isl_constraint *c, void *user)
 	b = isl_aff_floor(b);
 	b = isl_aff_scale(b, csl->stride->stride);
 	b = isl_aff_sub(b, d);
-	b = isl_aff_add_coefficient_si(b, isl_dim_set, csl->level - 1, 1);
+	b = isl_aff_add_coefficient_si(b, isl_dim_in, csl->level - 1, 1);
 
 	bound = isl_inequality_from_aff(b);
 
@@ -1719,7 +1719,7 @@ static int is_valid_unrolling_lower_bound(struct cloog_can_unroll *ccu,
 	aff = isl_constraint_get_bound(c, isl_dim_set, ccu->level - 1);
 	aff = isl_aff_ceil(aff);
 	aff = isl_aff_neg(aff);
-	aff = isl_aff_add_coefficient_si(aff, isl_dim_set, ccu->level - 1, 1);
+	aff = isl_aff_add_coefficient_si(aff, isl_dim_in, ccu->level - 1, 1);
 	res = isl_set_max(ccu->set, aff, ccu->n);
 	isl_aff_free(aff);
 
@@ -1828,7 +1828,7 @@ CloogDomain *cloog_domain_fixed_offset(CloogDomain *domain,
 	c = cloog_constraint_to_isl(lb);
 	aff = isl_constraint_get_bound(c, isl_dim_set, level - 1);
 	aff = isl_aff_ceil(aff);
-	aff = isl_aff_add_coefficient_si(aff, isl_dim_set, level - 1, -1);
+	aff = isl_aff_add_coefficient_si(aff, isl_dim_in, level - 1, -1);
 	aff = isl_aff_add_constant(aff, offset);
 	eq = isl_equality_from_aff(aff);
 	set = isl_set_add_constraint(set, eq);
