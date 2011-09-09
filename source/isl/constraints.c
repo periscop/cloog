@@ -450,20 +450,22 @@ static struct clast_expr *div_expr(CloogConstraint *constraint, int pos,
 	cloog_int_t c;
 	struct clast_reduction *r;
 	struct clast_expr *e = NULL;
-	struct isl_div *div;
+	isl_aff *div;
 
-	div = isl_constraint_div(cloog_constraint_to_isl(constraint), pos);
+	div = isl_constraint_get_div(cloog_constraint_to_isl(constraint), pos);
 
 	cloog_int_init(c);
 	for (i = 0, nb_elts = 0; i < dim; ++i) {
 		struct cloog_isl_dim dim;
 
 		dim = constraint_cloog_dim_to_isl_dim(constraint, i);
-		isl_div_get_coefficient(div, dim.type, dim.pos, &c);
+		if (dim.type == isl_dim_set)
+			dim.type = isl_dim_in;
+		isl_aff_get_coefficient(div, dim.type, dim.pos, &c);
 		if (!cloog_int_is_zero(c))
 			++nb_elts;
 	}
-	isl_div_get_constant(div, &c);
+	isl_aff_get_constant(div, &c);
 	if (!cloog_int_is_zero(c))
 		++nb_elts;
 
@@ -473,7 +475,9 @@ static struct clast_expr *div_expr(CloogConstraint *constraint, int pos,
 		struct cloog_isl_dim dim;
 
 		dim = constraint_cloog_dim_to_isl_dim(constraint, i);
-		isl_div_get_coefficient(div, dim.type, dim.pos, &c);
+		if (dim.type == isl_dim_set)
+			dim.type = isl_dim_in;
+		isl_aff_get_coefficient(div, dim.type, dim.pos, &c);
 		if (cloog_int_is_zero(c))
 			continue;
 
@@ -481,16 +485,16 @@ static struct clast_expr *div_expr(CloogConstraint *constraint, int pos,
 
 		r->elts[nb_elts++] = &new_clast_term(c, v)->expr;
 	}
-	isl_div_get_constant(div, &c);
+	isl_aff_get_constant(div, &c);
 	if (!cloog_int_is_zero(c))
 		r->elts[nb_elts++] = &new_clast_term(c, NULL)->expr;
 
-	isl_div_get_denominator(div, &c);
+	isl_aff_get_denominator(div, &c);
 	e = &new_clast_binary(clast_bin_fdiv, &r->expr, c)->expr;
 
 	cloog_int_clear(c);
 
-	isl_div_free(div);
+	isl_aff_free(div);
 
 	return e;
 }
