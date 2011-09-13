@@ -486,11 +486,12 @@ static struct isl_constraint *isl_constraint_read_from_matrix(
 	int j;
 	int nvariables = isl_space_dim(dim, isl_dim_set);
 	int nparam = isl_space_dim(dim, isl_dim_param);
+	isl_local_space *ls = isl_local_space_from_space(dim);
 
 	if (cloog_int_is_zero(row[0]))
-		constraint = isl_equality_alloc(dim);
+		constraint = isl_equality_alloc(ls);
 	else
-		constraint = isl_inequality_alloc(dim);
+		constraint = isl_inequality_alloc(ls);
 
 	for (j = 0; j < nvariables; ++j)
 		isl_constraint_set_coefficient(constraint, isl_dim_out, j,
