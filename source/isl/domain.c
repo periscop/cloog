@@ -399,7 +399,7 @@ CloogDomain *cloog_domain_read_context(CloogState *state, FILE *input)
 	struct isl_ctx *ctx = state->backend->ctx;
 	isl_set *set;
 
-	set = isl_set_read_from_file(ctx, input, 0);
+	set = isl_set_read_from_file(ctx, input);
 	set = isl_set_move_dims(set, isl_dim_param, 0,
 				isl_dim_set, 0, isl_set_dim(set, isl_dim_set));
 
@@ -433,7 +433,12 @@ CloogDomain *cloog_domain_union_read(CloogState *state,
 	struct isl_ctx *ctx = state->backend->ctx;
 	struct isl_set *set;
 
-	set = isl_set_read_from_file(ctx, input, nb_parameters);
+	set = isl_set_read_from_file(ctx, input);
+	if (isl_set_dim(set, isl_dim_param) != nb_parameters) {
+		int dim = isl_set_dim(set, isl_dim_set);
+		set = isl_set_move_dims(set, isl_dim_param, 0,
+			    isl_dim_set, dim - nb_parameters, nb_parameters);
+	}
 	return cloog_domain_from_isl_set(set);
 }
 
@@ -460,7 +465,12 @@ CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *input)
 
 	dim = isl_set_dim(set, isl_dim_set);
 	nparam = isl_set_dim(set, isl_dim_param);
-	scat = isl_map_read_from_file(ctx, input, nparam);
+	scat = isl_map_read_from_file(ctx, input);
+	if (isl_map_dim(scat, isl_dim_param) != nparam) {
+		int n_out = isl_map_dim(scat, isl_dim_out);
+		scat = isl_map_move_dims(scat, isl_dim_param, 0,
+					isl_dim_out, n_out - nparam, nparam);
+	}
 	if (isl_map_dim(scat, isl_dim_in) != dim) {
 		n_scat = isl_map_dim(scat, isl_dim_out) - dim;
 		scat = isl_map_move_dims(scat, isl_dim_in, 0,
