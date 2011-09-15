@@ -6,7 +6,6 @@
 #include <cloog/isl/cloog.h>
 #include <isl/list.h>
 #include <isl/constraint.h>
-#include <isl/div.h>
 #include <isl/ilp.h>
 #include <isl/aff.h>
 
