@@ -1431,7 +1431,7 @@ static int count_same_name(__isl_keep isl_space *dim,
 	return count;
 }
 
-static int add_domain(__isl_take isl_set *set, void *user)
+static CloogUnionDomain *add_domain(__isl_take isl_set *set, CloogUnionDomain *ud)
 {
 	int i, nvar;
 	isl_ctx *ctx;
@@ -1439,7 +1439,6 @@ static int add_domain(__isl_take isl_set *set, void *user)
 	char buffer[20];
 	const char *name;
 	CloogDomain *domain;
-	CloogUnionDomain **ud = (CloogUnionDomain **)user;
 
 	ctx = isl_set_get_ctx(set);
 	dim = isl_set_get_space(set);
@@ -1447,7 +1446,7 @@ static int add_domain(__isl_take isl_set *set, void *user)
 	set = isl_set_flatten(set);
 	set = isl_set_set_tuple_name(set, NULL);
 	domain = cloog_domain_from_isl_set(set);
-	*ud = cloog_union_domain_add_domain(*ud, name, domain, NULL, NULL);
+	ud = cloog_union_domain_add_domain(ud, name, domain, NULL, NULL);
 
 	nvar = isl_space_dim(dim, isl_dim_set);
 	for (i = 0; i < nvar; ++i) {
@@ -1468,29 +1467,29 @@ static int add_domain(__isl_take isl_set *set, void *user)
 			snprintf(long_name, size, "%s_%d", name, n);
 			name = long_name;
 		}
-		*ud = cloog_union_domain_set_name(*ud, CLOOG_ITER, i, name);
+		ud = cloog_union_domain_set_name(ud, CLOOG_ITER, i, name);
 		free(long_name);
 	}
 	isl_space_free(dim);
 
-	return 0;
+	return ud;
 }
 
 /**
- * Construct a CloogUnionDomain from an isl_union_set.
+ * Construct a CloogUnionDomain from an isl_set.
  * The statement names are set to the names of the
  * spaces.  The parameter and iterator names of the result are set to those of
  * the input, but the scattering dimension names are left unspecified.
  */
-CloogUnionDomain *cloog_union_domain_from_isl_union_set(
-	__isl_take isl_union_set *uset)
+CloogUnionDomain *cloog_union_domain_from_isl_set(
+	__isl_take isl_set *set)
 {
 	int i;
 	int nparam;
 	isl_space *dim;
 	CloogUnionDomain *ud;
 
-	dim = isl_union_set_get_space(uset);
+	dim = isl_set_get_space(set);
 	nparam = isl_space_dim(dim, isl_dim_param);
 
 	ud = cloog_union_domain_alloc(nparam);
@@ -1501,13 +1500,7 @@ CloogUnionDomain *cloog_union_domain_from_isl_union_set(
 	}
 	isl_space_free(dim);
 
-	if (isl_union_set_foreach_set(uset, &add_domain, &ud) < 0) {
-		isl_union_set_free(uset);
-		cloog_union_domain_free(ud);
-		assert(0);
-	}
-
-	isl_union_set_free(uset);
+	ud = add_domain(set, ud);
 
 	return ud;
 }

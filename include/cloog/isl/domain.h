@@ -24,8 +24,8 @@ CloogDomain *cloog_domain_from_isl_set(struct isl_set *set);
 CloogScattering *cloog_scattering_from_isl_map(struct isl_map *map);
 CloogUnionDomain *cloog_union_domain_from_isl_union_map(
 	__isl_take isl_union_map *umap);
-CloogUnionDomain *cloog_union_domain_from_isl_union_set(
-	__isl_take isl_union_set *uset);
+CloogUnionDomain *cloog_union_domain_from_isl_set(
+	__isl_take isl_set *set);
 
 __isl_give isl_set *isl_set_from_cloog_domain(CloogDomain *domain);
 
