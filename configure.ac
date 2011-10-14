@@ -162,6 +162,37 @@ AM_CONDITIONAL(BUNDLED_ISL, test $with_isl = bundled)
 AM_CONDITIONAL(NO_ISL, test $with_isl = no)
 
 
+dnl /**************************************************************************
+dnl  *                   Where is the OpenScop Library?                       *
+dnl  **************************************************************************/
+
+AX_SUBMODULE(osl,no|system|build|bundled,no)
+osl_flag="OSL_SUPPORT"
+
+AC_SUBST(OSL_CPPFLAGS)
+AC_SUBST(OSL_LDFLAGS)
+AC_SUBST(OSL_LIBS)
+case "$with_osl" in
+bundled)
+	OSL_CPPFLAGS="-D$osl_flag -I$srcdir/osl/include -Iosl/include"
+	;;
+build)
+	OSL_CPPFLAGS="-D$osl_flag -I$osl_srcdir/include -I$with_osl_builddir/include"
+	OSL_LIBS="$with_osl_builddir/libosl.la"
+	;;
+system)
+	if test "x$with_osl_prefix" != "x"; then
+		OSL_CPPFLAGS="-D$osl_flag --I$with_osl_prefix/include"
+	fi
+	if test "x$with_osl_exec_prefix" != "x"; then
+		OSL_LDFLAGS="-L$with_osl_exec_prefix/lib"
+	fi
+	OSL_LIBS="-losl"
+esac
+AM_CONDITIONAL(BUNDLED_OSL, test $with_osl = bundled)
+AM_CONDITIONAL(NO_OSL, test $with_osl = no)
+
+
 AC_DEFINE([CLOOG_INT_GMP], 1, [Use arbitrary precision integers])
 
 AC_SUBST(GIT_INDEX)
@@ -205,6 +236,9 @@ AC_CONFIG_COMMANDS([doc/gitversion.texi],
 	[echo '@set VERSION '`./genversion.sh`'' > doc/gitversion.texi])
 if test $with_isl = bundled; then
 	AC_CONFIG_SUBDIRS(isl)
+fi
+if test $with_osl = bundled; then
+	AC_CONFIG_SUBDIRS(osl)
 fi
 AC_CONFIG_COMMANDS_POST([
 	ac_configure_args="$ac_configure_args $cloog_configure_args"

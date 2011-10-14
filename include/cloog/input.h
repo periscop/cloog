@@ -5,12 +5,15 @@
 extern "C" {
 #endif 
 
+struct osl_scop;
+
 struct clooginput {
 	CloogDomain *context;
 	CloogUnionDomain *ud;
 };
 typedef struct clooginput CloogInput;
 
+CloogInput *cloog_input_from_osl_scop(CloogState *, struct osl_scop *);
 CloogInput *cloog_input_read(FILE *file, CloogOptions *options);
 CloogInput *cloog_input_alloc(CloogDomain *context, CloogUnionDomain *ud);
 void cloog_input_free(CloogInput *input);

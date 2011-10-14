@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include "../include/cloog/cloog.h"
 
+#ifdef OSL_SUPPORT
+#include <osl/scop.h>
+#endif
+
 #define ALLOC(type) (type*)malloc(sizeof(type))
 
 static char *next_line(FILE *input, char *line, unsigned len)
@@ -19,6 +23,33 @@ static char *next_line(FILE *input, char *line, unsigned len)
 	return p;
 }
 
+#ifdef OSL_SUPPORT
+/**
+ * This function translates an OpenScop scop to a CLooG input.
+ * \param[in,out] state CLooG state.
+ * \param[in]     scop  Scop to translate.
+ * \return A CloogInput corresponding to the scop input.
+ */
+CloogInput *cloog_input_from_osl_scop(CloogState *state, osl_scop_p scop) {
+  CloogInput *input    = NULL;
+  CloogDomain *context = NULL;
+  CloogUnionDomain *ud = NULL;
+
+  if (scop) {
+    /* Extract the context. */
+    context = cloog_domain_from_osl_relation(state, scop->context);
+
+    /* Extract the union of domains. */
+    ud = cloog_union_domain_from_osl_scop(state, scop);
+
+    /* Build and return the input. */
+    input = cloog_input_alloc(context, ud);
+  }
+
+  return input;
+}
+#endif
+
 /**
  * Read input from a .cloog file, putting most of the information
  * in the returned CloogInput.  The chosen language is put in
@@ -31,6 +62,17 @@ CloogInput *cloog_input_read(FILE *file, CloogOptions *options)
 	CloogDomain *context;
 	CloogUnionDomain *ud;
 	int nb_par;
+
+#ifdef OSL_SUPPORT
+	if (options->openscop) {
+		osl_scop_p scop = osl_scop_read(file);
+		CloogInput * input = cloog_input_from_osl_scop(options->state,
+		                                               scop);
+		cloog_options_copy_from_osl_scop(scop, options);
+		osl_scop_free(scop);
+		return input;
+	}
+#endif
 
 	/* First of all, we read the language to use. */
 	if (!next_line(file, line, sizeof(line)))

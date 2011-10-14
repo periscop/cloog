@@ -5,6 +5,8 @@
 extern "C" {
 #endif 
 
+struct osl_scop;
+
 /**
  * CloogNamedDomainList structure:
  * this structure reprensents a node of a linked list of CloogDomain structures.
@@ -40,6 +42,8 @@ CloogUnionDomain *cloog_union_domain_add_domain(CloogUnionDomain *ud,
 CloogUnionDomain *cloog_union_domain_set_name(CloogUnionDomain *ud,
 	enum cloog_dim_type type, int index, const char *name);
 void cloog_union_domain_free(CloogUnionDomain *ud);
+CloogUnionDomain *cloog_union_domain_from_osl_scop(CloogState *,
+                                                   struct osl_scop *);
 
 #if defined(__cplusplus)
 }

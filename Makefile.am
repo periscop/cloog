@@ -41,8 +41,13 @@ if BUNDLED_ISL
     ISL_LA = $(top_builddir)/isl/libisl.la
 endif
 
-SUBDIRS = $(MAYBE_ISL) . doc test
-DIST_SUBDIRS = $(MAYBE_ISL) . doc test
+if BUNDLED_OSL
+    MAYBE_OSL = osl
+    OSL_LA = $(top_builddir)/osl/source/libosl.la
+endif
+
+SUBDIRS = $(MAYBE_ISL) $(MAYBE_OSL) . doc test
+DIST_SUBDIRS = $(MAYBE_ISL) $(MAYBE_OSL) . doc test
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -85,10 +90,10 @@ SOURCES_CORE = \
 DEFAULT_INCLUDES = -I.
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 AM_CFLAGS = $(CFLAGS_WARN)
-libcloog_isl_la_CPPFLAGS = @ISL_CPPFLAGS@
+libcloog_isl_la_CPPFLAGS = @ISL_CPPFLAGS@ @OSL_CPPFLAGS@
 libcloog_isl_la_LDFLAGS = -version-info @versioninfo@ \
-	-rpath $(libdir) @ISL_LDFLAGS@
-libcloog_isl_la_LIBADD = @ISL_LIBS@ $(ISL_LA)
+	-rpath $(libdir) @ISL_LDFLAGS@ @OSL_LDFLAGS@
+libcloog_isl_la_LIBADD = @ISL_LIBS@ @OSL_LIBS@ $(ISL_LA) $(OSL_LA)
 libcloog_isl_la_SOURCES = \
 	$(SOURCES_CORE) \
 	source/isl/domain.c \

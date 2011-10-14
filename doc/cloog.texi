@@ -829,6 +829,7 @@ input file @code{basic.cloog} with default options by typing:
 * Unrolling::
 * Compilable Code::
 * Output::
+* OpenScop::
 * Help::
 * Version ::
 * Quiet ::
@@ -1237,6 +1238,14 @@ void test(int M, int N)
      @code{-o <output>}: this option sets the output file. @code{stdout} is a
      special value: when used, output is standard output.
      Default value is @code{stdout}.
+
+@node OpenScop
+@subsection OpenScop @code{-openscop}
+
+     @code{-openscop}: this option states that the input file complies to
+     the OpenScop specification instead of the native file format
+     (@pxref{Bas11}). This option is available only if the OpenScop
+     support has been enabled at compile time (@pxref{Optional Features}).
 
 @node Help
 @subsection Help @code{--help} or @code{-h}
@@ -2456,6 +2465,19 @@ the multiple precision version.
 locations. If necessary, the user can specify the GMP path by giving
 @code{configure} the option @code{--with-gmp-prefix=PATH} and/or
 @code{--with-gmp-exec-prefix=PATH}.
+
+@item By default, the OpenScop Library (osl) support is not enabled.
+@c @code{configure} will use the bundled OpenScop Library (osl).
+Using the @code{--with-osl} option of @code{configure}
+the user can specify that @code{no} osl,
+a previously installed (@code{system}) osl, a @code{bundled} osl, or a
+@code{build} osl should be used.
+In the latter case, the user should also specify the build location
+using @code{--with-osl-builddir=PATH}.
+In case of an installed osl,
+the installation location can be specified using the
+@code{--with-osl-prefix=PATH} and
+@code{--with-osl-exec-prefix=PATH} options of @code{configure}.
 @end itemize
 
 @node Uninstallation 
@@ -2506,6 +2528,11 @@ Parallel and Distributed Computing, pages 23-30, Ljubljana, october 2003.
 Is Easier Than You Think. PACT'13 IEEE International Conference on Parallel
 Architecture and Compilation Techniques, pages 7-16, Juan-les-Pins,
 september 2004.
+
+@item
+@anchor{Bas11}[Bas11] C. Bastoul. A Specification and a Library for Data 
+Exchange in Polyhedral Compilation Tools. Technical Report,
+Paris-Sud University, France, September 2011.
 
 @item
 @anchor{Fea92}[Fea92] P. Feautrier Some efficient solutions to the affine

@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #include "../include/cloog/cloog.h"
 
+#ifdef OSL_SUPPORT
+#include <osl/statement.h>
+#include <osl/scop.h>
+#endif
+
 #define ALLOC(type) (type*)malloc(sizeof(type))
 #define ALLOCN(type,n) (type*)malloc((n)*sizeof(type))
 
@@ -296,3 +301,53 @@ CloogUnionDomain *cloog_union_domain_read(FILE *file, int nb_par,
 
 	return ud;
 }
+
+
+#ifdef OSL_SUPPORT
+/**
+ * Extracts a CloogUnionDomain from an openscop scop (the CloogUnionDomain
+ * corresponds more or less to the openscop statement).
+ * \param[in,out] state CLooG state.
+ * \param[in]     scop  OpenScop scop to convert.
+ * \return A new CloogUnionDomain corresponding the input OpenScop scop.
+ */
+CloogUnionDomain *cloog_union_domain_from_osl_scop(CloogState *state,
+                                                   osl_scop_p scop) {
+  int i, nb_parameters;
+  CloogDomain *domain = NULL;
+  CloogScattering *scattering = NULL;
+  CloogUnionDomain *ud = NULL;
+  osl_scop_p normalized;
+  osl_statement_p statement;
+
+  /* Set the union of domains. */
+  nb_parameters = (scop->context == NULL) ? 0 : scop->context->nb_parameters;
+  ud = cloog_union_domain_alloc(nb_parameters);
+
+  /* - Set the parameter names. */
+  if (osl_generic_has_URI(scop->parameters, OSL_URI_STRINGS)) {
+    for (i = 0; i < osl_strings_size(scop->parameters->data); i++) {
+      ud = cloog_union_domain_set_name(ud, CLOOG_PARAM, i,
+        ((osl_strings_p)(scop->parameters->data))->string[i]);
+    }
+  }
+
+  /* - Set each statement (domain/scattering).
+   *   Since CLooG requires all number of scattering dimensions to be
+   *   equal, we normalize them first.
+   */
+  normalized = osl_scop_clone(scop);
+  osl_scop_normalize_scattering(normalized);
+  statement = normalized->statement;
+  while(statement != NULL) {
+    domain = cloog_domain_from_osl_relation(state, statement->domain);
+    scattering = cloog_scattering_from_osl_relation(state,
+                                                    statement->scattering);
+    ud = cloog_union_domain_add_domain(ud, NULL, domain, scattering, NULL);
+    statement = statement->next;
+  }
+  osl_scop_free(normalized);
+
+  return ud;
+}
+#endif

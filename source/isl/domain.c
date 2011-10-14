@@ -9,6 +9,10 @@
 #include <isl/ilp.h>
 #include <isl/aff.h>
 
+#ifdef OSL_SUPPORT
+#include <osl/relation.h>
+#endif
+
 CloogDomain *cloog_domain_from_isl_set(struct isl_set *set)
 {
 	set = isl_set_detect_equalities(set);
@@ -595,6 +599,65 @@ CloogScattering *cloog_scattering_from_cloog_matrix(CloogState *state,
  ******************************************************************************/
 
 
+#ifdef OSL_SUPPORT
+/**
+ * Converts an openscop relation to a CLooG domain.
+ * \param[in,out] state    CLooG state.
+ * \param[in]     relation OpenScop relation to convert.
+ * \return A new CloogDomain corresponding to the input OpenScop relation.
+ */
+CloogDomain *cloog_domain_from_osl_relation(CloogState *state,
+                                            osl_relation_p relation) {
+  char *str;
+  struct isl_ctx *ctx = state->backend->ctx;
+  isl_set *set;
+  CloogDomain *domain = NULL;
+
+  if (relation != NULL) {
+    if (relation->precision != OSL_PRECISION_MP)
+      cloog_die("Non-GMP precision is not supported yet.\n");
+
+    str = osl_relation_spprint_polylib(relation, NULL);
+    set = isl_set_read_from_str(ctx, str);
+    free(str);
+
+    domain = cloog_domain_from_isl_set(set);
+  }
+
+  return domain;
+}
+
+
+/**
+ * Converts an openscop scattering relation to a CLooG scattering.
+ * \param[in,out] state    CLooG state.
+ * \param[in]     relation OpenScop relation to convert.
+ * \return A new CloogScattering corresponding to the input OpenScop relation.
+ */
+CloogScattering *cloog_scattering_from_osl_relation(CloogState *state,
+                                                    osl_relation_p relation) {
+  char *str;
+  struct isl_ctx *ctx = state->backend->ctx;
+  isl_map *map;
+  CloogScattering *scattering = NULL;
+
+  if (relation != NULL) {
+    if (relation->precision != OSL_PRECISION_MP)
+      cloog_die("Non-GMP precision is not supported yet.\n");
+
+    if (relation->type != OSL_TYPE_SCATTERING)
+      cloog_die("Cannot convert a non-scattering relation to a scattering.\n");
+
+    str = osl_relation_spprint_polylib(relation, NULL);
+    map = isl_map_read_from_str(ctx, str);
+    free(str);
+
+    scattering = cloog_scattering_from_isl_map(map);
+  }
+
+  return scattering;
+}
+#endif
 
 /**
  * cloog_domain_isempty function:

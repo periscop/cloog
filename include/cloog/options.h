@@ -50,6 +50,8 @@ extern "C"
  */
 #define CLOOG_SCALARS
 
+struct osl_scop;
+
 struct cloogoptions;
 typedef struct cloogoptions CloogOptions;
 
@@ -94,6 +96,7 @@ struct cloogoptions
   /* MISC OPTIONS */
   char * name ;   /* Name of the input file. */
   float time ;    /* Time spent for code generation in seconds. */
+  int openscop;   /* 1 if the input file has OpenScop format, 0 otherwise. */
 #ifdef CLOOG_MEMORY
   int memory ;    /* Memory spent for code generation in kilobytes. */
 #endif
@@ -151,6 +154,7 @@ void cloog_options_read(CloogState *state, int argc, char **argv,
  *                            Processing functions                            *
  ******************************************************************************/
 CloogOptions *cloog_options_malloc(CloogState *state);
+void cloog_options_copy_from_osl_scop(struct osl_scop *, CloogOptions *);
 
 
 #if defined(__cplusplus)

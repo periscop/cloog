@@ -41,6 +41,10 @@
 # include <string.h>
 # include "../include/cloog/cloog.h"
 
+#ifdef OSL_SUPPORT
+#include <osl/scop.h>
+#endif
+
 
 /******************************************************************************
  *                          Error reporting functions                         *
@@ -125,6 +129,9 @@ void cloog_options_print(FILE * foo, CloogOptions * options)
   fprintf(foo,"block       = %3d.\n",options->block) ;
   fprintf(foo,"compilable  = %3d.\n",options->compilable) ;
   fprintf(foo,"callable    = %3d.\n",options->callable) ;
+  fprintf(foo,"MISC OPTIONS\n") ;
+  fprintf(foo,"name        = %3s.\n", options->name);
+  fprintf(foo,"openscop    = %3d.\n", options->openscop);
   fprintf(foo,"UNDOCUMENTED OPTIONS FOR THE AUTHOR ONLY\n") ;
   fprintf(foo,"leaks       = %3d.\n",options->leaks) ;
   fprintf(foo,"backtrack   = %3d.\n",options->backtrack);
@@ -201,6 +208,9 @@ void cloog_options_help()
   "  -o <output>           Name of the output file; 'stdout' is a special\n"
   "                        value: when used, output is standard output\n"
   "                        (default setting: stdout).\n"
+#ifdef OSL_SUPPORT
+  "  -openscop             Input file has OpenScop format.\n"
+#endif
   "  -v, --version         Display the version information (and more).\n"
   "  -q, --quiet           Don't print any informational messages.\n"
   "  -h, --help            Display this information.\n\n") ;
@@ -310,8 +320,10 @@ CloogOptions *cloog_options_malloc(CloogState *state)
   options->compilable  =  0 ;  /* No compilable code. */
   options->callable    =  0 ;  /* No callable code. */
   options->quiet       =  0;   /* Do print informational messages. */
-  options->language     = CLOOG_LANGUAGE_C; /* The default output language is C. */
   options->save_domains = 0;   /* Don't save domains. */
+  /* MISC OPTIONS */
+  options->language    = CLOOG_LANGUAGE_C; /* The default output language is C. */
+  options->openscop    =  0 ;  /* The input file has not the OpenScop format.*/
   /* UNDOCUMENTED OPTIONS FOR THE AUTHOR ONLY */
   options->leaks       =  0 ;  /* I don't want to print allocation statistics.*/
   options->backtrack   =  0;   /* Perform backtrack in Quillere's algorithm.*/
@@ -364,6 +376,14 @@ void cloog_options_read(CloogState *state, int argc, char **argv,
     else
     if (strcmp(argv[i],"-otl") == 0)
     cloog_options_set(&(*options)->otl,argc,argv,&i) ;
+    else
+    if (strcmp(argv[i],"-openscop") == 0) {
+#ifdef OSL_SUPPORT
+      (*options)->openscop = 1 ;
+#else
+      cloog_die("CLooG has not been compiled with OpenScop support.\n");
+#endif
+    }
     else
     if (strcmp(argv[i],"-esp") == 0)
     cloog_options_set(&(*options)->esp,argc,argv,&i) ;
@@ -462,4 +482,27 @@ void cloog_options_read(CloogState *state, int argc, char **argv,
     exit(1) ;
   }
 }
+
+#ifdef OSL_SUPPORT
+/**
+ * This function extracts CLooG option values from an OpenScop scop and
+ * updates an existing CloogOption structure with those values. If the
+ * options were already set, they are updated without warning.
+ * \param[in]     scop    Input Scop.
+ * \param[in,out] options CLooG options to be updated.
+ */
+void cloog_options_copy_from_osl_scop(osl_scop_p scop,
+                                      CloogOptions *options) {
+  if (!options)
+    cloog_die("Options must be provided.\n");
+
+  if (scop) {
+    /* Extract the language. */
+    if (!strcmp(scop->language, "FORTRAN"))
+      options->language = CLOOG_LANGUAGE_FORTRAN;
+    else
+      options->language = CLOOG_LANGUAGE_C;
+  }
+}
+#endif
 

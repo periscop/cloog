@@ -47,6 +47,7 @@ struct cloogdomain;
 typedef struct cloogdomain CloogDomain ;
 struct cloogscattering;
 typedef struct cloogscattering CloogScattering;
+struct osl_relation;
 
 
 /**
@@ -123,6 +124,10 @@ CloogScattering * cloog_scattering_from_cloog_matrix(CloogState *state,
 /******************************************************************************
  *                            Processing functions                            *
  ******************************************************************************/
+CloogDomain *cloog_domain_from_osl_relation(CloogState *,
+                                            struct osl_relation *);
+CloogScattering *cloog_scattering_from_osl_relation(CloogState *,
+                                                    struct osl_relation *);
 CloogConstraintSet *cloog_domain_constraints(CloogDomain *);
 int           cloog_domain_isempty(CloogDomain *) ;
 CloogDomain * cloog_domain_universe(CloogState *state, unsigned dim);

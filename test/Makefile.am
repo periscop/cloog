@@ -207,6 +207,11 @@ CLOOGTEST_STRIDED =                    \
 	reservoir/stride2              \
 	$(CLOOG_ISL_TEST_STRIDED)
 
+CLOOGTEST_OPENSCOP =                   \
+	./openscop/matmult             \
+	./openscop/empty               \
+	./openscop/union
+
 SPECIAL_TESTS = \
 	isl/unroll \
 	isl/jacobi-shared \
@@ -367,7 +372,38 @@ test_run: generate_test$(EXEEXT)
 	else \
 	        echo "CLooG works correctly :-) !" ; \
         fi
-test:
+
+#if NO_OSL
+test_openscop:
+#else
+test_openscop:
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *        Testing CLooG's OpenScop Input         *"
+	@echo "              *-----------------------------------------------*/"
+	@failedtest=0 ; \
+	echo "--- Testing OpenScop files..." ; \
+	for x in $(CLOOGTEST_OPENSCOP) ; do \
+		echo "Verify file $$x" ; \
+		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.scop \
+		-openscop > ttemp ; \
+		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
+		result=$$?; \
+		if [ "$$result" -ne "0" ] ; then \
+			echo "!!! Error: $$x is not the same" ; \
+			failedtest=`expr $$failedtest + 1` ; \
+		else \
+			echo "$$x passed" ; \
+	        fi ; \
+	done ; \
+	rm ttemp ; \
+	if [ $$failedtest != 0 ] ; then \
+		echo "$$failedtest tests failed" ; \
+	else \
+	        echo "CLooG's OpenScop input works correctly :-) !" ; \
+        fi
+#endif
+
+test: test_openscop
 	@echo "             /*-----------------------------------------------*"
 	@echo "              *                 Testing CLooG                 *"
 	@echo "              *-----------------------------------------------*/"
