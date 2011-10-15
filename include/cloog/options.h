@@ -57,14 +57,14 @@ struct cloogoptions
 {
   CloogState *state; /* State. */
   /* OPTIONS FOR LOOP GENERATION */
-  int l ;         /* Last level to optimize. */
-  int f ;         /* First level to optimize. */
-  int stop ;      /* Level to stop code generation. */
-  int strides ;   /* 1 if user wants to handle non-unit strides (then loop
-                   * increment can be something else than one), 0 otherwise.
-		   */
-  int sh;	  /* 1 for computing simple hulls */
-  int first_unroll;
+  int l ;           /* Last level to optimize. */
+  int f ;           /* First level to optimize. */
+  int stop ;        /* Level to stop code generation. */
+  int strides ;     /* 1 if user wants to handle non-unit strides (then loop
+                     * increment can be something else than one), 0 otherwise.
+                     */
+  int sh;	    /* 1 for computing simple hulls */
+  int first_unroll; /* The first dimension to unroll */
 
   /* OPTIONS FOR PRETTY PRINTING */
   int esp ;       /* 1 if user wants to spread all equalities, i.e. when there
