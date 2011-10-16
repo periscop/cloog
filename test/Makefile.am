@@ -263,11 +263,13 @@ generate:
 		$(top_builddir)/cloog $(srcdir)/$$x.cloog \
 			-strides 1 -o $(srcdir)/$$x.c ; \
 	done ; \
-	for line in $(SPECIAL_OPTIONS); do echo $$line | while read x options; do \
+	for line in $(SPECIAL_OPTIONS); do \
+		options=`echo $$line | sed -e 's/^[^ ]* //'`; \
+		x=`echo $$line | sed -e 's/ .*//'`; \
 		echo "Generate file $$x ($$options)" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
 		    $$options > $(srcdir)/$$x.c ; \
-	done; done
+	done
 
 generate_good:
 	@for x in $(FINITE_CLOOGTEST_C) ; do \
@@ -316,7 +318,9 @@ test_run: generate_test$(EXEEXT)
 		$(RM) $@; \
 		echo; \
 	done; \
-	for line in $(SPECIAL_OPTIONS); do echo $$line | while read x options; do \
+	for line in $(SPECIAL_OPTIONS); do \
+		options=`echo $$line | sed -e 's/^[^ ]* //'`; \
+		x=`echo $$line | sed -e 's/ .*//'`; \
 		echo -n "Verify file $$x ($$options)... " ; \
 		echo -n "generating... " ; \
 		$(top_builddir)/cloog$(EXEEXT) -q -callable 1 $$options $(srcdir)/$$x.cloog > test_test.c ; \
@@ -333,8 +337,10 @@ test_run: generate_test$(EXEEXT)
 		fi; \
 		$(RM) $@; \
 		echo; \
-	done; done; \
-	for line in $(SPECIAL_OPTIONS); do echo $$line | while read x options; do \
+	done; \
+	for line in $(SPECIAL_OPTIONS); do \
+		options=`echo $$line | sed -e 's/^[^ ]* //'`; \
+		x=`echo $$line | sed -e 's/ .*//'`; \
 		echo -n "Verify file $$x ($$options -sh 1)... " ; \
 		echo -n "generating... " ; \
 		$(top_builddir)/cloog$(EXEEXT) -q -callable 1 $$options -sh 1 $(srcdir)/$$x.cloog > test_test.c ; \
@@ -351,7 +357,7 @@ test_run: generate_test$(EXEEXT)
 		fi; \
 		$(RM) $@; \
 		echo; \
-	done; done; \
+	done; \
 	if [ $$failedtest != 0 ] ; then \
 		echo "$$failedtest tests failed" ; \
 	else \
@@ -403,7 +409,9 @@ test:
 	        fi ; \
 	done ; \
 	echo "--- Testing SPECIAL OPTIONS files..." ; \
-	for line in $(SPECIAL_OPTIONS); do echo $$line | while read x options; do \
+	for line in $(SPECIAL_OPTIONS); do \
+		options=`echo $$line | sed -e 's/^[^ ]* //'`; \
+		x=`echo $$line | sed -e 's/ .*//'`; \
 	        echo "Verify file $$x ($$options)" ; \
 		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
 			$$options > ttemp ; \
@@ -415,7 +423,7 @@ test:
 		else \
 			echo "$$x passed" ; \
 	        fi ; \
-	done; done; \
+	done; \
 	rm ttemp ; \
 	if [ $$failedtest != 0 ] ; then \
 		echo "$$failedtest tests failed" ; \
