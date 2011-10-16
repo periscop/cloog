@@ -96,7 +96,7 @@ dnl /**************************************************************************
 dnl  *                             Option setting                             *
 dnl  **************************************************************************/
 
-AC_CHECK_HEADERS([sys/resource.h],
+AC_CHECK_FUNCS([getrusage],
 	[AC_DEFINE([CLOOG_RUSAGE], [], [Print time required to generate code])])
 
 AX_SUBMODULE(isl,no|system|build|bundled,bundled)
