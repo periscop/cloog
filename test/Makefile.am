@@ -208,6 +208,7 @@ CLOOGTEST_STRIDED =                    \
 	$(CLOOG_ISL_TEST_STRIDED)
 
 SPECIAL_TESTS = \
+	isl/unroll \
 	isl/jacobi-shared \
 	backtrack \
 	vasilache \
@@ -221,6 +222,7 @@ SPECIAL_TESTS = \
 	stride2 \
 	sor1d
 SPECIAL_OPTIONS = \
+	'isl/unroll -first-unroll 1' \
 	'isl/jacobi-shared -f 4 -l -1 -override -strides 1 -sh 1' \
 	'backtrack -f 1 -backtrack' \
 	'vasilache -f 8 -l 9' \
