@@ -265,7 +265,7 @@ static void print_comment(FILE *file, CloogOptions *options,
   va_list args;
 
   va_start(args, fmt);
-  if (options->language == LANGUAGE_FORTRAN) {
+  if (options->language == CLOOG_LANGUAGE_FORTRAN) {
     fprintf(file, "! ");
     vfprintf(file, fmt, args);
     fprintf(file, "\n");
@@ -372,9 +372,9 @@ CloogOptions * options ;
   struct clast_stmt *root;
    
   if (program->language == 'f')
-    options->language = LANGUAGE_FORTRAN ;
+    options->language = CLOOG_LANGUAGE_FORTRAN ;
   else
-    options->language = LANGUAGE_C ;
+    options->language = CLOOG_LANGUAGE_C ;
  
 #ifdef CLOOG_RUSAGE
   print_comment(file, options, "Generated from %s by %s in %.2fs.",
@@ -530,7 +530,7 @@ CloogProgram *cloog_program_alloc(CloogDomain *context, CloogUnionDomain *ud,
   /* Memory allocation for the CloogProgram structure. */
   p = cloog_program_malloc() ;
   
-  if (options->language == LANGUAGE_FORTRAN)
+  if (options->language == CLOOG_LANGUAGE_FORTRAN)
     p->language = 'f';
   else
     p->language = 'c';

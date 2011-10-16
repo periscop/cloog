@@ -310,7 +310,7 @@ CloogOptions *cloog_options_malloc(CloogState *state)
   options->compilable  =  0 ;  /* No compilable code. */
   options->callable    =  0 ;  /* No callable code. */
   options->quiet       =  0;   /* Do print informational messages. */
-  options->language     = LANGUAGE_C; /* The default output language is C. */
+  options->language     = CLOOG_LANGUAGE_C; /* The default output language is C. */
   options->save_domains = 0;   /* Don't save domains. */
   /* UNDOCUMENTED OPTIONS FOR THE AUTHOR ONLY */
   options->leaks       =  0 ;  /* I don't want to print allocation statistics.*/

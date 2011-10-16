@@ -1812,18 +1812,18 @@ by @code{usr}.
 @example
 @group
 struct cloogoptions
-@{ int l ;                     /* -l option.             */
-  int f ;                     /* -f option.             */
-  int strides ;               /* -strides option.       */
-  int sh ;                    /* -sh option.            */
-  int first_unroll;           /* -first-unroll option.  */
-  int esp ;                   /* -esp option.           */
-  int fsp ;                   /* -fsp option.           */
-  int otl ;                   /* -otl option.           */
-  int block ;                 /* -block option.         */
-  int compilable ;            /* -compilable option.    */
-  int language;               /* LANGUAGE_C or LANGUAGE_FORTRAN    */
-  int save_domains;           /* Save unsimplified copy of domain. */
+@{ int l;                     /* -l option.                                 */
+  int f;                     /* -f option.                                 */
+  int strides;               /* -strides option.                           */
+  int sh;                    /* -sh option.                                */
+  int first_unroll;          /* -first-unroll option.                      */
+  int esp;                   /* -esp option.                               */
+  int fsp;                   /* -fsp option.                               */
+  int otl;                   /* -otl option.                               */
+  int block;                 /* -block option.                             */
+  int compilable;            /* -compilable option.                        */
+  int language;              /* CLOOG_LANGUAGE_C or CLOOG_LANGUAGE_FORTRAN */
+  int save_domains;          /* Save unsimplified copy of domain.          */
 @} ;
 typedef struct cloogoptions CloogOptions ;
 

@@ -51,9 +51,8 @@ extern "C"
 # define EQTYPE_PUREITEM 2
 # define EQTYPE_EXAFFINE 3
 
-# define LANGUAGE_C 0
-# define LANGUAGE_FORTRAN 1
-
+#define CLOOG_LANGUAGE_C 0
+#define CLOOG_LANGUAGE_FORTRAN 1
 
 /******************************************************************************
  *                          Structure display function                        *

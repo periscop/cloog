@@ -39,9 +39,9 @@ CloogInput *cloog_input_read(FILE *file, CloogOptions *options)
 		cloog_die("Input error.\n");
    
 	if (language == 'f')
-		options->language = LANGUAGE_FORTRAN;
+		options->language = CLOOG_LANGUAGE_FORTRAN;
 	else
-		options->language = LANGUAGE_C;
+		options->language = CLOOG_LANGUAGE_C;
 
 	/* We then read the context data. */
 	context = cloog_domain_read_context(options->state, file);
@@ -110,7 +110,7 @@ void cloog_input_dump_cloog(FILE *file, CloogInput *input, CloogOptions *opt)
                 "# structure.\n\n");
 
         /* Language. */
-        if (opt->language == LANGUAGE_FORTRAN) {
+        if (opt->language == CLOOG_LANGUAGE_FORTRAN) {
                 fprintf(file, "# Language: FORTRAN\n");
                 fprintf(file, "f\n\n");
         } else {

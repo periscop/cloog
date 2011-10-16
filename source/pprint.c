@@ -135,7 +135,7 @@ void pprint_binary(struct cloogoptions *i, FILE *dst, struct clast_binary *b)
     const char *s1 = NULL, *s2 = NULL, *s3 = NULL;
     int group = b->LHS->type == clast_expr_red &&
 		((struct clast_reduction*) b->LHS)->n > 1;
-    if (i->language == LANGUAGE_FORTRAN) {
+    if (i->language == CLOOG_LANGUAGE_FORTRAN) {
 	switch (b->type) {
 	case clast_bin_fdiv:
 	    s1 = "FLOOR(REAL(", s2 = ")/REAL(", s3 = "))";
@@ -222,7 +222,7 @@ void pprint_reduction(struct cloogoptions *i, FILE *dst, struct clast_reduction 
 	    pprint_expr(i, dst, r->elts[0]);
 	    break;
 	}
-	if (i->language == LANGUAGE_FORTRAN)
+	if (i->language == CLOOG_LANGUAGE_FORTRAN)
 	    pprint_minmax_f(i, dst, r);
 	else
 	    pprint_minmax_c(i, dst, r);
@@ -290,7 +290,7 @@ void pprint_user_stmt(struct cloogoptions *options, FILE *dst,
 	    fprintf(dst, ",");
     }
     fprintf(dst, ")");
-    if (options->language != LANGUAGE_FORTRAN)
+    if (options->language != CLOOG_LANGUAGE_FORTRAN)
 	fprintf(dst, ";");
     fprintf(dst, "\n");
 }
@@ -299,7 +299,7 @@ void pprint_guard(struct cloogoptions *options, FILE *dst, int indent,
 		   struct clast_guard *g)
 {
     int k;
-    if (options->language == LANGUAGE_FORTRAN)
+    if (options->language == CLOOG_LANGUAGE_FORTRAN)
 	fprintf(dst,"IF ");
     else
 	fprintf(dst,"if ");
@@ -307,7 +307,7 @@ void pprint_guard(struct cloogoptions *options, FILE *dst, int indent,
 	fprintf(dst,"(");
     for (k = 0; k < g->n; ++k) {
 	if (k > 0) {
-	    if (options->language == LANGUAGE_FORTRAN)
+	    if (options->language == CLOOG_LANGUAGE_FORTRAN)
 		fprintf(dst," .AND. ");
 	    else
 		fprintf(dst," && ");
@@ -318,7 +318,7 @@ void pprint_guard(struct cloogoptions *options, FILE *dst, int indent,
     }
     if (g->n > 1)
 	fprintf(dst,")");
-    if (options->language == LANGUAGE_FORTRAN)
+    if (options->language == CLOOG_LANGUAGE_FORTRAN)
 	fprintf(dst," THEN\n");
     else
 	fprintf(dst," {\n");
@@ -326,7 +326,7 @@ void pprint_guard(struct cloogoptions *options, FILE *dst, int indent,
     pprint_stmt_list(options, dst, indent + INDENT_STEP, g->then);
 
     fprintf(dst, "%*s", indent, "");
-    if (options->language == LANGUAGE_FORTRAN)
+    if (options->language == CLOOG_LANGUAGE_FORTRAN)
 	fprintf(dst,"END IF\n"); 
     else
 	fprintf(dst,"}\n"); 
@@ -335,7 +335,7 @@ void pprint_guard(struct cloogoptions *options, FILE *dst, int indent,
 void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
 		 struct clast_for *f)
 {
-    if (options->language == LANGUAGE_FORTRAN)
+    if (options->language == CLOOG_LANGUAGE_FORTRAN)
 	fprintf(dst, "DO ");
     else
 	fprintf(dst, "for (");
@@ -343,22 +343,22 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
     if (f->LB) {
 	fprintf(dst, "%s=", f->iterator);
 	pprint_expr(options, dst, f->LB);
-    } else if (options->language == LANGUAGE_FORTRAN)
+    } else if (options->language == CLOOG_LANGUAGE_FORTRAN)
 	cloog_die("unbounded loops not allowed in FORTRAN.\n");
 
-    if (options->language == LANGUAGE_FORTRAN)
+    if (options->language == CLOOG_LANGUAGE_FORTRAN)
 	fprintf(dst,", ");
     else
 	fprintf(dst,";");
 
     if (f->UB) { 
-	if (options->language != LANGUAGE_FORTRAN)
+	if (options->language != CLOOG_LANGUAGE_FORTRAN)
 	    fprintf(dst,"%s<=", f->iterator);
 	pprint_expr(options, dst, f->UB);
-    } else if (options->language == LANGUAGE_FORTRAN)
+    } else if (options->language == CLOOG_LANGUAGE_FORTRAN)
 	cloog_die("unbounded loops not allowed in FORTRAN.\n");
 
-    if (options->language == LANGUAGE_FORTRAN) {
+    if (options->language == CLOOG_LANGUAGE_FORTRAN) {
 	if (cloog_int_gt_si(f->stride, 1))
 	    cloog_int_print(dst, f->stride);
 	fprintf(dst,"\n");
@@ -375,7 +375,7 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
     pprint_stmt_list(options, dst, indent + INDENT_STEP, f->body);
 
     fprintf(dst, "%*s", indent, "");
-    if (options->language == LANGUAGE_FORTRAN)
+    if (options->language == CLOOG_LANGUAGE_FORTRAN)
 	fprintf(dst,"END DO\n") ; 
     else
 	fprintf(dst,"}\n") ; 
@@ -390,7 +390,7 @@ void pprint_stmt_list(struct cloogoptions *options, FILE *dst, int indent,
 	fprintf(dst, "%*s", indent, "");
 	if (CLAST_STMT_IS_A(s, stmt_ass)) {
 	    pprint_assignment(options, dst, (struct clast_assignment *) s);
-	    if (options->language != LANGUAGE_FORTRAN)
+	    if (options->language != CLOOG_LANGUAGE_FORTRAN)
 		fprintf(dst, ";");
 	    fprintf(dst, "\n");
 	} else if (CLAST_STMT_IS_A(s, stmt_user)) {
