@@ -176,7 +176,8 @@ void cloog_options_help()
   "  -stop <depth>         Loop depth to stop code generation (-1: infinity)"
   "\n                        (default setting: -1).\n"
   "  -strides <boolean>    Handle non-unit strides (1) or not (0)\n"
-  "                        (default setting:  0).\n") ;
+  "                        (default setting:  0).\n"
+  "  -first-unroll <depth> First loop dimension to unroll (-1: no unrolling)\n");
   printf(
   "\nOptions for pretty printing:\n"
   "  -otl <boolean>        Simplify loops running one time (1) or not (0)\n"
