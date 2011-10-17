@@ -210,6 +210,7 @@ CLOOGTEST_STRIDED =                    \
 SPECIAL_TESTS = \
 	isl/unroll \
 	isl/jacobi-shared \
+	isl/unroll2 \
 	backtrack \
 	vasilache \
 	merge \
@@ -224,6 +225,7 @@ SPECIAL_TESTS = \
 SPECIAL_OPTIONS = \
 	'isl/unroll -first-unroll 1' \
 	'isl/jacobi-shared -f 4 -l -1 -override -strides 1 -sh 1' \
+	'isl/unroll2 -first-unroll 1' \
 	'backtrack -f 1 -backtrack' \
 	'vasilache -f 8 -l 9' \
 	'merge -f -1' \

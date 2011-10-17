@@ -1702,14 +1702,15 @@ struct cloog_can_unroll {
 
 
 /*
- * Check if the given lower bound can be used for unrolling.
+ * Check if the given lower bound can be used for unrolling
+ * and, if so, return the unrolling factor/trip count in *v.
  * If the lower bound involves any existentially quantified
  * variables, we currently punt.
  * Otherwise we compute the maximal value of (i - ceil(l) + 1),
  * with l the given lower bound and i the iterator identified by level.
  */
 static int is_valid_unrolling_lower_bound(struct cloog_can_unroll *ccu,
-	__isl_keep isl_constraint *c)
+	__isl_keep isl_constraint *c, isl_int *v)
 {
 	unsigned n_div;
 	isl_aff *aff;
@@ -1723,7 +1724,7 @@ static int is_valid_unrolling_lower_bound(struct cloog_can_unroll *ccu,
 	aff = isl_aff_ceil(aff);
 	aff = isl_aff_neg(aff);
 	aff = isl_aff_add_coefficient_si(aff, isl_dim_in, ccu->level - 1, 1);
-	res = isl_set_max(ccu->set, aff, ccu->n);
+	res = isl_set_max(ccu->set, aff, v);
 	isl_aff_free(aff);
 
 	if (res == isl_lp_unbounded)
@@ -1731,7 +1732,7 @@ static int is_valid_unrolling_lower_bound(struct cloog_can_unroll *ccu,
 
 	assert(res == isl_lp_ok);
 
-	cloog_int_add_ui(*ccu->n, *ccu->n, 1);
+	cloog_int_add_ui(*v, *v, 1);
 
 	return 1;
 }
@@ -1746,13 +1747,19 @@ static int constraint_can_unroll(__isl_take isl_constraint *c, void *user)
 {
 	struct cloog_can_unroll *ccu = (struct cloog_can_unroll *)user;
 	isl_int v;
+	isl_int count;
 
 	isl_int_init(v);
+	isl_int_init(count);
 	isl_constraint_get_coefficient(c, isl_dim_set, ccu->level - 1, &v);
-	if (isl_int_is_pos(v)) {
-		if (!ccu->c && is_valid_unrolling_lower_bound(ccu, c))
-			ccu->c = isl_constraint_copy(c);
+	if (isl_int_is_pos(v) &&
+	    is_valid_unrolling_lower_bound(ccu, c, &count) &&
+	    (!ccu->c || isl_int_lt(count, *ccu->n))) {
+		isl_constraint_free(ccu->c);
+		ccu->c = isl_constraint_copy(c);
+		isl_int_set(*ccu->n, count);
 	}
+	isl_int_clear(count);
 	isl_int_clear(v);
 	isl_constraint_free(c);
 
