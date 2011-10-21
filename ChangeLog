@@ -1,3 +1,14 @@
+version: 0.17.0
+date: Mon Dec 12 00:51:44 CET 2011
+changes:
+	- Support openscop as input format
+	- update isl backend to changes in isl 0.08
+	- Add CLOOG_ prefix to LANGUAGE defines in public header files
+	- Replace cloog_union_domain_from_isl_union_set() with
+	  cloog_union_domain_from_isl_set()
+	- Allow to build CLooG from gmp build directory
+	- Smaller improvements
+
 version: 0.16.3
 date: Wed Jul 13 18:18:19 CEST 2011
 changes:
