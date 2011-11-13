@@ -1300,13 +1300,12 @@ static int insert_modulo_guard_constraint(CloogConstraint *c, void *user)
     struct clast_modulo_guard_data *d = (struct clast_modulo_guard_data *) user;
     int level = d->level;
     CloogInfos *infos = d->infos;
-    int i, nb_elts = 0, len, len2, nb_iter, nb_par;
+    int i, nb_elts = 0, len, nb_iter, nb_par;
     int constant;
     struct cloog_vec *line_vector;
     cloog_int_t *line;
 
     len = cloog_constraint_total_dimension(c) + 2;
-    len2 = cloog_equal_total_dimension(infos->equal) + 2;
     nb_par = infos->names->nb_parameters;
     nb_iter = len - 2 - nb_par;
 
