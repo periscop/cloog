@@ -767,7 +767,6 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	int level, CloogEqualities *equal, int nb_par, cloog_int_t *bound)
 {
 	int j;
-	isl_ctx *ctx;
 	isl_space *idim;
 	struct isl_basic_set *eq;
 	struct isl_basic_map *id;
@@ -779,7 +778,6 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 
 	bset = cloog_constraints_set_to_isl(constraints);
 	orig = isl_basic_set_copy(bset);
-	ctx = isl_basic_set_get_ctx(bset);
 	dim = set_cloog_dim_to_isl_dim(constraints, level - 1);
 	assert(dim.type == isl_dim_set);
 
