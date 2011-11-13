@@ -365,7 +365,8 @@ void cloog_program_pprint(file, program, options)
 FILE * file ;
 CloogProgram * program ;
 CloogOptions * options ;
-{ int i, j, nb_scattering, indentation=0 ;
+{
+  int i, j, indentation = 0;
   CloogStatement * statement ;
   CloogBlockList * blocklist ;
   CloogBlock * block ;
@@ -393,7 +394,6 @@ CloogOptions * options ;
    * a compilable code. This code just do nothing, but now the user can edit
    * the source and set the statement macros and parameters values.
    */
-  nb_scattering = program->nb_scattdims ;
   if (options->compilable && (program->language == 'c'))
   { /* The headers. */
     fprintf(file,"/* DON'T FORGET TO USE -lm OPTION TO COMPILE. */\n\n") ;
