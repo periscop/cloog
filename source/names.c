@@ -443,10 +443,8 @@ char ** cloog_names_generate_items(int nb_items, char * prefix, char first_item)
  * - September 11th 2005 : addition of both scalar and scattering informations.
  */
 CloogNames * cloog_names_generate(
-     nb_scalars, nb_scattering, nb_iterators, nb_parameters,
-     first_s,    first_t,       first_i,      first_p)
-int  nb_scalars, nb_scattering, nb_iterators, nb_parameters ;
-char first_s,    first_t,       first_i,      first_p ;
+     int nb_scalars, int nb_scattering, int nb_iterators, int nb_parameters,
+     char first_s,   char first_t,      char first_i,     char first_p)
 { CloogNames * names ;
 
   names = (CloogNames *)malloc(sizeof(CloogNames)) ;
