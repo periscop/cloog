@@ -373,9 +373,9 @@ test_run: generate_test$(EXEEXT)
 	        echo "CLooG works correctly :-) !" ; \
         fi
 
-#if NO_OSL
+if NO_OSL
 test_openscop:
-#else
+else
 test_openscop:
 	@echo "             /*-----------------------------------------------*"
 	@echo "              *        Testing CLooG's OpenScop Input         *"
@@ -401,7 +401,7 @@ test_openscop:
 	else \
 	        echo "CLooG's OpenScop input works correctly :-) !" ; \
         fi
-#endif
+endif
 
 test: test_openscop
 	@echo "             /*-----------------------------------------------*"
