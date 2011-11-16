@@ -53,164 +53,165 @@ FORCE:
 
 ROOT = ..
 
-FINITE_CLOOGTEST_C =                   \
-	0D-1                           \
-	0D-2                           \
-	0D-3                           \
-	1point-1                       \
-	1point-2                       \
-	4-param                        \
-	basic-bounds-1                 \
-	basic-bounds-2                 \
-	basic-bounds-3                 \
-	basic-bounds-4                 \
-	basic-bounds-5                 \
-	basic-bounds-6                 \
-	block                          \
-	block2                         \
-	block3                         \
-	byu98-1-2-3                    \
-	cholesky                       \
-	cholesky2                      \
-	christian                      \
-	classen                        \
-	classen2                       \
-	constant                       \
-	constbound                     \
-	darte                          \
-	dealII                         \
-	donotsimp                      \
-	dot                            \
-	dot2                           \
-	double                         \
-	durbin_e_s                     \
-	emploi                         \
-	esced                          \
-	ex1                            \
-	forwardsub-1-1-2               \
-	forwardsub-2-1-2-3             \
-	forwardsub-3-1-2               \
-	gauss                          \
-	gesced                         \
-	gesced2                        \
-	gesced3                        \
-	guide                          \
-	iftest                         \
-	iftest2                        \
-	largeur                        \
-	levenshtein-1-2-3              \
-	lex                            \
-	lineality-1-2                  \
-	lineality-2-1-2                \
-	logo                           \
-	logopar                        \
-	lu                             \
-	lu2                            \
-	lub                            \
-	lux                            \
-	min-1-1                        \
-	min-2-1                        \
-	min-3-1                        \
-	min-4-1                        \
-	mode                           \
-	multi-mm-1                     \
-	no_lindep                      \
-	orc                            \
-	rectangle                      \
-	singleton                      \
-	square+triangle-1-1-2-3        \
-	swim                           \
-	test                           \
-	thomasset                      \
-	tiling                         \
-	uday_scalars		       \
-	union			       \
-	vivien                         \
-	vivien2                        \
-	walters                        \
-	walters2                       \
-	walters3                       \
-	wavefront                      \
-	yosr                           \
-	yosr2                          \
-	./non_optimal/nul_complex1     \
-	./non_optimal/usvd_e_t         \
-	./non_optimal/youcef           \
-	./reservoir/cholesky2          \
-	./reservoir/fusion1            \
-	./reservoir/fusion2            \
-	./reservoir/jacobi2            \
-	./reservoir/jacobi3            \
-	./reservoir/lim-lam1           \
-	./reservoir/lim-lam2           \
-	./reservoir/lim-lam3           \
-	./reservoir/lim-lam4           \
-	./reservoir/lim-lam5           \
-	./reservoir/lim-lam6           \
-	./reservoir/liu-zhuge1         \
-	./reservoir/loechner3          \
-	./reservoir/loechner4          \
-	./reservoir/loechner5          \
-	./reservoir/mg-interp2         \
-	./reservoir/mg-interp          \
-	./reservoir/mg-psinv           \
-	./reservoir/mg-resid           \
-	./reservoir/mg-rprj3           \
-	./reservoir/pingali1           \
-	./reservoir/pingali2           \
-	./reservoir/pingali3           \
-	./reservoir/pingali4           \
-	./reservoir/pingali5           \
-	./reservoir/pingali6           \
-	./reservoir/QR                 \
-	./reservoir/tang-xue1          \
-	./reservoir/two   
+FINITE_CLOOGTEST_C = \
+	0D-1 \
+	0D-2 \
+	0D-3 \
+	1point-1 \
+	1point-2 \
+	4-param \
+	basic-bounds-1 \
+	basic-bounds-2 \
+	basic-bounds-3 \
+	basic-bounds-4 \
+	basic-bounds-5 \
+	basic-bounds-6 \
+	block \
+	block2 \
+	block3 \
+	byu98-1-2-3 \
+	cholesky \
+	cholesky2 \
+	christian \
+	classen \
+	classen2 \
+	constant \
+	constbound \
+	darte \
+	dealII \
+	donotsimp \
+	dot \
+	dot2 \
+	double \
+	durbin_e_s \
+	emploi \
+	esced \
+	ex1 \
+	forwardsub-1-1-2 \
+	forwardsub-2-1-2-3 \
+	forwardsub-3-1-2 \
+	gauss \
+	gesced \
+	gesced2 \
+	gesced3 \
+	guide \
+	iftest \
+	iftest2 \
+	largeur \
+	levenshtein-1-2-3 \
+	lex \
+	lineality-1-2 \
+	lineality-2-1-2 \
+	logo \
+	logopar \
+	lu \
+	lu2 \
+	lub \
+	lux \
+	min-1-1 \
+	min-2-1 \
+	min-3-1 \
+	min-4-1 \
+	mode \
+	multi-mm-1 \
+	no_lindep \
+	orc \
+	rectangle \
+	singleton \
+	square+triangle-1-1-2-3 \
+	swim \
+	test \
+	thomasset \
+	tiling \
+	uday_scalars \
+	union \
+	vivien \
+	vivien2 \
+	walters \
+	walters2 \
+	walters3 \
+	wavefront \
+	yosr \
+	yosr2 \
+	non_optimal/nul_complex1 \
+	non_optimal/usvd_e_t \
+	non_optimal/youcef \
+	reservoir/cholesky2 \
+	reservoir/fusion1 \
+	reservoir/fusion2 \
+	reservoir/jacobi2 \
+	reservoir/jacobi3 \
+	reservoir/lim-lam1 \
+	reservoir/lim-lam2 \
+	reservoir/lim-lam3 \
+	reservoir/lim-lam4 \
+	reservoir/lim-lam5 \
+	reservoir/lim-lam6 \
+	reservoir/liu-zhuge1 \
+	reservoir/loechner3 \
+	reservoir/loechner4 \
+	reservoir/loechner5 \
+	reservoir/mg-interp2 \
+	reservoir/mg-interp \
+	reservoir/mg-psinv \
+	reservoir/mg-resid \
+	reservoir/mg-rprj3 \
+	reservoir/pingali1 \
+	reservoir/pingali2 \
+	reservoir/pingali3 \
+	reservoir/pingali4 \
+	reservoir/pingali5 \
+	reservoir/pingali6 \
+	reservoir/QR \
+	reservoir/tang-xue1 \
+	reservoir/two
 
-CLOOG_ISL_TEST_C =			\
-	isl/mod				\
-	isl/mod2			\
-	isl/mod3			\
+CLOOG_ISL_TEST_C = \
+	isl/mod \
+	isl/mod2 \
+	isl/mod3 \
 	isl/mod4
 
-CLOOGTEST_C =                          \
-	infinite                       \
-	infinite2                      \
-	infinite3                      \
-	infinite4                      \
-	$(FINITE_CLOOGTEST_C)          \
+CLOOGTEST_C = \
+	infinite \
+	infinite2 \
+	infinite3 \
+	infinite4 \
+	$(FINITE_CLOOGTEST_C) \
 	$(CLOOG_ISL_TEST_C)
 
-#	./reservoir/long               \
-#	faber
-
-CLOOGTEST_FORTRAN =                    \
-	dartef                         \
-	iftestf                        \
-	levenshtein-1-2-3f             \
+CLOOGTEST_FORTRAN = \
+	dartef \
+	iftestf \
+	levenshtein-1-2-3f \
 	yosrf
 
-CLOOG_ISL_TEST_STRIDED =		\
+CLOOG_ISL_TEST_STRIDED = \
 	isl/mxm-shared
 
-CLOOGTEST_STRIDED =                    \
-	basic-bounds-2                 \
-	mod4                           \
-	nul_basic1                     \
-	nul_basic2                     \
-	nul_lcpc		       \
-	multi-stride		       \
-	multi-stride2		       \
-	stride3                        \
-	stride4                        \
-	reservoir/bastoul3	       \
-	reservoir/stride	       \
-	reservoir/stride2              \
+CLOOGTEST_STRIDED = \
+	basic-bounds-2 \
+	mod4 \
+	nul_basic1 \
+	nul_basic2 \
+	nul_lcpc \
+	multi-stride \
+	multi-stride2 \
+	stride3 \
+	stride4 \
+	reservoir/bastoul3 \
+	reservoir/stride \
+	reservoir/stride2 \
 	$(CLOOG_ISL_TEST_STRIDED)
 
-CLOOGTEST_OPENSCOP =                   \
-	./openscop/matmult             \
-	./openscop/empty               \
-	./openscop/union
+if NO_OSL
+CLOOGTEST_OPENSCOP =
+else
+CLOOGTEST_OPENSCOP = \
+	openscop/matmult \
+	openscop/empty \
+	openscop/union
+endif
 
 SPECIAL_TESTS = \
 	isl/unroll \
@@ -227,6 +228,7 @@ SPECIAL_TESTS = \
 	stride \
 	stride2 \
 	sor1d
+
 SPECIAL_OPTIONS = \
 	'isl/unroll -first-unroll 1' \
 	'isl/jacobi-shared -f 4 -l -1 -override -strides 1 -sh 1' \
@@ -242,18 +244,6 @@ SPECIAL_OPTIONS = \
 	'stride -f -1 -strides 1' \
 	'stride2 -f -1 -strides 1' \
 	'sor1d -f -1'
-
-EXTRA_DIST = \
-	$(CLOOGTEST_C:%=%.cloog) \
-	$(CLOOGTEST_C:%=%.c) \
-	$(FINITE_CLOOGTEST_C:%=%.good.c) \
-	$(CLOOGTEST_FORTRAN:%=%.cloog) \
-	$(CLOOGTEST_FORTRAN:%=%.f) \
-	$(CLOOGTEST_STRIDED:%=%.cloog) \
-	$(CLOOGTEST_STRIDED:%=%.c) \
-	$(SPECIAL_TESTS:%=%.cloog) \
-	$(SPECIAL_TESTS:%=%.c) \
-	$(SPECIAL_TESTS:%=%.good.c)
 
 generate:
 	@echo "             /*-----------------------------------------------*"
@@ -271,6 +261,11 @@ generate:
 		echo "Generate $$x.c" ; \
 		$(top_builddir)/cloog $(srcdir)/$$x.cloog \
 			-strides 1 -o $(srcdir)/$$x.c ; \
+	done ; \
+	for x in $(CLOOGTEST_OPENSCOP) ; do \
+		echo "Generate $$x.c" ; \
+		$(top_builddir)/cloog $(srcdir)/$$x.scop \
+		-openscop -o $(srcdir)/$$x.c ; \
 	done ; \
 	for line in $(SPECIAL_OPTIONS); do \
 		options=`echo $$line | sed -e 's/^[^ ]* //'`; \
@@ -303,170 +298,48 @@ valgrind:
 		valgrind $(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog ; \
 	done
 
+CHECKER := "$(srcdir)/checker.sh"
+
+TESTS_ENVIRONMENT = \
+	top_builddir=$(top_builddir) \
+	srcdir=$(srcdir) \
+	EXEXT=$(EXEEXT) \
+	CHECKER=$(CHECKER) \
+	COMPILE="$(COMPILE)" \
+	LINK="$(LINK)" \
+	FINITE_CLOOGTEST_C="$(FINITE_CLOOGTEST_C)" \
+	CLOOGTEST_C="$(CLOOGTEST_C)" \
+	CLOOGTEST_FORTRAN="$(CLOOGTEST_FORTRAN)" \
+	CLOOGTEST_STRIDED="$(CLOOGTEST_STRIDED)" \
+	CLOOGTEST_OPENSCOP="$(CLOOGTEST_OPENSCOP)" \
+	SPECIAL_OPTIONS="$(SPECIAL_OPTIONS)"
+
 test_run: generate_test$(EXEEXT)
-	@echo "             /*-----------------------------------------------*"
-	@echo "              *                 Testing CLooG                 *"
-	@echo "              *-----------------------------------------------*/"
-	@failedtest=0 ; \
-	echo "--- Testing C files... (correct output)" ; \
-	for x in $(FINITE_CLOOGTEST_C) ; do \
-		echo -n "Verify file $$x... " ; \
-		echo -n "generating... " ; \
-		$(top_builddir)/cloog$(EXEEXT) -q -callable 1 $(srcdir)/$$x.cloog > test_test.c ; \
-		./generate_test$(EXEEXT) < $(srcdir)/$$x.cloog > test_main.c; \
-		echo -n "compiling... " ; \
-		$(COMPILE) -c test_test.c; \
-		$(COMPILE) -Dtest=good -c $(srcdir)/$$x.good.c -o test_good.o; \
-		$(LINK) test_main.c test_test.o test_good.o > /dev/null; \
-		echo -n "comparing... " ; \
-		./test_run$(EXEEXT); \
-		result=$$?; \
-		if test "$$result" -ne "0" ; then \
-			failedtest=`expr $$failedtest + 1` ; \
-		fi; \
-		$(RM) $@; \
-		echo; \
-	done; \
-	for line in $(SPECIAL_OPTIONS); do \
-		options=`echo $$line | sed -e 's/^[^ ]* //'`; \
-		x=`echo $$line | sed -e 's/ .*//'`; \
-		echo -n "Verify file $$x ($$options)... " ; \
-		echo -n "generating... " ; \
-		$(top_builddir)/cloog$(EXEEXT) -q -callable 1 $$options $(srcdir)/$$x.cloog > test_test.c ; \
-		./generate_test$(EXEEXT) < $(srcdir)/$$x.cloog > test_main.c; \
-		echo -n "compiling... " ; \
-		$(COMPILE) -c test_test.c; \
-		$(COMPILE) -Dtest=good -c $(srcdir)/$$x.good.c -o test_good.o; \
-		$(LINK) test_main.c test_test.o test_good.o > /dev/null; \
-		echo -n "comparing... " ; \
-		./test_run$(EXEEXT); \
-		result=$$?; \
-		if test "$$result" -ne "0" ; then \
-			failedtest=`expr $$failedtest + 1` ; \
-		fi; \
-		$(RM) $@; \
-		echo; \
-	done; \
-	for line in $(SPECIAL_OPTIONS); do \
-		options=`echo $$line | sed -e 's/^[^ ]* //'`; \
-		x=`echo $$line | sed -e 's/ .*//'`; \
-		echo -n "Verify file $$x ($$options -sh 1)... " ; \
-		echo -n "generating... " ; \
-		$(top_builddir)/cloog$(EXEEXT) -q -callable 1 $$options -sh 1 $(srcdir)/$$x.cloog > test_test.c ; \
-		./generate_test$(EXEEXT) < $(srcdir)/$$x.cloog > test_main.c; \
-		echo -n "compiling... " ; \
-		$(COMPILE) -c test_test.c; \
-		$(COMPILE) -Dtest=good -c $(srcdir)/$$x.good.c -o test_good.o; \
-		$(LINK) test_main.c test_test.o test_good.o > /dev/null; \
-		echo -n "comparing... " ; \
-		./test_run$(EXEEXT); \
-		result=$$?; \
-		if test "$$result" -ne "0" ; then \
-			failedtest=`expr $$failedtest + 1` ; \
-		fi; \
-		$(RM) $@; \
-		echo; \
-	done; \
-	if [ $$failedtest != 0 ] ; then \
-		echo "$$failedtest tests failed" ; \
-	else \
-	        echo "CLooG works correctly :-) !" ; \
-        fi
+	$(TESTS_ENVIRONMENT) \
+	$(srcdir)/check_run.sh
 
-if NO_OSL
-test_openscop:
-else
-test_openscop:
-	@echo "             /*-----------------------------------------------*"
-	@echo "              *        Testing CLooG's OpenScop Input         *"
-	@echo "              *-----------------------------------------------*/"
-	@failedtest=0 ; \
-	echo "--- Testing OpenScop files..." ; \
-	for x in $(CLOOGTEST_OPENSCOP) ; do \
-		echo "Verify file $$x" ; \
-		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.scop \
-		-openscop > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
-		result=$$?; \
-		if [ "$$result" -ne "0" ] ; then \
-			echo "!!! Error: $$x is not the same" ; \
-			failedtest=`expr $$failedtest + 1` ; \
-		else \
-			echo "$$x passed" ; \
-	        fi ; \
-	done ; \
-	rm ttemp ; \
-	if [ $$failedtest != 0 ] ; then \
-		echo "$$failedtest tests failed" ; \
-	else \
-	        echo "CLooG's OpenScop input works correctly :-) !" ; \
-        fi
-endif
+check_SCRIPTS = \
+	$(srcdir)/check_c.sh \
+	$(srcdir)/check_fortran.sh \
+	$(srcdir)/check_strided.sh \
+	$(srcdir)/check_openscop.sh \
+	$(srcdir)/check_special.sh
 
-test: test_openscop
-	@echo "             /*-----------------------------------------------*"
-	@echo "              *                 Testing CLooG                 *"
-	@echo "              *-----------------------------------------------*/"
-	@failedtest=0 ; \
-	echo "--- Testing C files... (expected output)" ; \
-	for x in $(CLOOGTEST_C) ; do \
-		echo "Verify file $$x" ; \
-		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
-		result=$$?; \
-		if [ "$$result" -ne "0" ] ; then \
-			echo "!!! Error: $$x is not the same" ; \
-			failedtest=`expr $$failedtest + 1` ; \
-		else \
-			echo "$$x passed" ; \
-	        fi ; \
-	done ; \
-	echo "--- Testing FORTRAN files..." ; \
-	for x in $(CLOOGTEST_FORTRAN) ; do \
-		echo "Verify file $$x" ; \
-		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.f ; \
-		result=$$?; \
-		if [ "$$result" -ne "0" ] ; then \
-			echo "!!! Error: $$x is not the same" ; \
-			failedtest=`expr $$failedtest + 1` ; \
-		else \
-			echo "$$x passed" ; \
-	        fi ; \
-	done ; \
-	echo "--- Testing STRIDED files..." ; \
-	for x in $(CLOOGTEST_STRIDED) ; do \
-		echo "Verify file $$x" ; \
-		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
-		-strides 1 > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
-		result=$$?; \
-		if [ "$$result" -ne "0" ] ; then \
-			echo "!!! Error: $$x is not the same" ; \
-			failedtest=`expr $$failedtest + 1` ; \
-		else \
-			echo "$$x passed" ; \
-	        fi ; \
-	done ; \
-	echo "--- Testing SPECIAL OPTIONS files..." ; \
-	for line in $(SPECIAL_OPTIONS); do \
-		options=`echo $$line | sed -e 's/^[^ ]* //'`; \
-		x=`echo $$line | sed -e 's/ .*//'`; \
-	        echo "Verify file $$x ($$options)" ; \
-		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
-			$$options > ttemp ; \
-		diff -u -w --ignore-matching-lines='CLooG' ttemp $(srcdir)/$$x.c ; \
-		result=$$?; \
-		if [ "$$result" -ne "0" ] ; then \
-			echo "!!! Error: $$x is not the same" ; \
-			failedtest=`expr $$failedtest + 1` ; \
-		else \
-			echo "$$x passed" ; \
-	        fi ; \
-	done; \
-	rm ttemp ; \
-	if [ $$failedtest != 0 ] ; then \
-		echo "$$failedtest tests failed" ; \
-	else \
-	        echo "CLooG works correctly :-) !" ; \
-        fi
+TESTS = $(check_SCRIPTS)
+
+EXTRA_DIST = \
+	$(check_SCRIPTS) \
+	$(srcdir)/checker.sh \
+	$(srcdir)/check_run.sh \
+	$(CLOOGTEST_C:%=%.cloog) \
+	$(CLOOGTEST_C:%=%.c) \
+	$(FINITE_CLOOGTEST_C:%=%.good.c) \
+	$(CLOOGTEST_FORTRAN:%=%.cloog) \
+	$(CLOOGTEST_FORTRAN:%=%.f) \
+	$(CLOOGTEST_STRIDED:%=%.cloog) \
+	$(CLOOGTEST_STRIDED:%=%.c) \
+	$(CLOOGTEST_OPENSCOP:%=%.scop) \
+	$(CLOOGTEST_OPENSCOP:%=%.c) \
+	$(SPECIAL_TESTS:%=%.cloog) \
+	$(SPECIAL_TESTS:%=%.c) \
+	$(SPECIAL_TESTS:%=%.good.c)

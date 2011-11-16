@@ -160,9 +160,6 @@ dist-hook:
 # *                                   Rules                                   *
 # *****************************************************************************/
 
-check:
-	$(MAKE) test -C test
-
 valcheck:
 	$(MAKE) valgrind -C test
 
