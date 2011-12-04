@@ -4,6 +4,8 @@
 #include "../include/cloog/cloog.h"
 
 #ifdef OSL_SUPPORT
+#include <osl/strings.h>
+#include <osl/extensions/scatnames.h>
 #include <osl/statement.h>
 #include <osl/scop.h>
 #endif
@@ -319,6 +321,7 @@ CloogUnionDomain *cloog_union_domain_from_osl_scop(CloogState *state,
   CloogUnionDomain *ud = NULL;
   osl_scop_p normalized;
   osl_statement_p statement;
+  osl_scatnames_p scatnames;
 
   /* Set the union of domains. */
   nb_parameters = (scop->context == NULL) ? 0 : scop->context->nb_parameters;
@@ -347,6 +350,16 @@ CloogUnionDomain *cloog_union_domain_from_osl_scop(CloogState *state,
     statement = statement->next;
   }
   osl_scop_free(normalized);
+
+  /* - Set the scattering dimension names. */
+  scatnames = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
+  if ((scatnames != NULL) && (scatnames->names != NULL)) {
+    for (i = 0; (i < osl_strings_size(scatnames->names)) &&
+                (i < ud->n_name[CLOOG_SCAT]); i++) {
+      ud = cloog_union_domain_set_name(ud, CLOOG_SCAT, i,
+                                       scatnames->names->string[i]);
+    }
+  }
 
   return ud;
 }
