@@ -10,6 +10,7 @@
 #include <isl/aff.h>
 
 #ifdef OSL_SUPPORT
+#include <osl/macros.h>
 #include <osl/relation.h>
 #endif
 
