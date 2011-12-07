@@ -106,10 +106,14 @@ dnl /**************************************************************************
 dnl  *                            Where is GMP?                               *
 dnl  **************************************************************************/
 
-AX_SUBMODULE(gmp,system,system)
+AX_SUBMODULE(gmp,system|build,system)
 
 need_get_memory_functions=false
 case "$with_gmp" in
+build)
+    CPPFLAGS="-I$with_gmp_builddir $CPPFLAGS"
+    LDFLAGS="-L$with_gmp_builddir/$lt_cv_objdir $LDFLAGS"
+    ;;
 system)
     if test "x$with_gmp_prefix" != "x"; then
 	CPPFLAGS="-I$with_gmp_prefix/include $CPPFLAGS"
@@ -118,7 +122,10 @@ system)
     if test "$with_gmp_exec_prefix" != "yes" ; then
 	LDFLAGS="-L$with_gmp_exec_prefix/lib $LDFLAGS"
     fi
-     
+    ;;
+esac
+case "$with_gmp" in
+build|system)
     AC_CHECK_HEADER(gmp.h,
                     [],
                     [AC_MSG_ERROR(Can't find gmp headers.)])
