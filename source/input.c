@@ -69,7 +69,6 @@ CloogInput *cloog_input_read(FILE *file, CloogOptions *options)
 		CloogInput * input = cloog_input_from_osl_scop(options->state,
 		                                               scop);
 		cloog_options_copy_from_osl_scop(scop, options);
-		osl_scop_free(scop);
 		return input;
 	}
 #endif

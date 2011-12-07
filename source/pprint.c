@@ -50,6 +50,13 @@
 #include <assert.h>
 # include "../include/cloog/cloog.h"
 
+#ifdef OSL_SUPPORT
+#include <osl/util.h>
+#include <osl/body.h>
+#include <osl/statement.h>
+#include <osl/scop.h>
+#endif
+
 
 static void pprint_name(FILE *dst, struct clast_name *n);
 static void pprint_term(struct cloogoptions *i, FILE *dst, struct clast_term *t);
@@ -274,10 +281,73 @@ void pprint_assignment(struct cloogoptions *i, FILE *dst,
     pprint_expr(i, dst, a->RHS);
 }
 
+
+/**
+ * pprint_osl_body function:
+ * this function pretty-prints the OpenScop body of a given statement.
+ * It returns 1 if it succeeds to find an OpenScop body to print for
+ * that statement, 0 otherwise.
+ * \param[in] options CLooG Options.
+ * \param[in] dst     Output stream.
+ * \param[in] u       Statement to print the OpenScop body.
+ * \return 1 on success to pretty-print an OpenScop body for u, 0 otherwise.
+ */
+int pprint_osl_body(struct cloogoptions *options, FILE *dst,
+                    struct clast_user_stmt *u) {
+#ifdef OSL_SUPPORT
+  int i;
+  char *expr, *tmp;
+  struct clast_stmt *t;
+  osl_scop_p scop = options->scop;
+  osl_statement_p stmt;
+  osl_body_p body;
+
+  if ((scop != NULL) &&
+      (osl_statement_number(scop->statement) >= u->statement->number)) {
+    stmt = scop->statement;
+
+    /* Go to the convenient statement in the SCoP. */
+    for (i = 1; i < u->statement->number; i++)
+      stmt = stmt->next;
+
+    /* Ensure it has a printable body. */
+    if ((osl_generic_has_URI(stmt->body, OSL_URI_BODY)) &&
+        ((body = stmt->body->data) != NULL) &&
+        (body->expression != NULL) &&
+        (body->iterators != NULL)) {
+      expr = osl_util_identifier_substitution(body->expression->string[0],
+                                              body->iterators->string);
+      tmp = expr;
+      /* Print the body expression, substituting the @...@ markers. */
+      while (*expr) {
+        if (*expr == '@') {
+          int iterator;
+          expr += sscanf(expr, "@%d", &iterator) + 2; /* 2 for the @s */
+          t = u->substitutions;
+          for (i = 0; i < iterator; i++)
+            t = t->next;
+          pprint_assignment(options, dst, (struct clast_assignment *)t);
+        } else {
+          fprintf(dst, "%c", *expr++);
+        }
+      }
+      fprintf(dst, "\n");
+      free(tmp);
+      return 1;
+    }
+  }
+#endif
+  return 0;
+}
+
 void pprint_user_stmt(struct cloogoptions *options, FILE *dst,
 		       struct clast_user_stmt *u)
 {
     struct clast_stmt *t;
+
+    if (pprint_osl_body(options, dst, u))
+      return;
+    
     if (u->statement->name)
 	fprintf(dst, "%s", u->statement->name);
     else

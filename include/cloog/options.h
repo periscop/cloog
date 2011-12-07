@@ -54,6 +54,7 @@ struct osl_scop;
 
 struct cloogoptions;
 typedef struct cloogoptions CloogOptions;
+struct osl_scop;
 
 struct cloogoptions
 {
@@ -97,6 +98,7 @@ struct cloogoptions
   char * name ;   /* Name of the input file. */
   float time ;    /* Time spent for code generation in seconds. */
   int openscop;   /* 1 if the input file has OpenScop format, 0 otherwise. */
+  struct osl_scop *scop; /* Input OpenScop scop if any, NULL otherwise. */
 #ifdef CLOOG_MEMORY
   int memory ;    /* Memory spent for code generation in kilobytes. */
 #endif

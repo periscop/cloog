@@ -132,6 +132,10 @@ void cloog_options_print(FILE * foo, CloogOptions * options)
   fprintf(foo,"MISC OPTIONS\n") ;
   fprintf(foo,"name        = %3s.\n", options->name);
   fprintf(foo,"openscop    = %3d.\n", options->openscop);
+  if (options->scop != NULL)
+    fprintf(foo,"scop        = (present but not printed).\n");
+  else
+    fprintf(foo,"scop        = NULL.\n");
   fprintf(foo,"UNDOCUMENTED OPTIONS FOR THE AUTHOR ONLY\n") ;
   fprintf(foo,"leaks       = %3d.\n",options->leaks) ;
   fprintf(foo,"backtrack   = %3d.\n",options->backtrack);
@@ -155,6 +159,11 @@ void cloog_options_print(FILE * foo, CloogOptions * options)
  */
 void cloog_options_free(CloogOptions *options)
 {
+#ifdef OSL_SUPPORT
+  if (options->scop != NULL) {
+    osl_scop_free(options->scop);
+  }
+#endif
   free(options);
 }
 
@@ -324,6 +333,7 @@ CloogOptions *cloog_options_malloc(CloogState *state)
   /* MISC OPTIONS */
   options->language    = CLOOG_LANGUAGE_C; /* The default output language is C. */
   options->openscop    =  0 ;  /* The input file has not the OpenScop format.*/
+  options->scop        =  NULL;/* No default SCoP.*/
   /* UNDOCUMENTED OPTIONS FOR THE AUTHOR ONLY */
   options->leaks       =  0 ;  /* I don't want to print allocation statistics.*/
   options->backtrack   =  0;   /* Perform backtrack in Quillere's algorithm.*/
@@ -502,6 +512,9 @@ void cloog_options_copy_from_osl_scop(osl_scop_p scop,
       options->language = CLOOG_LANGUAGE_FORTRAN;
     else
       options->language = CLOOG_LANGUAGE_C;
+
+    /* Store the input SCoP in the option structure. */
+    options->scop = scop;
   }
 }
 #endif
