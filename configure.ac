@@ -182,7 +182,7 @@ build)
 	;;
 system)
 	if test "x$with_osl_prefix" != "x"; then
-		OSL_CPPFLAGS="-D$osl_flag --I$with_osl_prefix/include"
+		OSL_CPPFLAGS="-D$osl_flag -I$with_osl_prefix/include"
 	fi
 	if test "x$with_osl_exec_prefix" != "x"; then
 		OSL_LDFLAGS="-L$with_osl_exec_prefix/lib"
