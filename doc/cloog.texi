@@ -1246,6 +1246,15 @@ void test(int M, int N)
      the OpenScop specification instead of the native file format
      (@pxref{Bas11}). This option is available only if the OpenScop
      support has been enabled at compile time (@pxref{Optional Features}).
+     The following OpenScop extensions are supported by CLooG
+     (for the details about those extensions, @pxref{Bas11}):
+     @itemize @bullet
+     @item @emph{scatnames} to set the scattering dimension names.
+     @item @emph{coordinates} to inject the generated code at the
+           place of a given SCoP in a given file. The use of
+           this extension is disabled when the options
+           @emph{-compilable} or @emph{-callable} are set.
+     @end itemize
 
 @node Help
 @subsection Help @code{--help} or @code{-h}

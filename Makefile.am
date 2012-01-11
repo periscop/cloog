@@ -43,7 +43,7 @@ endif
 
 if BUNDLED_OSL
     MAYBE_OSL = osl
-    OSL_LA = $(top_builddir)/osl/source/libosl.la
+    OSL_LA = $(top_builddir)/osl/libosl.la
 endif
 
 SUBDIRS = $(MAYBE_ISL) $(MAYBE_OSL) . doc test

@@ -53,6 +53,10 @@
 
 #define ALLOC(type) (type*)malloc(sizeof(type))
 
+#ifdef OSL_SUPPORT
+#include <osl/scop.h>
+#include <osl/extensions/coordinates.h>
+#endif
 
 /******************************************************************************
  *                          Structure display function                        *
@@ -356,6 +360,78 @@ static void print_callable_postamble(FILE *file, CloogProgram *program)
 }
 
 /**
+ * cloog_program_osl_pprint function:
+ * this function pretty-prints the C or FORTRAN code generated from an
+ * OpenScop specification by overwriting SCoP in a given code, if the
+ * options -compilable or -callable are not set. The SCoP coordinates are
+ * provided through the OpenScop "Coordinates" extension. It returns 1 if
+ * it succeeds to find an OpenScop coordinates information
+ * to pretty-print the generated code, 0 otherwise.
+ * \param[in] file    The output stream (possibly stdout).
+ * \param[in] program The generated pseudo-AST to pretty-print.
+ * \param[in] options CLooG options (contains the OpenSCop specification).
+ * \return 1 on success to pretty-print at the place of a SCoP, 0 otherwise.
+ */
+int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
+                             CloogOptions * options) {
+#ifdef OSL_SUPPORT
+  int lines = 0;
+  int read = 1;
+  char c;
+  osl_scop_p scop = options->scop;
+  osl_coordinates_p coordinates;
+  struct clast_stmt *root;
+  FILE * original;
+
+  if (scop && !options->compilable && !options->callable) {
+    coordinates = osl_generic_lookup(scop->extension, OSL_URI_COORDINATES);
+    if (coordinates) {
+      original = fopen(coordinates->name, "r");
+      if (!original) {
+        cloog_msg(options, CLOOG_WARNING,
+                  "unable to open the file specified in the SCoP "
+                  "coordinates\n");
+        return 0;
+      }
+
+      /* Print the macros the generated code may need. */
+      print_macros(file);
+
+      /* Print what was before the SCoP in the original file. */
+      while ((lines < coordinates->start) && (read != EOF)) {
+        read = fscanf(original, "%c", &c);
+        if (read != EOF) {
+          if (c == '\n')
+            lines ++;
+          fprintf(file, "%c", c);
+        }
+      }
+
+      /* Generate the clast from the pseudo-AST then pretty-print it. */
+      root = cloog_clast_create(program, options);
+      clast_pprint(file, root, coordinates->indent, options);
+      cloog_clast_free(root);
+
+      /* Print what was after the SCoP in the original file. */
+      while (read != EOF) {
+        read = fscanf(original, "%c", &c);
+        if (read != EOF) {
+          if (lines >= coordinates->end - 1)
+            fprintf(file, "%c", c);
+          if (c == '\n')
+            lines ++;
+        }
+      }
+
+      fclose(original);
+      return 1;
+    }
+  }
+#endif
+  return 0;
+}
+
+/**
  * cloog_program_pprint function:
  * This function prints the content of a CloogProgram structure (program) into a
  * file (file, possibly stdout), in a C-like language.
@@ -371,7 +447,10 @@ CloogOptions * options ;
   CloogBlockList * blocklist ;
   CloogBlock * block ;
   struct clast_stmt *root;
-   
+
+  if (cloog_program_osl_pprint(file, program, options))
+    return;
+
   if (program->language == 'f')
     options->language = CLOOG_LANGUAGE_FORTRAN ;
   else
