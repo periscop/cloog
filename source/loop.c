@@ -2580,12 +2580,12 @@ static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
 				new_block, inner, NULL);
 
   if (options->save_domains) {
+    inter = cloog_domain_add_stride_constraint(inter, loop->stride);
     if (domain_dim > nb_scattdims) {
       CloogDomain *t;
       inter = cloog_domain_project(t = inter, nb_scattdims);
       cloog_domain_free(t);
     }
-    inter = cloog_domain_add_stride_constraint(inter, loop->stride);
     simplified->unsimplified = inter;
   } else
     cloog_domain_free(inter);
