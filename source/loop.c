@@ -2579,7 +2579,6 @@ static CloogLoop *loop_simplify(CloogLoop *loop, CloogDomain *context,
   simplified = cloog_loop_alloc(loop->state, simp, loop->otl, loop->stride,
 				new_block, inner, NULL);
 
-  /* Only save the domains, if it involves only scattering dimensions.  */
   if (options->save_domains) {
     if (domain_dim > nb_scattdims) {
       CloogDomain *t;
