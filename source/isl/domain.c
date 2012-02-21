@@ -1695,6 +1695,11 @@ static int find_stride(__isl_take isl_constraint *c, void *user)
 	int n;
 	isl_int v;
 
+	if (!isl_constraint_is_equality(c)) {
+		isl_constraint_free(c);
+		return 0;
+	}
+
 	data = (struct cloog_isl_find_stride_data *)user;
 
 	if (data->stride) {
