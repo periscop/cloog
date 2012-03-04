@@ -310,7 +310,8 @@ int cloog_domain_follows(CloogDomain *dom1, CloogDomain *dom2, unsigned level)
 CloogDomain *cloog_domain_empty(CloogDomain *template)
 {
 	isl_set *set = isl_set_from_cloog_domain(template);
-	return cloog_domain_from_isl_set(isl_set_empty_like(set));
+	isl_space *space = isl_set_get_space(set);
+	return cloog_domain_from_isl_set(isl_set_empty(space));
 }
 
 
@@ -1010,7 +1011,7 @@ static int basic_set_stride_lower(__isl_take isl_basic_set *bset, void *user)
 	struct cloog_stride_lower *csl = (struct cloog_stride_lower *)user;
 	int r;
 
-	csl->bounds = isl_basic_set_universe_like(bset);
+	csl->bounds = isl_basic_set_universe(isl_basic_set_get_space(bset));
 	if (csl->stride->constraint)
 		r = isl_basic_set_foreach_constraint(bset,
 					&constraint_stride_lower_c, csl);
@@ -1037,7 +1038,7 @@ CloogDomain *cloog_domain_stride_lower_bound(CloogDomain *domain, int level,
 
 	csl.stride = stride;
 	csl.level = level;
-	csl.set = isl_set_empty_like(set);
+	csl.set = isl_set_empty(isl_set_get_space(set));
 
 	r = isl_set_foreach_basic_set(set, basic_set_stride_lower, &csl);
 	assert(r == 0);
@@ -1146,7 +1147,7 @@ CloogDomain *cloog_domain_bound_splitter(CloogDomain *dom, int level)
 	isl_set *set = isl_set_from_cloog_domain(dom);
 	int r;
 	cbs.level = level;
-	cbs.set = isl_set_universe_like(set);
+	cbs.set = isl_set_universe(isl_set_get_space(set));
 	r = isl_set_foreach_basic_set(set, basic_set_bound_split, &cbs);
 	assert(r == 0);
 	return cloog_domain_from_isl_set(cbs.set);
