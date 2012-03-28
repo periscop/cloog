@@ -58,7 +58,7 @@ void cloog_union_domain_free(CloogUnionDomain *ud)
 	for (i = 0; i < 3; ++i) {
 		if (!ud->name[i])
 			continue;
-		for (j = 0; j < ud->n_name[i]; ++i)
+		for (j = 0; j < ud->n_name[i]; ++j)
 			free(ud->name[i][j]);
 		free(ud->name[i]);
 	}
