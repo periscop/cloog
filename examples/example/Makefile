@@ -1,21 +1,21 @@
-# Please enter here the locations for CloogLib include and libraries if they
+# Please enter here the locations for the CLooG include and library if they
 # aren't the default values (/usr/lib and /usr/include).
-CLOOG_INC = $(HOME)/progs/linux/include
-CLOOG_LIB = $(HOME)/progs/linux/lib
+CLOOG_INC = $(HOME)/usr/include
+CLOOG_LIB = $(HOME)/usr/lib
 
 CC = gcc
-LDLIBS= -lcloog
-CFLAGS= -I $(CLOOG_INC) -L $(CLOOG_LIB)
+LDLIBS= -lcloog-isl
+CFLAGS= -DCLOOG_INT_GMP -I $(CLOOG_INC) -L $(CLOOG_LIB)
 
-
-example: example.c
+example: example.c example-isl.c 
 	@echo "             /*-----------------------------------------------*"
-	@echo "              *                Making example                 *"
+	@echo "              *                Making examples                *"
 	@echo "              *-----------------------------------------------*/"
 	$(CC) example.c -o example $(CFLAGS) $(LDLIBS)
+	$(CC) example-isl.c -o example-isl $(CFLAGS) $(LDLIBS)
 
 clean:
 	@echo "             /*-----------------------------------------------*"
-	@echo "              *               Cleaning example                *"
+	@echo "              *               Cleaning examples               *"
 	@echo "              *-----------------------------------------------*/"
-	-rm -f example example.exe core
+	-rm -f example example.exe example-isl example-isl.exe core

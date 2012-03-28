@@ -2178,6 +2178,13 @@ to match CLooG's header version with the library's version.
 
 @node Example of Library Utilization
 @section Example of Library Utilization
+@menu
+* Basic Library Utilization::
+* Scanning isl Sets::
+@end menu
+
+@node Basic Library Utilization
+@subsection Basic Library Utilization
 Here is a basic example showing how it is possible to use the CLooG library,
 assuming that a standard installation has been done.
 The following C program reads a CLooG input file on the standard input,
@@ -2190,11 +2197,10 @@ CLooG distribution.
 # include <stdio.h>
 # include <cloog/cloog.h>
 
-int main()
-@{
+int main() @{
   CloogState *state;
   CloogInput *input;
-  CloogOptions * options ;
+  CloogOptions *options ;
   struct clast_stmt *root;
   
   /* Setting options and reading program informations. */
@@ -2213,13 +2219,100 @@ int main()
 @}
 @end example
 
-@noindent The compilation command could be:
+@noindent The compilation (with default isl/GMP version installed)
+command could be:
 @example
-gcc example.c -lcloog -o example
+gcc -DCLOOG_INT_GMP example.c -lcloog-isl -o example
 @end example
 @noindent A calling command with the input file test.cloog could be:
 @example
 more test.cloog | ./example
+@end example
+
+@node Scanning isl Sets
+@subsection Scanning isl Sets
+Here is an isl-level example to prepare a convenient input, to generate the
+Clast of the scanning code for this input, to pretty-print the code and to
+de-allocate memory in a clean way. This example is provided in the
+@code{example} directory of the CLooG distribution.
+
+@example
+/* example-isl.c */
+#include <cloog/cloog.h>
+#include <cloog/isl/cloog.h>
+
+/* Input problem */
+int nb_parameters = 1;
+char *parameter_name[]  = @{"N"@};
+char *iterator_name[]   = @{"i", "j"@};
+char *scattering_name[] = @{"t0", "t1", "t2"@};
+char *str_context       = "[N] -> @{ : N > 0@}";
+char *str_domain1       = "[N] -> @{[i, j] : 0 <= i < N and 0 <= j < N@}";
+char *str_domain2       = "[N] -> @{[i, j] : 0 <= i < N and 0 <= j < N@}";
+char *str_scattering1   = "[N] -> @{[i, j] -> [0, i + j, j]@}";
+char *str_scattering2   = "[N] -> @{[i, j] -> [1, i,    -j]@}";
+
+int main() @{
+  isl_ctx *ctx;
+  isl_set *set_context, *set1, *set2;
+  isl_map *map1, *map2;
+  CloogDomain *context, *domain1, *domain2;
+  CloogScattering *scattering1, *scattering2;
+  CloogUnionDomain *domains;
+  CloogInput *input;
+  CloogState *state;
+  CloogOptions *options;
+  struct clast_stmt *root;
+
+  /* Build isl structures for context, sets and mapping */
+  ctx = isl_ctx_alloc();
+  set_context = isl_set_read_from_str(ctx, str_context);
+  set1 = isl_set_read_from_str(ctx, str_domain1);
+  set2 = isl_set_read_from_str(ctx, str_domain2);
+  map1 = isl_map_read_from_str(ctx, str_scattering1);
+  map2 = isl_map_read_from_str(ctx, str_scattering2);
+
+  /* Translate them to CLooG context, domains and scattering */
+  context = cloog_domain_from_isl_set(set_context);
+  domain1 = cloog_domain_from_isl_set(set1);
+  domain2 = cloog_domain_from_isl_set(set2);
+  scattering1 = cloog_scattering_from_isl_map(map1);
+  scattering2 = cloog_scattering_from_isl_map(map2);
+
+  /* Prepare the list of domains to scan */
+  domains = cloog_union_domain_alloc(nb_parameters);
+  cloog_union_domain_add_domain(domains,"S1",domain1,scattering1,NULL);
+  cloog_union_domain_add_domain(domains,"S2",domain2,scattering2,NULL);
+  cloog_union_domain_set_name(domains,CLOOG_PARAM,0,parameter_name[0]);
+  cloog_union_domain_set_name(domains,CLOOG_ITER, 0,iterator_name[0]);
+  cloog_union_domain_set_name(domains,CLOOG_ITER, 1,iterator_name[1]);
+  cloog_union_domain_set_name(domains,CLOOG_SCAT, 0,scattering_name[0]);
+  cloog_union_domain_set_name(domains,CLOOG_SCAT, 1,scattering_name[1]);
+  cloog_union_domain_set_name(domains,CLOOG_SCAT, 2,scattering_name[2]);
+
+  /* Build the input, generate a scanning code AST and print the code */
+  input = cloog_input_alloc(context, domains);
+  state = cloog_isl_state_malloc(ctx);
+  options = cloog_options_malloc(state);
+  root = cloog_clast_create_from_input(input, options);
+  clast_pprint(stdout, root, 0, options);
+
+  /* Recycle allocated memory */
+  cloog_clast_free(root);
+  cloog_options_free(options);
+  cloog_state_free(state);
+  isl_ctx_free(ctx);
+@}
+@end example
+
+@noindent The compilation (with default isl/GMP version installed)
+command could be:
+@example
+gcc -DCLOOG_INT_GMP example-isl.c -lcloog-isl -o example-isl
+@end example
+@noindent A calling command could be:
+@example
+./example-isl
 @end example
 
 

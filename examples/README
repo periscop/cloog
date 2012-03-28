@@ -19,18 +19,23 @@ thus you need to set LD_LIBRARY_PATH thanks to one of the following command:
 'setenv LD_LIBRARY_PATH /usr/local/lib' for tcsh-like shells, or
 'export LD_LIBRARY_PATH=/usr/local/lib' for bash-like shells.
 
-For any problem: <cedric.bastoul@inria.fr>.
+For any problem: <cloog-development@googlegroups.com>.
 
 
 #   **-------------------------------------------------------------------**
-#   **                          I. Example                               **
+#   **                          I. example                               **
 #   **-------------------------------------------------------------------**/
 
 
-This example program creates a simple CLooG-like loop generation program in a
-few lines. The input problem has to be given on standard input. We can test it
-for instance by typing 'more FILE.cloog | ./example' (or example.exe under
-Cygwin).
+This directory includes two basic examples:
+- The first example program creates a simple CLooG-like loop generation
+program in a few lines. The input problem has to be given on standard input.
+Users can test it for instance by typing 'more FILE.cloog | ./example' (or
+example.exe under Cygwin) after compilation.
+- The second example shows how to build a CLooG input from isl sets,
+generate the scanning code AST and pretty-printing it to the standard
+output. Users can test it by typing './example-isl' (or example-isl.exe
+under Cygwin) after compilation.
 
 
 #   **-------------------------------------------------------------------**
