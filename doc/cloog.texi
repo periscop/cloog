@@ -1672,13 +1672,13 @@ in the domain.  The input data structure if neither modified nor freed.
 
 @example
 #include <cloog/isl/cloog.h>
-CloogDomain *cloog_domain_from_isl_set(struct isl_set *set);
+CloogDomain *cloog_domain_from_isl_set(__isl_take isl_set *set);
 __isl_give isl_set *isl_set_from_cloog_domain(CloogDomain *domain);
 @end example
 @noindent
-The function @code{cloog_domain_from_isl_set} takes a
-@code{struct isl_set} as input and returns a pointer to a @code{CloogDomain}.
-The function consumes a reference to the given @code{struct isl_set}.
+The function @code{cloog_domain_from_isl_set} takes an
+@code{isl_set} as input and returns a pointer to a @code{CloogDomain}.
+The function consumes a reference to the given @code{isl_set}.
 Similarly, @code{isl_set_from_cloog_domain} consumes a reference
 to a @code{CloogDomain} and returns an @code{isl_set}.
 
@@ -1736,15 +1736,15 @@ in the domain.  The input data structure if neither modified nor freed.
 
 @example
 #include <cloog/isl/cloog.h>
-CloogScattering *cloog_scattering_from_isl_map(struct isl_map *map);
+CloogScattering *cloog_scattering_from_isl_map(__isl_take isl_map *map);
 @end example
 @noindent
-The function @code{cloog_scattering_from_isl_map} takes a
-@code{struct isl_map} as input and returns a pointer to a @code{CloogScattering}.
-The output dimensions of the @code{struct isl_map} correspond to the
+The function @code{cloog_scattering_from_isl_map} takes an
+@code{isl_map} as input and returns a pointer to a @code{CloogScattering}.
+The output dimensions of the @code{isl_map} correspond to the
 scattering dimensions, while the input dimensions correspond to the
 domain dimensions.
-The function consumes a reference to the given @code{struct isl_map}.
+The function consumes a reference to the given @code{isl_map}.
 
 
 @node CloogUnionDomain

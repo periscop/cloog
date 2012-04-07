@@ -20,8 +20,8 @@ struct cloogscattering {
 	int dummy;	/* Solaris cc doesn't like zero-sized structs */
 };
 
-CloogDomain *cloog_domain_from_isl_set(struct isl_set *set);
-CloogScattering *cloog_scattering_from_isl_map(struct isl_map *map);
+CloogDomain *cloog_domain_from_isl_set(__isl_take isl_set *set);
+CloogScattering *cloog_scattering_from_isl_map(__isl_take isl_map *map);
 CloogUnionDomain *cloog_union_domain_from_isl_union_map(
 	__isl_take isl_union_map *umap);
 CloogUnionDomain *cloog_union_domain_from_isl_set(

@@ -14,7 +14,7 @@
 #include <osl/relation.h>
 #endif
 
-CloogDomain *cloog_domain_from_isl_set(struct isl_set *set)
+CloogDomain *cloog_domain_from_isl_set(__isl_take isl_set *set)
 {
 	if (isl_set_is_params(set))
 		set = isl_set_from_params(set);
@@ -28,7 +28,7 @@ __isl_give isl_set *isl_set_from_cloog_domain(CloogDomain *domain)
 	return (isl_set *)domain;
 }
 
-CloogScattering *cloog_scattering_from_isl_map(struct isl_map *map)
+CloogScattering *cloog_scattering_from_isl_map(__isl_take isl_map *map)
 {
 	return (CloogScattering *)map;
 }
