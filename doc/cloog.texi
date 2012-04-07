@@ -1524,6 +1524,30 @@ the same time, but an object created within the state of a one
 @code{CloogState} structure is not allowed to interact with an object
 created within the state of an other @code{CloogState} structure.
 
+@menu
+* CloogState/isl::
+@end menu
+
+@node CloogState/isl
+@subsubsection isl
+
+@example
+#include <cloog/isl/cloog.h>
+CloogState *cloog_isl_state_malloc(isl_ctx *ctx);
+@end example
+
+@noindent
+When using the isl backend, CLooG will internally create many isl objects.
+If the user creates any CLooG objects from isl objects (e.g.,
+through @code{cloog_domain_from_isl_set} below), then the user needs
+to make sure that these isl objects live in the same @code{isl_ctx}
+as those created by CLooG internally.  The best way to ensure this
+property is to pass the @code{isl_ctx} created by the user to CLooG
+by calling @code{cloog_isl_state_malloc} to create a @code{CloogState}.
+Note that this makes the created @code{CloogState} a user of the
+given @code{isl_ctx}, meaning that the @code{CloogState} needs to
+be freed before the @code{isl_ctx} is freed.
+
 
 @node CloogMatrix
 @subsection CloogMatrix
