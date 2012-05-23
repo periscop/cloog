@@ -157,6 +157,18 @@ int clast_expr_equal(struct clast_expr *e1, struct clast_expr *e2);
 struct clast_expr *clast_bound_from_constraint(CloogConstraint *constraint,
 					       int level, CloogNames *names);
 
+typedef enum filterType {exact, subset} ClastFilterType;
+
+typedef struct clastFilter{
+    const char *iter;
+    const int *stmts_filter;
+    int nstmts_filter;
+    ClastFilterType filter_type;
+} ClastFilter;
+
+void clast_filter(struct clast_stmt *node, ClastFilter filter,
+        struct clast_for ***loops, int *nloops, int **stmts, int *nstmts);
+
 #if defined(__cplusplus)
   }
 #endif 

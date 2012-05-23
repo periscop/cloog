@@ -1897,3 +1897,189 @@ struct clast_stmt *cloog_clast_create_from_input(CloogInput *input,
 
     return root;
 }
+
+/* Adds to the list if not already in it */
+static int add_if_new(void **list, int num, void *new, int size)
+{
+    int i;
+
+    for (i=0; i<num; i++) {
+        if (!memcmp((*list) + i*size, new, size)) break;
+    }
+
+    if (i==num) {
+        *list = realloc(*list, (num+1)*size);
+        memcpy(*list + num*size, new, size);
+        return 1;
+    }
+
+    return 0;
+}
+
+
+/* Concatenates all elements of list2 that are not in list1;
+ * Returns the new size of the list */
+int concat_if_new(void **list1, int num1, void *list2, int num2, int size)
+{
+    int i, ret;
+
+    for (i=0; i<num2; i++) {
+        ret = add_if_new(list1, num1, (char *)list2 + i*size, size);
+        if (ret) num1++;
+    }
+
+    return num1;
+}
+
+/* Compares list1 to list2
+ * Returns 0 if both have the same elements; returns -1 if all elements of
+ * list1 are strictly contained in list2; 1 otherwise
+ */
+int list_compare(const int *list1, int num1, const int *list2, int num2)
+{
+    int i, j;
+
+    for (i=0; i<num1; i++) {
+        for (j=0; j<num2; j++) {
+            if (list1[i] == list2[j]) break;
+        }
+        if (j==num2) break;
+    }
+    if (i==num1) {
+       if (num1 == num2) {
+        return 0;
+       }
+       return -1;
+    }
+
+    return 1;
+}
+
+
+
+/*
+ * A multi-purpose function to traverse and get information on Clast
+ * loops
+ *
+ * node: clast node where processing should start
+ *
+ * Returns:
+ * A list of loops under clast_stmt 'node' filtered in two ways: (1) it contains
+ * statements appearing in 'stmts_filter', (2) loop iterator's name is 'iter'
+ * If iter' is set to NULL, no filtering based on iterator name is done
+ *
+ * iter: loop iterator name
+ * stmts_filter: list of statement numbers for filtering (1-indexed)
+ * nstmts_filter: number of statements in stmts_filter
+ *
+ * FilterType: match exact (i.e., loops containing only and all those statements
+ * in stmts_filter) or subset, i.e., loops which have only those statements
+ * that appear in stmts_filter
+ *
+ * To disable all filtering, set 'iter' to NULL, provide all statement
+ * numbers in 'stmts_filter' and set FilterType to subset
+ *
+ * Return fields
+ *
+ * stmts: an array of statement numbers under node
+ * nstmts: number of stmt numbers pointed to by stmts
+ * loops: list of clast loops
+ * nloops: number of clast loops in loops
+ *
+ */
+void clast_filter(struct clast_stmt *node,
+        ClastFilter filter,
+        struct clast_for ***loops, int *nloops,
+        int **stmts, int *nstmts)
+{
+    int num_next_stmts, num_next_loops, ret, *stmts_next;
+    struct clast_for **loops_next;
+
+    *loops = NULL;
+    *nloops = 0;
+    *nstmts = 0;
+    *stmts = NULL;
+
+    if (node == NULL) {
+        return;
+    }
+
+    ClastFilterType filter_type = filter.filter_type;
+    const char *iter = filter.iter;
+    int nstmts_filter = filter.nstmts_filter;
+    const int *stmts_filter = filter.stmts_filter;
+
+    if (CLAST_STMT_IS_A(node, stmt_root)) {
+        // printf("root stmt\n");
+        struct clast_root *root = (struct clast_root *) node;
+        clast_filter((root->stmt).next, filter, &loops_next,
+                &num_next_loops, &stmts_next, &num_next_stmts);
+        *nstmts = concat_if_new((void **)stmts, *nstmts, stmts_next, num_next_stmts, sizeof(int));
+        *nloops = concat_if_new((void **)loops, *nloops, loops_next, num_next_loops,
+                sizeof(struct clast_stmt *));
+        free(loops_next);
+        free(stmts_next);
+    }
+
+    if (CLAST_STMT_IS_A(node, stmt_guard)) {
+        // printf("guard stmt\n");
+        struct clast_guard *guard = (struct clast_guard *) node;
+        clast_filter(guard->then, filter, &loops_next,
+                &num_next_loops, &stmts_next, &num_next_stmts);
+        *nstmts = concat_if_new((void **)stmts, *nstmts, stmts_next, num_next_stmts, sizeof(int));
+        *nloops = concat_if_new((void **)loops, *nloops, loops_next, num_next_loops,
+                sizeof(struct clast_stmt *));
+        free(loops_next);
+        free(stmts_next);
+        clast_filter((guard->stmt).next, filter, &loops_next,
+                &num_next_loops, &stmts_next, &num_next_stmts);
+        *nstmts = concat_if_new((void **)stmts, *nstmts, stmts_next, num_next_stmts, sizeof(int));
+        *nloops = concat_if_new((void **)loops, *nloops, loops_next, num_next_loops,
+                sizeof(struct clast_stmt *));
+        free(loops_next);
+        free(stmts_next);
+    }
+
+    if (CLAST_STMT_IS_A(node, stmt_user)) {
+        struct clast_user_stmt *user_stmt = (struct clast_user_stmt *) node;
+        // printf("user stmt: S%d\n", user_stmt->statement->number);
+        ret = add_if_new((void **)stmts, *nstmts, &user_stmt->statement->number, sizeof(int));
+        if (ret) (*nstmts)++;
+        clast_filter((user_stmt->stmt).next, filter, &loops_next,
+                &num_next_loops, &stmts_next, &num_next_stmts);
+        *nstmts = concat_if_new((void **)stmts, *nstmts, stmts_next, num_next_stmts, sizeof(int));
+        *nloops = concat_if_new((void **)loops, *nloops, loops_next, num_next_loops,
+                sizeof(struct clast_stmt *));
+        free(loops_next);
+        free(stmts_next);
+    }
+    if (CLAST_STMT_IS_A(node, stmt_for)) {
+        struct clast_for *for_stmt = (struct clast_for *) node;
+        clast_filter(for_stmt->body, filter, &loops_next,
+                &num_next_loops, &stmts_next, &num_next_stmts);
+        *nstmts = concat_if_new((void **)stmts, *nstmts, stmts_next, num_next_stmts, sizeof(int));
+        *nloops = concat_if_new((void **)loops, *nloops, loops_next, num_next_loops,
+                sizeof(struct clast_stmt *));
+
+        if (iter == NULL || !strcmp(for_stmt->iterator, iter)) {
+            if (stmts_filter == NULL ||
+                    (filter_type == subset && list_compare(stmts_next, num_next_stmts,
+                                                           stmts_filter, nstmts_filter) <= 0)
+                    || (filter_type == exact && list_compare(stmts_next, num_next_stmts,
+                            stmts_filter, nstmts_filter) == 0 )) {
+                ret = add_if_new((void **)loops, *nloops, &for_stmt, sizeof(struct clast_for *));
+                if (ret) (*nloops)++;
+            }
+        }
+        free(loops_next);
+        free(stmts_next);
+
+        clast_filter((for_stmt->stmt).next, filter, &loops_next,
+                &num_next_loops, &stmts_next, &num_next_stmts);
+        *nstmts = concat_if_new((void **)stmts, *nstmts, stmts_next, num_next_stmts, sizeof(int));
+        *nloops = concat_if_new((void **)loops, *nloops, loops_next, num_next_loops,
+                sizeof(struct clast_stmt *));
+        free(loops_next);
+        free(stmts_next);
+    }
+}
