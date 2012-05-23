@@ -31,6 +31,10 @@ struct clast_term {
     struct clast_expr  *var;
 };
 
+#define CLAST_PARALLEL_NOT 0
+#define CLAST_PARALLEL_OMP 1
+#define CLAST_PARALLEL_MPI 2
+
 enum clast_red_type { clast_red_sum, clast_red_min, clast_red_max };
 struct clast_reduction {
     struct clast_expr	expr;
@@ -98,6 +102,11 @@ struct clast_for {
     struct clast_expr *	UB;
     cloog_int_t		stride;
     struct clast_stmt *	body;
+    int parallel;
+    /* Comma separated list of loop private variables for OpenMP parallelization */
+    char *private_vars;
+    /* Comma separated list of reduction variable/operators for OpenMP parallelization */
+    char *reduction_vars;
 };
 
 struct clast_equation {

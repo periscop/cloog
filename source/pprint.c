@@ -405,6 +405,56 @@ void pprint_guard(struct cloogoptions *options, FILE *dst, int indent,
 void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
 		 struct clast_for *f)
 {
+    if (options->language == CLOOG_LANGUAGE_C) {
+        if ((f->parallel & CLAST_PARALLEL_OMP) && !(f->parallel & CLAST_PARALLEL_MPI)) {
+            if (f->LB) {
+                fprintf(dst, "lbp=");
+                pprint_expr(options, dst, f->LB);
+                fprintf(dst, ";\n");
+            }
+            if (f->UB) {
+                fprintf(dst, "%*s", indent, "");
+                fprintf(dst, "ubp=");
+                pprint_expr(options, dst, f->UB);
+                fprintf(dst, ";\n");
+            }
+            fprintf(dst, "#pragma omp parallel for%s%s%s%s%s%s\n",
+                    (f->private_vars)? " private(":"",
+                    (f->private_vars)? f->private_vars: "",
+                    (f->private_vars)? ")":"",
+                    (f->reduction_vars)? " reduction(": "",
+                    (f->reduction_vars)? f->reduction_vars: "",
+                    (f->reduction_vars)? ")": "");
+            fprintf(dst, "%*s", indent, "");
+        }
+        if (f->parallel & CLAST_PARALLEL_MPI) {
+            if (f->LB) {
+                fprintf(dst, "_lb_dist=");
+                pprint_expr(options, dst, f->LB);
+                fprintf(dst, ";\n");
+            }
+            if (f->UB) {
+                fprintf(dst, "%*s", indent, "");
+                fprintf(dst, "_ub_dist=");
+                pprint_expr(options, dst, f->UB);
+                fprintf(dst, ";\n");
+            }
+            fprintf(dst, "%*s", indent, "");
+            fprintf(dst, "polyrt_loop_dist(_lb_dist, _ub_dist, nprocs, my_rank, &lbp, &ubp);\n");
+            if (f->parallel & CLAST_PARALLEL_OMP) {
+                fprintf(dst, "#pragma omp parallel for%s%s%s%s%s%s\n",
+                        (f->private_vars)? " private(":"",
+                        (f->private_vars)? f->private_vars: "",
+                        (f->private_vars)? ")":"",
+                        (f->reduction_vars)? " reduction(": "",
+                        (f->reduction_vars)? f->reduction_vars: "",
+                        (f->reduction_vars)? ")": "");
+            }
+            fprintf(dst, "%*s", indent, "");
+        }
+
+    }
+
     if (options->language == CLOOG_LANGUAGE_FORTRAN)
 	fprintf(dst, "DO ");
     else
@@ -412,7 +462,11 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
 
     if (f->LB) {
 	fprintf(dst, "%s=", f->iterator);
+        if (f->parallel & (CLAST_PARALLEL_OMP | CLAST_PARALLEL_MPI)) {
+            fprintf(dst, "lbp");
+        }else{
 	pprint_expr(options, dst, f->LB);
+        }
     } else if (options->language == CLOOG_LANGUAGE_FORTRAN)
 	cloog_die("unbounded loops not allowed in FORTRAN.\n");
 
@@ -424,8 +478,13 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
     if (f->UB) { 
 	if (options->language != CLOOG_LANGUAGE_FORTRAN)
 	    fprintf(dst,"%s<=", f->iterator);
-	pprint_expr(options, dst, f->UB);
-    } else if (options->language == CLOOG_LANGUAGE_FORTRAN)
+
+        if (f->parallel & (CLAST_PARALLEL_OMP | CLAST_PARALLEL_MPI)) {
+            fprintf(dst, "ubp");
+        }else{
+            pprint_expr(options, dst, f->UB);
+        }
+    }else if (options->language == CLOOG_LANGUAGE_FORTRAN)
 	cloog_die("unbounded loops not allowed in FORTRAN.\n");
 
     if (options->language == CLOOG_LANGUAGE_FORTRAN) {

@@ -211,6 +211,8 @@ static void free_clast_for(struct clast_stmt *s)
     free_clast_expr(f->UB);
     cloog_int_clear(f->stride);
     cloog_clast_free(f->body);
+    if (f->private_vars) free(f->private_vars);
+    if (f->reduction_vars) free(f->reduction_vars);
     free(f);
 }
 
@@ -226,6 +228,9 @@ struct clast_for *new_clast_for(CloogDomain *domain, const char *it,
     f->LB = LB;
     f->UB = UB;
     f->body = NULL;
+    f->parallel = CLAST_PARALLEL_NOT;
+    f->private_vars = NULL;
+    f->reduction_vars = NULL;
     cloog_int_init(f->stride);
     if (stride)
 	cloog_int_set(f->stride, stride->stride);
