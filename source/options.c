@@ -115,10 +115,26 @@ void cloog_die(const char *msg, ...)
  * - April 19th 2003: first version.
  */
 void cloog_options_print(FILE * foo, CloogOptions * options)
-{ fprintf(foo,"Options:\n") ;
+{
+  int i;
+
+  fprintf(foo,"Options:\n") ;
   fprintf(foo,"OPTIONS FOR LOOP GENERATION\n") ;
   fprintf(foo,"l           = %3d,\n",options->l) ;
   fprintf(foo,"f           = %3d,\n",options->f) ;
+  fprintf(foo,"fs           = %3d,\n",options->f) ;
+  if (options->fs_ls_size>=1) {
+      fprintf(foo,"fs           = ");
+      for (i=0; i<options->fs_ls_size; i++) {
+          fprintf(foo,"%3d,\n",options->fs[i]) ;
+      }
+      fprintf(foo,"\n");
+      fprintf(foo,"ls           = ");
+      for (i=0; i<options->fs_ls_size; i++) {
+          fprintf(foo,"%3d,\n",options->ls[i]) ;
+      }
+      fprintf(foo,"\n");
+  }
   fprintf(foo,"stop        = %3d,\n",options->stop) ;
   fprintf(foo,"strides     = %3d,\n",options->strides) ;
   fprintf(foo,"sh          = %3d,\n",options->sh);
@@ -164,6 +180,8 @@ void cloog_options_free(CloogOptions *options)
     osl_scop_free(options->scop);
   }
 #endif
+  free(options->fs);
+  free(options->ls);
   free(options);
 }
 
@@ -316,6 +334,9 @@ CloogOptions *cloog_options_malloc(CloogState *state)
   /* OPTIONS FOR LOOP GENERATION */
   options->l           = -1 ;  /* Last level to optimize: infinity. */
   options->f           =  1 ;  /* First level to optimize: the first. */
+  options->ls          = NULL ; /* Statement-wise l option is not set */
+  options->fs          = NULL ; /* Statement-wise f option is not set */
+  options->fs_ls_size  = 0;    /* No statement-wise f/s control */
   options->stop        = -1 ;  /* Generate all the code. */
   options->strides     =  0 ;  /* Generate a code with unit strides. */
   options->sh	       =  0;   /* Compute actual convex hull. */

@@ -62,6 +62,10 @@ struct cloogoptions
   /* OPTIONS FOR LOOP GENERATION */
   int l ;           /* Last level to optimize. */
   int f ;           /* First level to optimize. */
+
+  int *ls;         /* Last level to optimize (statement-wise). */
+  int *fs;         /* First level to optimize (statement-wise). */
+  int fs_ls_size;  /* Size of the fs and ls arrays (same size) */
   int stop ;        /* Level to stop code generation. */
   int strides ;     /* 1 if user wants to handle non-unit strides (then loop
                      * increment can be something else than one), 0 otherwise.

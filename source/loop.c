@@ -1800,6 +1800,46 @@ CloogLoop *cloog_loop_recurse(CloogLoop *loop,
     return res;
 }
 
+
+/* Get the max across all 'first' depths for statements in this
+ * stmt list, and the max across all 'last' depths */
+void cloog_statement_get_fl(CloogStatement *s, int *f, int *l,
+        CloogOptions *options)
+{
+    if (s == NULL) return;
+
+    int fs, ls;
+
+    if (options->fs != NULL && options->ls != NULL) {
+        fs = options->fs[s->number-1];
+        ls = options->ls[s->number-1];
+        *f = (fs > *f)? fs: *f;
+        *l = (ls > *l)? ls: *l;
+    }else{
+        *f = -1;
+        *l = -1;
+    }
+
+    cloog_statement_get_fl(s->next, f, l, options);
+}
+
+/* Get the max across all 'first' depths for statements under
+ * this loop, and the max across all 'last' depths */
+void cloog_loop_get_fl(CloogLoop *loop, int *f, int *l,
+        CloogOptions *options)
+{
+    if (loop == NULL)   return;
+
+    CloogBlock *block = loop->block;
+
+    if (block != NULL && block->statement != NULL) {
+        cloog_statement_get_fl(block->statement, f, l, options);
+    }
+
+    cloog_loop_get_fl(loop->inner, f, l, options);
+    cloog_loop_get_fl(loop->next, f, l, options);
+}
+
 /**
  * cloog_loop_generate_general function:
  * Adaptation from LoopGen 0.4 by F. Quillere. This function implements the
@@ -1822,6 +1862,10 @@ CloogLoop *cloog_loop_recurse(CloogLoop *loop,
  * - November  15th 2005: (debug) the result of the cloog_loop_generate call may
  *                        be a list of polyhedra (especially if stop option is
  *                        used): cloog_loop_add_list instead of cloog_loop_add.
+ * - May 31, 2012: statement-wise first and last depth for loop separation
+ *   if options->fs and option->ls arrays are set, it will override what has
+ *   been supplied via "-f/-l"
+ *
  */ 
 CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
 	int level, int scalar, int *scaldims, int nb_scattdims,
@@ -1831,13 +1875,27 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
   int separate = 0;
   int constant = 0;
 
+    int first = -1;
+    int last = -1;
+
+    now = NULL;
+
+    /* Get the -f and -l for each statement */
+    cloog_loop_get_fl(loop, &first, &last, options);
+
+    /* If stmt-wise options are not set or set inconsistently, use -f/-l ones globally */
+    if (first <= 0 || last < first) {
+        first = options->f;
+        last = options->l;
+    }
+
   /* 3. Separate all projections into disjoint polyhedra. */
   if (level > 0 && cloog_loop_is_constant(loop, level)) {
     res = cloog_loop_constant(loop, level);
     constant = 1;
-  } else if ((options->f > level+scalar) || (options->f < 0))
+    }else if ((first > level+scalar) || (first < 0)) {
     res = cloog_loop_merge(loop, level, options);
-  else {
+    }else{
     res = cloog_loop_separate(loop);
     separate = 1;
   }
@@ -1853,7 +1911,7 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
   /* 4. Recurse for each loop with the current domain as context. */
   temp = res ;
   res = NULL ;
-  if (!level || (level+scalar < options->l) || (options->l < 0))
+    if (!level || (level+scalar < last) || (last < 0))
     res = cloog_loop_recurse(temp, level, scalar, scaldims, nb_scattdims,
 			     constant, options);
   else
@@ -1877,8 +1935,8 @@ CloogLoop *cloog_loop_generate_general(CloogLoop *loop,
    *    for an idea.
    */
   if (options->backtrack && level &&
-      ((level+scalar < options->l) || (options->l < 0)) &&
-      ((options->f <= level+scalar) && !(options->f < 0)))
+            ((level+scalar < last) || (last < 0)) &&
+            ((first <= level+scalar) && !(first < 0)))
   res = cloog_loop_generate_backtrack(res, level, options);
   
   /* Pray for my new paper to be accepted somewhere since the following stuff

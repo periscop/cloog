@@ -820,6 +820,7 @@ input file @code{basic.cloog} with default options by typing:
 @menu
 * Last Depth to Optimize Control::
 * First Depth to Optimize Control::
+* Statement-wise First and Last Depths to Optimize Control
 * Simplify Convex Hull::
 * Once Time Loop Elimination::
 * Equality Spreading::
@@ -920,6 +921,26 @@ for (i=1;i<=N;i++) @{
 @}
 @end group
 @end example
+
+@node Statement-wise First and Last Depths to Optimize Control
+@subsection Statement-wise First and Last Depths to Optimize Control @code{options->fs, options->ls}
+
+option->f/l (command-line arguments: -f and -l) provide first and last levels to optimize
+control overhead at a global level (across the entire program / all statements)
+by separating / splitting loops. option->fs/ls allow the equivalent of setting
+-f/-l options on a statement-wise basis. Integer arrays options->fs, options->ls should
+be allocated by the user with options->fs_ls_size set to the number of elements (always equal
+to the number of statements).  For any
+given loop, the first and last depths of all statements under it are looked at
+to determine if the loop should be separated (max across all fs' and ls' is
+taken). A user has to set fs meaningfully, i.e., for eg., if two statements i &
+j have a fused loop and fs[i], fs[j] specify separation for that level for stmt
+i but not for stmt j, the input is ambiguous and we will in this case not
+separate (since a max is taken). options->fs/ls override f/l; if fs/ls are not
+set or are set inconsistently (max across ls[i] < max across fs[i]), f/l take
+over.
+
+fs/ls can only be set via the library interface for now.
 
 @node Simple Convex Hull
 @subsection  Simple Convex Hull @code{-sh <boolean>}
@@ -1854,8 +1875,11 @@ by @code{usr}.
 @example
 @group
 struct cloogoptions
-@{ int l;                     /* -l option.                                 */
+@{ int l;                     /* -l option.                                */
   int f;                     /* -f option.                                 */
+  int *ls;                   /* Statement-wise l option                    */
+  int *fs;                   /* Statement-wise f option                    */
+  int fs_ls_size;            /* Size of the fs and ls arrays (same size)   */
   int strides;               /* -strides option.                           */
   int sh;                    /* -sh option.                                */
   int first_unroll;          /* -first-unroll option.                      */
@@ -1881,6 +1905,7 @@ As a reminder, the default values are:
 @itemize @bullet
 @item @math{l = -1} (optimize control until the innermost loops),
 @item @math{f = 1} (optimize control from the outermost loops),
+@item @math{ls/fs = NULL} and @math{fs\_ls\_size = 0} (statement-wise l/f are not set),
 @item @math{strides = 0} (use only unit strides),
 @item @math{sh = 0} (do not compute simple convex hulls),
 @item @math{first\_unroll = -1} (do not perform unrolling),
