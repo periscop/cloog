@@ -34,6 +34,7 @@ struct clast_term {
 #define CLAST_PARALLEL_NOT 0
 #define CLAST_PARALLEL_OMP 1
 #define CLAST_PARALLEL_MPI 2
+#define CLAST_PARALLEL_VEC 4
 
 enum clast_red_type { clast_red_sum, clast_red_min, clast_red_max };
 struct clast_reduction {

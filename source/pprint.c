@@ -427,6 +427,23 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
                     (f->reduction_vars)? ")": "");
             fprintf(dst, "%*s", indent, "");
         }
+        if ((f->parallel & CLAST_PARALLEL_VEC) && !(f->parallel & CLAST_PARALLEL_OMP)
+               && !(f->parallel & CLAST_PARALLEL_MPI)) {
+            if (f->LB) {
+                fprintf(dst, "lbv=");
+                pprint_expr(options, dst, f->LB);
+                fprintf(dst, ";\n");
+            }
+            if (f->UB) {
+                fprintf(dst, "%*s", indent, "");
+                fprintf(dst, "ubv=");
+                pprint_expr(options, dst, f->UB);
+                fprintf(dst, ";\n");
+            }
+            fprintf(dst, "%*s#pragma ivdep\n", indent, "");
+            fprintf(dst, "%*s#pragma vector always\n", indent, "");
+            fprintf(dst, "%*s", indent, "");
+        }
         if (f->parallel & CLAST_PARALLEL_MPI) {
             if (f->LB) {
                 fprintf(dst, "_lb_dist=");
@@ -464,6 +481,8 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
 	fprintf(dst, "%s=", f->iterator);
         if (f->parallel & (CLAST_PARALLEL_OMP | CLAST_PARALLEL_MPI)) {
             fprintf(dst, "lbp");
+        }else if (f->parallel & CLAST_PARALLEL_VEC){
+            fprintf(dst, "lbv");
         }else{
 	pprint_expr(options, dst, f->LB);
         }
@@ -481,6 +500,8 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
 
         if (f->parallel & (CLAST_PARALLEL_OMP | CLAST_PARALLEL_MPI)) {
             fprintf(dst, "ubp");
+        }else if (f->parallel & CLAST_PARALLEL_VEC){
+            fprintf(dst, "ubv");
         }else{
             pprint_expr(options, dst, f->UB);
         }
