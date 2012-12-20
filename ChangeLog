@@ -1,3 +1,13 @@
+version: 0.18.0
+date: Thu Dec 20 17:50:41 CET 2012
+changes:
+	- Update to isl 0.11.1
+	- clast annotations for openmp and vectorization
+	- statement-wise loop separation
+	- clast traversal and node filtering support
+	- Do not call some deprecated isl functions
+	- Support for OpenSCoP coordinates extension
+
 version: 0.17.0
 date: Mon Dec 12 00:51:44 CET 2011
 changes:
