@@ -729,8 +729,8 @@ static __isl_give isl_basic_set *equality_to_basic_set(CloogEqualities *equal,
 	bset = isl_basic_set_from_constraint(c);
 	nparam = isl_basic_set_dim(bset, isl_dim_param);
 	nvar = isl_basic_set_dim(bset, isl_dim_set);
-	bset = isl_basic_set_add(bset, isl_dim_set,
-				 equal->total_dim - (nparam + nvar));
+	bset = isl_basic_set_add_dims(bset, isl_dim_set,
+				      equal->total_dim - (nparam + nvar));
 	return bset;
 }
 
