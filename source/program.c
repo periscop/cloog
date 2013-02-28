@@ -376,6 +376,7 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
                              CloogOptions * options) {
 #ifdef OSL_SUPPORT
   int lines = 0;
+  int columns = 0;
   int read = 1;
   char c;
   osl_scop_p scop = options->scop;
@@ -398,14 +399,22 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
       print_macros(file);
 
       /* Print what was before the SCoP in the original file. */
-      while ((lines < coordinates->start) && (read != EOF)) {
+      while (((lines < coordinates->line_start - 1) ||
+              (columns < coordinates->column_start - 1)) && (read != EOF)) {
         read = fscanf(original, "%c", &c);
+        columns++;
         if (read != EOF) {
-          if (c == '\n')
-            lines ++;
+          if (c == '\n') {
+            lines++;
+            columns = 0;
+          }
           fprintf(file, "%c", c);
         }
       }
+
+      /* Carriage return to preserve indentation if necessary. */
+      if (coordinates->column_start > 0)
+        fprintf(file, "\n");
 
       /* Generate the clast from the pseudo-AST then pretty-print it. */
       root = cloog_clast_create(program, options);
@@ -415,11 +424,16 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
       /* Print what was after the SCoP in the original file. */
       while (read != EOF) {
         read = fscanf(original, "%c", &c);
+        columns++;
         if (read != EOF) {
-          if (lines >= coordinates->end - 1)
+          if (((lines == coordinates->line_end - 1) &&
+               (columns > coordinates->column_end)) ||
+              (lines > coordinates->line_end - 1))
             fprintf(file, "%c", c);
-          if (c == '\n')
-            lines ++;
+          if (c == '\n') {
+            lines++;
+            columns = 0;
+          }
         }
       }
 
