@@ -6,14 +6,14 @@ IF (n >= 1) THEN
     END IF
   END DO
   DO t1=-n+2, n-1
-    IF (t1 >= 2) THEN
+    IF (t1 >= 0) THEN
       DO t3=t1+4, t1+2*n+2
         IF (MOD(t1+t3, 2) == 0) THEN
           S1(t1+1,1,(-t1+t3-2)/2)
         END IF
       END DO
     END IF
-    DO t2=MAX(-t1+2,t1+2), -t1+4
+    DO t2=MAX(-t1+2,t1+3), -t1+4
       DO t3=t2+2, t2+2*n
         IF (MOD(t1+t2, 2) == 0) THEN
           IF (MOD(t1+t3, 2) == 0) THEN
