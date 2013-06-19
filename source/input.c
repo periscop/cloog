@@ -28,7 +28,7 @@ static char *next_line(FILE *input, char *line, unsigned len)
  * This function translates an OpenScop scop to a CLooG input.
  * \param[in,out] state CLooG state.
  * \param[in]     scop  Scop to translate.
- * \return A CloogInput corresponding to the scop input.
+ * \return A CloogInput corresponding to the input scop.
  */
 CloogInput *cloog_input_from_osl_scop(CloogState *state, osl_scop_p scop) {
   CloogInput *input    = NULL;
@@ -59,16 +59,32 @@ CloogInput *cloog_input_read(FILE *file, CloogOptions *options)
 {
 	char line[MAX_STRING];
 	char language;
+	CloogOptions *ops = NULL;
 	CloogDomain *context;
 	CloogUnionDomain *ud;
 	int nb_par;
 
 #ifdef OSL_SUPPORT
 	if (options->openscop) {
-		osl_scop_p scop = osl_scop_read(file);
-		CloogInput * input = cloog_input_from_osl_scop(options->state,
-		                                               scop);
-		cloog_options_copy_from_osl_scop(scop, options);
+		osl_scop_p scop = NULL;
+		CloogInput * input = NULL;
+		CloogInput ** iptr_addr = &input;
+
+		scop = osl_scop_read(file);
+
+    //convert SCoPs to inputs one-by-one
+    while (scop) {
+     *iptr_addr = cloog_input_from_osl_scop(options->state, scop);
+		  ops = cloog_options_copy_from_osl_scop(scop, options);
+      (*iptr_addr)->options = ops;
+
+      scop = scop->next;
+      //de-link the scop saved in options from the list
+      //To be sandwiched b/w 2 stmts (above and below)
+      (*iptr_addr)->options->scop->next = NULL;
+      iptr_addr = &(*iptr_addr)->next;
+    }
+
 		return input;
 	}
 #endif
@@ -89,8 +105,10 @@ CloogInput *cloog_input_read(FILE *file, CloogOptions *options)
 	nb_par = cloog_domain_parameter_dimension(context);
 
 	ud = cloog_union_domain_read(file, nb_par, options);
+  CloogInput * ret = cloog_input_alloc(context, ud);
+  ret->options = cloog_options_clone(options);
 
-	return cloog_input_alloc(context, ud);
+	return ret;
 }
 
 /**
@@ -106,15 +124,24 @@ CloogInput *cloog_input_alloc(CloogDomain *context, CloogUnionDomain *ud)
 
 	input->context = context;
 	input->ud = ud;
+  input->next = NULL;
+  input->options = NULL;
 
 	return input;
 }
 
 void cloog_input_free(CloogInput *input)
 {
-	cloog_domain_free(input->context);
-	cloog_union_domain_free(input->ud);
-	free(input);
+  while (input) {
+    CloogInput* tmp = input;
+
+  	cloog_domain_free(input->context);
+  	cloog_union_domain_free(input->ud);
+    cloog_options_free(input->options);
+
+    input = input->next;
+  	free(tmp);
+  }
 }
 
 static void print_names(FILE *file, CloogUnionDomain *ud,

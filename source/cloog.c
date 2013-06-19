@@ -56,9 +56,12 @@ int main(int argv, char * argc[])
   fclose(input) ;
   
   /* Generating and printing the code. */
-  program = cloog_program_generate(program,options) ;
+  program = cloog_program_generate(program, program->options) ;
+
   if (options->structure)
   cloog_program_print(stdout,program) ;
+  /* Sort the program in ascending order of coordinates*/
+  cloog_program_sort_ascending(&program);
   cloog_program_pprint(output,program,options) ;
   cloog_program_free(program) ;
 
@@ -95,4 +98,3 @@ int main(int argv, char * argc[])
   fclose(output) ;
   return 0;
 }
-
