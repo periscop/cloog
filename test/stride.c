@@ -1,4 +1,5 @@
-/* Generated from stride.cloog by CLooG 0.14.0-200-g26bdb56 gmp bits in 0.01s. */
+/* Generated from ./stride.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 for (c1=3;c1<=100;c1++) {
   if (c1 == 25) {
     S1(25);
@@ -7,3 +8,4 @@ for (c1=3;c1<=100;c1++) {
     S2(c1,c1/3);
   }
 }
+/* </scop_0_code_end> */

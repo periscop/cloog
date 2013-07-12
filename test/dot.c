@@ -1,9 +1,11 @@
-/* Generated from ../../../git/cloog/test/dot.cloog by CLooG 0.14.0-136-gb91ef26 gmp bits in 0.00s. */
+/* Generated from ./dot.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 for (j=1;j<=M;j++) {
-  S1(0,j) ;
+  S1(0,j);
 }
 for (i=1;i<=N;i++) {
   for (j=1;j<=M;j++) {
-    S2(i,j) ;
+    S2(i,j);
   }
 }
+/* </scop_0_code_end> */

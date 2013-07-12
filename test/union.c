@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/union.cloog by CLooG 0.16.0-3-g7eee03c gmp bits in 0.00s. */
+/* Generated from ./union.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 if (M <= -1) {
   for (c1=0;c1<=100;c1++) {
     S1(c1);
@@ -14,3 +15,4 @@ if ((M >= 1) && (M <= 10)) {
     S1(c1);
   }
 }
+/* </scop_0_code_end> */

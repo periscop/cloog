@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/isl/mod4.cloog by CLooG 0.16.0-9-g188dbd4 gmp bits in 0.00s. */
+/* Generated from ./isl/mod4.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 if (M%11 <= 6) {
   if (N%5 <= 2) {
     if (M >= -N) {
@@ -8,3 +9,4 @@ if (M%11 <= 6) {
     }
   }
 }
+/* </scop_0_code_end> */

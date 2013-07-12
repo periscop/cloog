@@ -1,4 +1,5 @@
-/* Generated from /home/skimo/git/cloog/test/./reservoir/lim-lam1.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.01s. */
+/* Generated from ./reservoir/lim-lam1.cloog by CLooG  gmp bits in 0.01s. */
+/* <scop_0_code_start> */
 S1(1,100);
 for (c2=-98;c2<=99;c2++) {
   if (c2 <= 0) {
@@ -23,3 +24,4 @@ for (c2=-98;c2<=99;c2++) {
   }
 }
 S2(100,1);
+/* </scop_0_code_end> */

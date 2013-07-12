@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/christian.cloog by CLooG 0.16.2-5-g3b3bf96 gmp bits in 0.01s. */
+/* Generated from ./christian.cloog by CLooG  gmp bits in 0.01s. */
+/* <scop_0_code_start> */
 if (N >= 1) {
   S1(0,N-1);
   for (p=-N+2;p<=N-1;p++) {
@@ -15,3 +16,4 @@ if (N >= 1) {
   }
   S2(N-1,0);
 }
+/* </scop_0_code_end> */

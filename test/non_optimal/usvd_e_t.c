@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/non_optimal/usvd_e_t.cloog by CLooG 0.14.0-238-gb1cb779 gmp bits in 0.11s. */
+/* Generated from ./non_optimal/usvd_e_t.cloog by CLooG  gmp bits in 0.12s. */
+/* <scop_0_code_start> */
 for (i=0;i<=2;i++) {
   S1(i,0,0);
   for (j=0;j<=4;j++) {
@@ -373,3 +374,4 @@ for (i=11;i<=14;i++) {
     S25(i,j,4);
   }
 }
+/* </scop_0_code_end> */

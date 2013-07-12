@@ -1,9 +1,11 @@
-/* Generated from ../../../git/cloog/test/uday_scalars.cloog by CLooG 0.14.0-136-gb91ef26 gmp bits in 0.01s. */
+/* Generated from ./uday_scalars.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 if (n >= 0) {
   for (p3=0;p3<=n;p3++) {
-    S1(p3,0,0) ;
+    S1(p3,0,0);
   }
   for (p3=0;p3<=n;p3++) {
-    S2(0,p3,0) ;
+    S2(0,p3,0);
   }
 }
+/* </scop_0_code_end> */

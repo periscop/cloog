@@ -1,4 +1,5 @@
-! Generated from ../../../git/cloog/test/levenshtein-1-2-3f.cloog by CLooG 0.14.0-136-gb91ef26 gmp bits in 0.11s.
+! Generated from ./levenshtein-1-2-3f.cloog by CLooG  gmp bits in 0.02s.
+/* <scop_0_code_start> */
 S1(0,0)
 S2(1,0)
 S3(1,1)
@@ -35,3 +36,4 @@ DO i=2*M-N-1, 2*M-2
     S6(i,j)
   END DO
 END DO
+/* </scop_0_code_end> */

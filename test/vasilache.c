@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/vasilache.cloog by CLooG 0.14.0-162-g1e599e0 gmp bits in 0.03s. */
+/* Generated from ./vasilache.cloog by CLooG  gmp bits in 0.04s. */
+/* <scop_0_code_start> */
 S1();
 S2();
 for (p1=0;p1<=N-1;p1++) {
@@ -25,3 +26,4 @@ for (p1=0;p1<=N-1;p1++) {
   }
 }
 S8();
+/* </scop_0_code_end> */

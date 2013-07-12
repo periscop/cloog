@@ -1,4 +1,5 @@
-! Generated from /home/skimo/git/cloog/test/dartef.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.08s.
+! Generated from ./dartef.cloog by CLooG  gmp bits in 0.05s.
+/* <scop_0_code_start> */
 IF (n >= 1) THEN
   DO t3=n+3, 3*n+1
     IF (MOD(t3+n+1, 2) == 0) THEN
@@ -63,3 +64,4 @@ IF (n >= 1) THEN
     S2(n,1,t3)
   END DO
 END IF
+/* </scop_0_code_end> */

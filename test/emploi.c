@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/emploi.cloog by CLooG 0.14.0-245-gd8c1718 gmp bits in 0.01s. */
+/* Generated from ./emploi.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 if (n >= 1) {
   if (m >= 1) {
     for (i=1;i<=n;i++) {
@@ -14,3 +15,4 @@ if (n >= 1) {
     }
   }
 }
+/* </scop_0_code_end> */

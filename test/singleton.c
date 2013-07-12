@@ -1,3 +1,5 @@
-/* Generated from /home/skimo/git/cloog/test/singleton.cloog by CLooG 0.14.0-242-g720faff gmp bits in 0.00s. */
+/* Generated from ./singleton.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 S2();
 S1();
+/* </scop_0_code_end> */

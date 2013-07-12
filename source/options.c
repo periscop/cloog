@@ -43,6 +43,7 @@
 
 #ifdef OSL_SUPPORT
 #include <osl/scop.h>
+#include <osl/extensions/cloogoptions.h>
 #endif
 
 
@@ -160,6 +161,7 @@ void cloog_options_print(FILE * foo, CloogOptions * options)
   fprintf(foo,"noscalars   = %3d.\n",options->noscalars) ;
   fprintf(foo,"noblocks    = %3d.\n",options->noblocks) ;
   fprintf(foo,"nosimplify  = %3d.\n",options->nosimplify) ;
+  fprintf(foo,"osl_options = %3d.\n",options->osl_options) ;
 }
 
 
@@ -175,14 +177,21 @@ void cloog_options_print(FILE * foo, CloogOptions * options)
  */
 void cloog_options_free(CloogOptions *options)
 {
+  if (options==NULL)
+    return;
+
+  while(options){
+    CloogOptions* tmp = options;
 #ifdef OSL_SUPPORT
-  if (options->scop != NULL) {
-    osl_scop_free(options->scop);
-  }
+    if (options->scop != NULL) {
+      osl_scop_free(options->scop);
+    }
 #endif
-  free(options->fs);
-  free(options->ls);
-  free(options);
+    free(options->fs);
+    free(options->ls);
+    options = options->next;
+    free(tmp);
+  }
 }
 
 
@@ -363,6 +372,8 @@ CloogOptions *cloog_options_malloc(CloogState *state)
   options->noblocks    =  0 ;  /* I do want to make statement blocks.*/
   options->noscalars   =  0 ;  /* I do want to use scalar dimensions.*/
   options->nosimplify  =  0 ;  /* I do want to simplify polyhedra.*/
+  options->osl_options =  1 ;  /* Use cloogoptions in scop by default.*/
+  options->next        =  NULL ;  /* NULL by default.*/
   
   return options ;
 }
@@ -490,6 +501,9 @@ void cloog_options_read(CloogState *state, int argc, char **argv,
     }
     else
       cloog_msg(*options, CLOOG_WARNING, "unknown %s option.\n", argv[i]);
+
+    // override osl_options if command line are provided
+    (*options)->osl_options = 0; //use options provided on commandline
   }
   else
   { if (!input_is_set)
@@ -516,27 +530,208 @@ void cloog_options_read(CloogState *state, int argc, char **argv,
 
 #ifdef OSL_SUPPORT
 /**
- * This function extracts CLooG option values from an OpenScop scop and
- * updates an existing CloogOption structure with those values. If the
- * options were already set, they are updated without warning.
+ * This function extracts CLooG option values from 
+ * an OpenScop osl_cloogtopions extension 
+ * In case no options are found in scop, it returns a 
+ * pointer to a clone of the default CloogOptions structure
+ * 
+ * \param[in]     scop    Input Scop.
+ * \param[in]     options Default CloogOptions
+ * \return                Cloned CloogOptiosn pointer
+ */
+CloogOptions* cloog_options_extract_from_scop(osl_scop_p scop, CloogOptions *options){
+  int j=0;
+  osl_cloogoptions_p ops = NULL;
+  CloogOptions*      cops = NULL;
+
+  if (!options)
+    cloog_die("Options must be provided.\n");
+
+  if (scop==NULL) {
+    cops = cloog_options_clone(options);
+    return cops;
+  }
+
+  /* extract the cloogoptions extension */
+  ops = osl_generic_lookup(scop->extension, OSL_URI_CLOOGOPTIONS);
+
+  //if(ops==NULL) return NULL;
+
+  /* Copy CloogOptions info from the cloogoptions extension */
+  cops = cloog_options_malloc(options->state);
+
+  if (ops!=NULL) {
+    /* OPTIONS FOR LOOP GENERATION */
+    cops->l           = ops->l ;
+    cops->f           = ops->f ;
+    cops->fs_ls_size  = ops->fs_ls_size;
+  
+    if (cops->fs_ls_size) {   //malloc(0) returns non-NULL ptr
+      cops->ls = (int*) malloc( ops->fs_ls_size*sizeof(int) );
+      cops->fs = (int*) malloc( ops->fs_ls_size*sizeof(int) );
+      if (cops->ls==NULL || cops->fs==NULL) 
+        cloog_die("memory overflow.\n");
+    
+      for (j=0; j< cops->fs_ls_size; j++) {
+        cops->ls[j] = ops->ls[j];
+        cops->fs[j] = ops->fs[j];
+      }
+    }
+
+    cops->stop         = ops->stop ;
+    cops->strides      = ops->strides;
+    cops->sh           = ops->sh;
+    cops->first_unroll = ops->first_unroll;
+    cops->name         = strdup(ops->name);
+    /* OPTIONS FOR PRETTY PRINTING */
+    cops->esp          = ops->esp;
+    cops->fsp          = ops->fsp;
+    cops->otl          = ops->otl;
+    cops->block        = ops->block;
+    cops->compilable   = ops->compilable;
+    cops->callable     = ops->callable;
+    cops->quiet        = ops->quiet;
+    cops->save_domains = ops->save_domains;
+    /* MISC OPTIONS */
+    cops->language     =  ops->language;
+    cops->openscop     =  ops->openscop;
+    cops->scop         =  ops->scop;
+    /* UNDOCUMENTED OPTIONS FOR THE AUTHOR ONLY */
+    cops->leaks        =  ops->leaks;
+    cops->backtrack    =  ops->backtrack;
+    cops->override     =  ops->override;
+    cops->structure    =  ops->structure;
+    cops->noblocks     =  ops->noblocks;
+    cops->noscalars    =  ops->noscalars;
+    cops->nosimplify   =  ops->nosimplify;
+  }
+  else {
+    return cloog_options_clone(options);
+  }
+
+  return cops;
+}
+#endif
+
+/**
+ * This function clones a hard copcy of CloogOptions structure
+ * 
+ * 
+ * \param[in]     ops     pointer to CloogOptions struct to clone
+ * \return                cloned CloogOptions pointer
+ */
+CloogOptions* cloog_options_clone(CloogOptions *ops){
+  int j = 0;
+  CloogOptions* cops = NULL;
+
+  if(ops==NULL) return NULL;
+
+  /*  keep the state */
+  cops = cloog_options_malloc(ops->state);
+
+  /* We set the various fields with default values. */
+  /* OPTIONS FOR LOOP GENERATION */
+  cops->l           = ops->l ;
+  cops->f           = ops->f ;
+  cops->fs_ls_size  = ops->fs_ls_size;
+
+
+  if (cops->fs_ls_size) {   //without this if(), malloc(0) returns non-NULL ptr
+                            //that messes up a lot of things
+    cops->ls = (int*) malloc( ops->fs_ls_size*sizeof(int) );
+    cops->fs = (int*) malloc( ops->fs_ls_size*sizeof(int) );
+    if (cops->ls==NULL || cops->fs==NULL) 
+      cloog_die("memory overflow.\n");
+  }
+
+  for (j=0; j< cops->fs_ls_size; j++) {
+    cops->ls[j] = ops->ls[j];
+    cops->fs[j] = ops->fs[j];
+  }
+  cops->stop          = ops->stop ;
+  cops->strides       = ops->strides;
+  cops->sh            = ops->sh;
+  cops->first_unroll  = ops->first_unroll;
+  cops->name          = strdup(ops->name);
+  /* OPTIONS FOR PRETTY PRINTING */
+  cops->esp           = ops->esp;
+  cops->fsp           = ops->fsp;
+  cops->otl           = ops->otl;
+  cops->block         = ops->block;
+  cops->compilable    = ops->compilable;
+  cops->callable      = ops->callable;
+  cops->quiet         = ops->quiet;
+  cops->save_domains  = ops->save_domains;
+  /* MISC OPTIONS */
+  cops->language      =  ops->language;
+  cops->time          =  ops->time;
+  cops->openscop      =  ops->openscop;
+  cops->scop          =  ops->scop;
+#ifdef CLOOG_MEMORY
+  cops->memory        = ops->memory;
+#endif
+  /* UNDOCUMENTED OPTIONS FOR THE AUTHOR ONLY */
+  cops->leaks         =  ops->leaks; 
+  cops->backtrack     =  ops->backtrack;
+  cops->override      =  ops->override;
+  cops->structure     =  ops->structure;
+  cops->noblocks      =  ops->noblocks;
+  cops->noscalars     =  ops->noscalars;
+  cops->nosimplify    =  ops->nosimplify;
+  cops->osl_options   =  ops->osl_options;
+
+  return cops;
+}
+
+
+
+#ifdef OSL_SUPPORT
+/**
+ * This function extracts looks for a osl_cloopoptions structure 
+ * in an OpenScop scop Extension and, if found and the user has
+ * specified using those options, makes a copy CloogOptions
+ * structure with those values. 
+ * Otherwise, it returns a clone of the default CloogOptions
+ *
  * \param[in]     scop    Input Scop.
  * \param[in,out] options CLooG options to be updated.
+ * \return                Pointer to cloned CloogOptions structure
  */
-void cloog_options_copy_from_osl_scop(osl_scop_p scop,
-                                      CloogOptions *options) {
+CloogOptions* cloog_options_copy_from_osl_scop(osl_scop_p scop,
+                                               CloogOptions *options) {
+  CloogOptions *newOps = NULL;
+
   if (!options)
     cloog_die("Options must be provided.\n");
 
   if (scop) {
+
+    /* "use options provided in scop" specified */
+    if (options->osl_options) {
+      /* Extract the cloogoptions from osl_scop*/
+      newOps = cloog_options_extract_from_scop(scop, options);
+    }
+    else {
+      /* Use options provided by default */
+      newOps = cloog_options_clone(options);
+    }
+
     /* Extract the language. */
-    if (!strcmp(scop->language, "FORTRAN"))
-      options->language = CLOOG_LANGUAGE_FORTRAN;
-    else
-      options->language = CLOOG_LANGUAGE_C;
+    if (!strcmp(scop->language, "FORTRAN")) {
+      newOps->language = CLOOG_LANGUAGE_FORTRAN;
+    }
+    else {
+      newOps->language = CLOOG_LANGUAGE_C;
+    }
 
     /* Store the input SCoP in the option structure. */
-    options->scop = scop;
+    newOps->scop = scop;
   }
+  else {
+    /* Use options provided by default */
+    newOps = cloog_options_clone(options);
+  }
+
+  return newOps;
 }
 #endif
-

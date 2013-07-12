@@ -1,4 +1,5 @@
-/* Generated from ./isl/unroll.cloog by CLooG 0.16.3-13-gbbcc8fc gmp bits in 0.00s. */
+/* Generated from ./isl/unroll.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 S1(0);
 S1(1);
 S1(2);
@@ -10,3 +11,4 @@ S1(7);
 S1(8);
 S1(9);
 S1(10);
+/* </scop_0_code_end> */

@@ -1,4 +1,5 @@
-/* Generated from ./test/openscop/matmult.scop by CLooG 0.14.0-432-g5cf921d gmp bits in 0.01s. */
+/* Generated from ./openscop/matmult.scop by CLooG  gmp bits in 0.01s. */
+/* <scop_0_code_start> */
 for (c2=0;c2<=N-1;c2++) {
   for (c4=0;c4<=N-1;c4++) {
     C[c2][c4] = 0.0;
@@ -7,3 +8,4 @@ for (c2=0;c2<=N-1;c2++) {
     }
   }
 }
+/* </scop_0_code_end> */

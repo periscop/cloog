@@ -1,4 +1,5 @@
-! Generated from ../../../git/cloog/test/yosrf.cloog by CLooG 0.14.0-136-gb91ef26 gmp bits in 0.01s.
+! Generated from ./yosrf.cloog by CLooG  gmp bits in 0.01s.
+/* <scop_0_code_start> */
 IF (n >= 2) THEN
   DO j=2, n
     S1(1,j)
@@ -19,3 +20,4 @@ IF (n >= 2) THEN
     END DO
   END DO
 END IF
+/* </scop_0_code_end> */

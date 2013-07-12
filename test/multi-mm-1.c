@@ -1,4 +1,5 @@
-/* Generated from /home/skimo/git/cloog/test/multi-mm-1.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.00s. */
+/* Generated from ./multi-mm-1.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 for (i=0;i<=M;i++) {
   for (j=0;j<=min(N,i);j++) {
     S1(i,j);
@@ -8,3 +9,4 @@ for (i=0;i<=M;i++) {
     S1(i,j);
   }
 }
+/* </scop_0_code_end> */

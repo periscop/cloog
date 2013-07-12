@@ -1,4 +1,5 @@
-/* Generated from /home/skimo/git/cloog/test/classen.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.45s. */
+/* Generated from ./classen.cloog by CLooG  gmp bits in 0.44s. */
+/* <scop_0_code_start> */
 if (m >= 1) {
   if (m >= 2) {
     S1(0,1,1,1);
@@ -99,3 +100,4 @@ if (m >= 1) {
     S8(2*m-2,m);
   }
 }
+/* </scop_0_code_end> */

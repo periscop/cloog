@@ -1,4 +1,6 @@
-/* Generated from ../../../git/cloog/test/infinite4.cloog by CLooG 0.14.0-136-gb91ef26 gmp bits in 0.00s. */
+/* Generated from ./infinite4.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 for (;;i++) {
-  S1(i) ;
+  S1(i);
 }
+/* </scop_0_code_end> */
