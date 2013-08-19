@@ -87,8 +87,7 @@ SOURCES_CORE = \
 	source/union_domain.c \
 	source/version.c
 
-DEFAULT_INCLUDES = -I.
-INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
+AM_CPPFLAGS = -I. -I$(top_builddir)/include -I$(top_srcdir)/include
 AM_CFLAGS = $(CFLAGS_WARN)
 libcloog_isl_la_CPPFLAGS = @ISL_CPPFLAGS@ @OSL_CPPFLAGS@
 libcloog_isl_la_LDFLAGS = -version-info @versioninfo@ \
