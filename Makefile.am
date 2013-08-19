@@ -147,6 +147,10 @@ EXTRA_DIST = \
 install-data-local:
 	@test -z "$(pkgconfig_libdir)" || $(mkdir_p) "$(DESTDIR)$(pkgconfig_libdir)"
 	$(INSTALL_DATA) $(pkgconfig_libfile) "$(DESTDIR)$(pkgconfig_libdir)/$(pkgconfig_libfile)"
+	@test -z "$(DESTDIR)$(libdir)/isl" || $(mkdir_p) "$(DESTDIR)$(libdir)/isl"
+	$(INSTALL_DATA) "isl-config.cmake" "$(DESTDIR)$(libdir)/isl/"
+	@test -z "$(DESTDIR)$(libdir)/$(PACKAGE_NAME)" || $(mkdir_p) "$(DESTDIR)$(libdir)/$(PACKAGE_NAME)"
+	$(INSTALL_DATA) "cloog-isl-config.cmake" "$(DESTDIR)$(libdir)/$(PACKAGE_NAME)/"
 
 uninstall-local:
 	rm -f "$(DESTDIR)$(pkgconfig_libdir)/$(pkgconfig_libfile)"
