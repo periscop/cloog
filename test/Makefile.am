@@ -319,11 +319,11 @@ test_run: generate_test$(EXEEXT)
 	$(srcdir)/check_run.sh
 
 check_SCRIPTS = \
-	$(srcdir)/check_c.sh \
-	$(srcdir)/check_fortran.sh \
-	$(srcdir)/check_strided.sh \
-	$(srcdir)/check_openscop.sh \
-	$(srcdir)/check_special.sh
+	check_c.sh \
+	check_fortran.sh \
+	check_strided.sh \
+	check_openscop.sh \
+	check_special.sh
 
 TESTS = $(check_SCRIPTS)
 
