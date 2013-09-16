@@ -53,6 +53,7 @@
 #ifdef OSL_SUPPORT
 #include <osl/util.h>
 #include <osl/body.h>
+#include <osl/extensions/extbody.h>
 #include <osl/statement.h>
 #include <osl/scop.h>
 #endif
@@ -311,8 +312,15 @@ int pprint_osl_body(struct cloogoptions *options, FILE *dst,
       stmt = stmt->next;
 
     /* Ensure it has a printable body. */
-    if ((osl_generic_has_URI(stmt->body, OSL_URI_BODY)) &&
-        ((body = stmt->body->data) != NULL) &&
+    body = NULL;
+    if (osl_generic_has_URI(stmt->body, OSL_URI_BODY)) {
+      body = stmt->body->data;
+    } else if (osl_generic_has_URI(stmt->body, OSL_URI_EXTBODY)) {
+      if (stmt->body->data != NULL) {
+        body = ((osl_extbody_p)(stmt->body->data))->body;
+      }
+    }
+    if ((body != NULL) &&
         (body->expression != NULL) &&
         (body->iterators != NULL)) {
       expr = osl_util_identifier_substitution(body->expression->string[0],
