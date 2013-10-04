@@ -1,4 +1,5 @@
-/* Generated from /home/skimo/git/cloog/test/logo.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.01s. */
+/* Generated from ./logo.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 for (j=0;j<=7;j++) {
   S1(1,j);
 }
@@ -19,3 +20,4 @@ for (i=7;i<=8;i++) {
     S1(i,j);
   }
 }
+/* </scop_0_code_end> */

@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/reservoir/cholesky2.cloog by CLooG 0.14.0-283-g7c18f7a gmp bits in 0.04s. */
+/* Generated from ./reservoir/cholesky2.cloog by CLooG  gmp bits in 0.02s. */
+/* <scop_0_code_start> */
 if (M >= 1) {
   if (M >= 2) {
     S1(1);
@@ -31,3 +32,4 @@ if (M >= 1) {
     S1(M);
   }
 }
+/* </scop_0_code_end> */

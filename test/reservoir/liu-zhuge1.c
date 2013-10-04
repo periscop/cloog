@@ -1,4 +1,5 @@
-/* Generated from /home/skimo/git/cloog/test/./reservoir/liu-zhuge1.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.02s. */
+/* Generated from ./reservoir/liu-zhuge1.cloog by CLooG  gmp bits in 0.03s. */
+/* <scop_0_code_start> */
 if ((M >= 0) && (N >= 0)) {
   for (c2=-4;c2<=min(-1,3*M+N-4);c2++) {
     for (c4=max(0,c2-3*M+4);c4<=min(N,c2+4);c4++) {
@@ -45,3 +46,4 @@ if ((M >= 0) && (N >= 0)) {
     }
   }
 }
+/* </scop_0_code_end> */

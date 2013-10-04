@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/sor1d.cloog by CLooG 0.14.0-278-gcf1f323 gmp bits in 0.11s. */
+/* Generated from ./sor1d.cloog by CLooG  gmp bits in 0.22s. */
+/* <scop_0_code_start> */
 if ((M >= 1) && (N >= 3)) {
   for (glT1=-1;glT1<=floord(3*M+N-5,100);glT1++) {
     for (rp1=max(max(0,ceild(100*glT1-2*M-N+5,100)),ceild(100*glT1-N-193,300));rp1<=min(min(floord(glT1+1,3),floord(M,100)),glT1);rp1++) {
@@ -17,3 +18,4 @@ if ((M >= 1) && (N >= 3)) {
     S4(glT1);
   }
 }
+/* </scop_0_code_end> */

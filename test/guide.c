@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/guide.cloog by CLooG 0.14.0-245-gd8c1718 gmp bits in 0.00s. */
+/* Generated from ./guide.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 if (N >= 1) {
   for (i=1;i<=N;i++) {
     S1(i);
@@ -7,3 +8,4 @@ if (N >= 1) {
     S2(i);
   }
 }
+/* </scop_0_code_end> */

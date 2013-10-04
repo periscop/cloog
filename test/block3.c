@@ -1,5 +1,7 @@
-/* Generated from ../../../git/cloog/test/block3.cloog by CLooG 0.16.2-4-gba4e834 gmp bits in 0.00s. */
+/* Generated from ./block3.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 S1();
 S3(0);
 S2();
 S3(1);
+/* </scop_0_code_end> */

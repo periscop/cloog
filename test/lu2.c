@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/lu2.cloog by CLooG 0.14.0-238-gb1cb779 gmp bits in 0.01s. */
+/* Generated from ./lu2.cloog by CLooG  gmp bits in 0.01s. */
+/* <scop_0_code_start> */
 if (n >= 2) {
   for (l=2;l<=n;l++) {
     S1(1,n,1,l);
@@ -19,3 +20,4 @@ if (n >= 2) {
     }
   }
 }
+/* </scop_0_code_end> */

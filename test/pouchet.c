@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/pouchet.cloog by CLooG 0.16.2-3-gc1aebd7 gmp bits in 0.03s. */
+/* Generated from ./pouchet.cloog by CLooG  gmp bits in 0.04s. */
+/* <scop_0_code_start> */
 if (Ny >= 2) {
   for (c0=1;c0<=floord(Ny+4,2);c0++) {
     for (c1=max(ceild(c0+1,2),c0-1);c1<=min(floord(2*c0+Ny,4),c0);c1++) {
@@ -20,3 +21,4 @@ if (Ny >= 2) {
     }
   }
 }
+/* </scop_0_code_end> */

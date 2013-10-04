@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/otl.cloog by CLooG 0.14.0-278-gcf1f323 gmp bits in 0.26s. */
+/* Generated from ./otl.cloog by CLooG  gmp bits in 0.30s. */
+/* <scop_0_code_start> */
 if ((M >= 3) && (N >= 4)) {
   for (outerTimeTileScatter=1;outerTimeTileScatter<=floord(2*M+2*N-7,5);outerTimeTileScatter++) {
     for (outerProcTileScatter1=max(ceild(outerTimeTileScatter,2),ceild(5*outerTimeTileScatter-M-2,5));outerProcTileScatter1<=min(min(floord(M+2*N-5,5),floord(5*outerTimeTileScatter+2*N+1,10)),outerTimeTileScatter);outerProcTileScatter1++) {
@@ -26,3 +27,4 @@ if ((M >= 3) && (N >= 4)) {
     }
   }
 }
+/* </scop_0_code_end> */

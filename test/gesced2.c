@@ -1,4 +1,5 @@
-/* Generated from /home/skimo/git/cloog/test/gesced2.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.03s. */
+/* Generated from ./gesced2.cloog by CLooG  gmp bits in 0.02s. */
+/* <scop_0_code_start> */
 for (c1=1;c1<=4;c1++) {
   for (c2=5;c2<=M-10;c2++) {
     S1(c1,c2);
@@ -24,3 +25,4 @@ for (c1=M-9;c1<=M;c1++) {
     S1(c1,c2);
   }
 }
+/* </scop_0_code_end> */

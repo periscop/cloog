@@ -1,4 +1,5 @@
-/* Generated from /home/skimo/git/cloog/test/./reservoir/mg-rprj3.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.10s. */
+/* Generated from ./reservoir/mg-rprj3.cloog by CLooG  gmp bits in 0.08s. */
+/* <scop_0_code_start> */
 if ((M >= 2) && (N >= 3) && (O >= 3)) {
   if (M >= 3) {
     for (c2=2;c2<=O-1;c2++) {
@@ -45,3 +46,4 @@ if ((M >= 2) && (N >= 3) && (O >= 3)) {
     }
   }
 }
+/* </scop_0_code_end> */

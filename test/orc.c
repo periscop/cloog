@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/orc.cloog by CLooG 0.16.2-5-g590827b gmp bits in 0.03s. */
+/* Generated from ./orc.cloog by CLooG  gmp bits in 0.01s. */
+/* <scop_0_code_start> */
 S1(0);
 S2(0,0);
 for (p2=1;p2<=22;p2++) {
@@ -66,3 +67,4 @@ for (p2=0;p2<=9;p2++) {
   S6(14,p2);
 }
 S7(14);
+/* </scop_0_code_end> */

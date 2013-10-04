@@ -1,4 +1,5 @@
-/* Generated from /home/skimo/git/cloog/test/thomasset.cloog by CLooG 0.14.0-292-g2bfd6ac gmp bits in 0.04s. */
+/* Generated from ./thomasset.cloog by CLooG  gmp bits in 0.04s. */
+/* <scop_0_code_start> */
 if (n >= 1) {
   for (c1=0;c1<=floord(n-4,3);c1++) {
     for (i=3*c1+1;i<=3*c1+3;i++) {
@@ -47,3 +48,4 @@ if (n >= 1) {
     }
   }
 }
+/* </scop_0_code_end> */

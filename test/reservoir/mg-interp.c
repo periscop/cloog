@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/reservoir/mg-interp.cloog by CLooG 0.16.2-5-g590827b gmp bits in 0.29s. */
+/* Generated from ./reservoir/mg-interp.cloog by CLooG  gmp bits in 0.24s. */
+/* <scop_0_code_start> */
 if ((M >= 2) && (N >= 2)) {
   for (c2=1;c2<=O-1;c2++) {
     for (c6=1;c6<=M;c6++) {
@@ -217,3 +218,4 @@ if ((M >= 2) && (N >= 2)) {
     }
   }
 }
+/* </scop_0_code_end> */

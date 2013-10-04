@@ -1,4 +1,5 @@
-/* Generated from /home/skimo/git/cloog/test/lineality-2-1-2.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.00s. */
+/* Generated from ./lineality-2-1-2.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 for (i=1;i<=M;i++) {
   for (j=1;j<=min(M,i+1);j++) {
     S1(i,j);
@@ -14,3 +15,4 @@ for (i=1;i<=M;i++) {
     S1(i,j);
   }
 }
+/* </scop_0_code_end> */

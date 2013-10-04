@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/non_optimal/youcef.cloog by CLooG 0.14.0-238-gb1cb779 gmp bits in 0.00s. */
+/* Generated from ./non_optimal/youcef.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
 for (i=0;i<=5;i++) {
   S1(i,i);
   for (j=i;j<=5;j++) {
@@ -6,3 +7,4 @@ for (i=0;i<=5;i++) {
   }
   S3(i,5);
 }
+/* </scop_0_code_end> */

@@ -1,2 +1,4 @@
-/* Generated from ../../../git/cloog/test/no_lindep.cloog by CLooG 0.14.0-136-gb91ef26 gmp bits in 0.00s. */
-S1(N+2) ;
+/* Generated from ./no_lindep.cloog by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
+S1(N+2);
+/* </scop_0_code_end> */

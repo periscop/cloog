@@ -1,4 +1,5 @@
-/* Generated from /home/skimo/git/cloog/test/vivien.cloog by CLooG 0.14.0-292-g2bfd6ac gmp bits in 0.12s. */
+/* Generated from ./vivien.cloog by CLooG  gmp bits in 0.14s. */
+/* <scop_0_code_start> */
 if (n >= 0) {
   for (p1=-54*n+4;p1<=4;p1++) {
     if (p1%2 == 0) {
@@ -193,3 +194,4 @@ if (n >= 0) {
     S3(n);
   }
 }
+/* </scop_0_code_end> */

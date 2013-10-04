@@ -1,4 +1,5 @@
-/* Generated from /home/skimo/git/cloog/test/darte.cloog by CLooG 0.14.0-284-ga90f184 gmp bits in 0.05s. */
+/* Generated from ./darte.cloog by CLooG  gmp bits in 0.05s. */
+/* <scop_0_code_start> */
 if (n >= 1) {
   for (t3=n+3;t3<=3*n+1;t3++) {
     if ((t3+n+1)%2 == 0) {
@@ -63,3 +64,4 @@ if (n >= 1) {
     S2(n,1,t3);
   }
 }
+/* </scop_0_code_end> */

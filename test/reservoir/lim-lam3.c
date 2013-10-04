@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/reservoir/lim-lam3.cloog by CLooG 0.16.2-8-g1421b58 gmp bits in 0.03s. */
+/* Generated from ./reservoir/lim-lam3.cloog by CLooG  gmp bits in 0.02s. */
+/* <scop_0_code_start> */
 S4(1);
 for (c2=9;c2<=min(13,5*M-1);c2++) {
   if (c2 <= M+7) {
@@ -34,3 +35,4 @@ for (c2=14;c2<=5*M-1;c2++) {
 if (M >= 2) {
   S4(M);
 }
+/* </scop_0_code_end> */

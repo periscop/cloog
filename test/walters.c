@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/walters.cloog by CLooG 0.16.1-3-g354eed5 gmp bits in 0.01s. */
+/* Generated from ./walters.cloog by CLooG  gmp bits in 0.01s. */
+/* <scop_0_code_start> */
 S2(1,0,1,0);
 S4(1,0,1,0);
 S3(2,0,1,1);
@@ -19,3 +20,4 @@ for (i=3;i<=10;i++) {
     S4(i,div36,div37,i-div36-div37);
   }
 }
+/* </scop_0_code_end> */

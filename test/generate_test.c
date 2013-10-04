@@ -16,7 +16,7 @@ CloogDomain *get_param_domain(CloogOptions *options)
 	CloogDomain *domain;
 	CloogProgram *program;
   
-	program = cloog_program_read(stdin, options);
+	program = cloog_program_read(stdin, &options);
 
 	domain = cloog_domain_copy(program->context);
 

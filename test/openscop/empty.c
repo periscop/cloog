@@ -1,1 +1,3 @@
-/* Generated from ./test/openscop/empty.scop by CLooG 0.14.0-416-g013422c gmp bits in 0.01s. */
+/* Generated from ./openscop/empty.scop by CLooG  gmp bits in 0.00s. */
+/* <scop_0_code_start> */
+/* </scop_0_code_end> */

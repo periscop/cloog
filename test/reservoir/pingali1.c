@@ -1,4 +1,5 @@
-/* Generated from /home/skimo/git/cloog/test/./reservoir/pingali1.cloog by CLooG 0.14.0-225-g6e2d019 gmp bits in 0.01s. */
+/* Generated from ./reservoir/pingali1.cloog by CLooG  gmp bits in 0.01s. */
+/* <scop_0_code_start> */
 if ((M >= 1) && (N >= 1)) {
   if (N >= 2) {
     for (c2=1;c2<=M;c2++) {
@@ -19,3 +20,4 @@ if ((M >= 1) && (N >= 1)) {
     }
   }
 }
+/* </scop_0_code_end> */

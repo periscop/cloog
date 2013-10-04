@@ -1,4 +1,5 @@
-/* Generated from ../../../git/cloog/test/swim.cloog by CLooG 0.16.1-3-g277eafa gmp bits in 0.20s. */
+/* Generated from ./swim.cloog by CLooG  gmp bits in 0.27s. */
+/* <scop_0_code_start> */
 if (M == 1) {
   S1();
   S2();
@@ -670,3 +671,4 @@ if (M == 1) {
     }
   }
 }
+/* </scop_0_code_end> */
