@@ -123,6 +123,7 @@ struct cloogoptions
   int noblocks ;  /* 1 if I don't want to make statement blocks, 0 otherwise. */
   int noscalars ; /* 1 if I don't want to use scalar dimensions, 0 otherwise. */
   int nosimplify; /* 1 if I don't want to simplify polyhedra, 0 otherwise. */
+  int scop_options;/* 1 if osl_cloogoptions are to be used */
 } ;
 
 
