@@ -52,13 +52,15 @@ int main(int argv, char * argc[])
   cloog_options_read(state, argv, argc, &input, &output, &options);
 
   /* Reading the program informations. */
-  program = cloog_program_read(input,options) ;
+  program = cloog_program_read(input, &options) ;
   fclose(input) ;
   
   /* Generating and printing the code. */
   program = cloog_program_generate(program,options) ;
   if (options->structure)
   cloog_program_print(stdout,program) ;
+  /* Sort the program in ascending order of coordinates*/
+  cloog_program_sort_ascending(&program, &options);
   cloog_program_pprint(output,program,options) ;
   cloog_program_free(program) ;
 
