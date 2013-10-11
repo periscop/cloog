@@ -65,6 +65,7 @@ struct cloogprogram
   int * scaldims ;             /**< Boolean array saying whether a given
                                 *   scattering dimension is scalar or not.
 				*/
+  struct cloogprogram   * next ; /**< Pointer to next program */
   /* Library user reserved field. */
   void * usr;		       /**< User field, for library user convenience.
 			        *   This pointer is not freed when the
@@ -108,6 +109,9 @@ void cloog_program_extract_scalars(CloogProgram *program,
 	CloogScatteringList *scattering, CloogOptions *options);
 void cloog_program_scatter(CloogProgram *program,
 			CloogScatteringList *scattering, CloogOptions *options);
+void cloog_program_sort_ascending(CloogProgram **program, CloogOptions **ops);
+int  cloog_program_verify_coordinates(CloogProgram *program,
+                                      CloogOptions *ops);
 
 #if defined(__cplusplus)
   }

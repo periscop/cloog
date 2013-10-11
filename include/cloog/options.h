@@ -50,8 +50,6 @@ extern "C"
  */
 #define CLOOG_SCALARS
 
-struct osl_scop;
-
 struct cloogoptions;
 typedef struct cloogoptions CloogOptions;
 struct osl_scop;
@@ -124,6 +122,7 @@ struct cloogoptions
   int noscalars ; /* 1 if I don't want to use scalar dimensions, 0 otherwise. */
   int nosimplify; /* 1 if I don't want to simplify polyhedra, 0 otherwise. */
   int scop_options;/* 1 if osl_cloogoptions are to be used */
+  CloogOptions* next;/* Pointer to the next CloogOptions */
 } ;
 
 
@@ -161,7 +160,11 @@ void cloog_options_read(CloogState *state, int argc, char **argv,
  *                            Processing functions                            *
  ******************************************************************************/
 CloogOptions *cloog_options_malloc(CloogState *state);
-void cloog_options_copy_from_osl_scop(struct osl_scop *, CloogOptions *);
+void cloog_options_copy_from_osl_scop(struct osl_scop *scop,
+                                      CloogOptions *options);
+void cloog_options_extract_from_scop(struct osl_scop *scop,
+                                     CloogOptions *options);
+CloogOptions* cloog_options_clone(CloogOptions *options) ;
 
 
 #if defined(__cplusplus)
