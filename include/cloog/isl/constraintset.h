@@ -27,6 +27,12 @@ CloogConstraintSet *cloog_constraint_set_from_isl_basic_set(struct isl_basic_set
 CloogConstraint *cloog_constraint_from_isl_constraint(struct isl_constraint *constraint);
 isl_constraint *cloog_constraint_to_isl(CloogConstraint *constraint);
 
+__isl_give isl_val *cloog_int_to_isl_val(isl_ctx* ctx, cloog_int_t c);
+void isl_val_to_cloog_int(__isl_keep isl_val *val, cloog_int_t *cint);
+
+__isl_give isl_val *cloog_constraint_coefficient_get_val(CloogConstraint *constraint,
+			int var);
+
 #if defined(__cplusplus)
   }
 #endif 
