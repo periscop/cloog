@@ -1,0 +1,27 @@
+How to generate a new release of CLooG:
+
+
+1) Update the version number
+
+See commit 88986e for an example
+(Modifies the version number in configure.ac)
+
+2) Commit the modification of version number in configure.ac
+
+git -am "CLooG 0.18.2"
+
+3) Tag the release
+
+git tag -am "CLooG 0.18.2" cloog-0.18.2
+
+4) Create release tarball
+
+make dist
+
+5) Test the release tarball
+
+6) Push out the changes
+
+7) Check at repo.or.cz that everything looks good
+
+Thanks to Tobias GROSSER for the instructions.
