@@ -108,6 +108,9 @@ struct clast_for {
     char *private_vars;
     /* Comma separated list of reduction variable/operators for OpenMP parallelization */
     char *reduction_vars;
+    /* Enable execution time reporting for this loop */
+    /* Variable name to accumulate execution time this loop */
+    char *time_var_name;
 };
 
 struct clast_equation {

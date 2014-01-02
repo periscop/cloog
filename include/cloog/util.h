@@ -2,9 +2,9 @@
    /**-------------------------------------------------------------------**
     **                               CLooG                               **
     **-------------------------------------------------------------------**
-    **                              cloog.h                              **
+    **                               util.h                              **
     **-------------------------------------------------------------------**
-    **                   First version: july 25th 2002                   **
+    **                   First version: January 8th 2014                 **
     **-------------------------------------------------------------------**/
 
 
@@ -34,30 +34,17 @@
  *                                                                            *
  ******************************************************************************/
 
-/******************************************************************************
- *  THIS FILE HAS BEEN AUTOMATICALLY GENERATED FROM clooh.h.in BY configure   *
- ******************************************************************************/
 
-#ifndef CLOOG_H
-#define CLOOG_H
+#ifndef CLOOG_UTIL_H
+#define CLOOG_UTIL_H
+#if defined(__cplusplus)
+extern "C" 
+  {
+#endif 
 
-#include <cloog/version.h>
-#include <cloog/int.h>
-#include <cloog/matrix.h>
-#include <cloog/state.h>
-#include <cloog/options.h>
-#include <cloog/util.h>
-#include <cloog/names.h>
-#include <cloog/constraints.h>
-#include <cloog/stride.h>
-#include <cloog/domain.h>
-#include <cloog/statement.h>
-#include <cloog/block.h>
-#include <cloog/loop.h>
-#include <cloog/union_domain.h>
-#include <cloog/input.h>
-#include <cloog/program.h>
-#include <cloog/clast.h>
-#include <cloog/pprint.h>
+double cloog_util_rtclock();
 
-#endif /* !CLOOG_H */
+#if defined(__cplusplus)
+  }
+#endif 
+#endif /* !CLOOG_UTIL_H */

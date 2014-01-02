@@ -2,9 +2,9 @@
    /**-------------------------------------------------------------------**
     **                               CLooG                               **
     **-------------------------------------------------------------------**
-    **                              cloog.h                              **
+    **                               util.c                              **
     **-------------------------------------------------------------------**
-    **                   First version: july 25th 2002                   **
+    **                   First version: January 8th 2014                 **
     **-------------------------------------------------------------------**/
 
 
@@ -12,7 +12,7 @@
  *               CLooG : the Chunky Loop Generator (experimental)             *
  ******************************************************************************
  *                                                                            *
- * Copyright (C) 2001-2005 Cedric Bastoul                                     *
+ * Copyright (C) 2002-2005 Cedric Bastoul                                     *
  *                                                                            *
  * This library is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU Lesser General Public                 *
@@ -34,30 +34,23 @@
  *                                                                            *
  ******************************************************************************/
 
-/******************************************************************************
- *  THIS FILE HAS BEEN AUTOMATICALLY GENERATED FROM clooh.h.in BY configure   *
- ******************************************************************************/
+#include <unistd.h>
+#include <sys/time.h>
+#include <stdio.h>
+#include "../include/cloog/cloog.h"
 
-#ifndef CLOOG_H
-#define CLOOG_H
-
-#include <cloog/version.h>
-#include <cloog/int.h>
-#include <cloog/matrix.h>
-#include <cloog/state.h>
-#include <cloog/options.h>
-#include <cloog/util.h>
-#include <cloog/names.h>
-#include <cloog/constraints.h>
-#include <cloog/stride.h>
-#include <cloog/domain.h>
-#include <cloog/statement.h>
-#include <cloog/block.h>
-#include <cloog/loop.h>
-#include <cloog/union_domain.h>
-#include <cloog/input.h>
-#include <cloog/program.h>
-#include <cloog/clast.h>
-#include <cloog/pprint.h>
-
-#endif /* !CLOOG_H */
+/**
+ * cloog_util_rtclock function:
+ * this function returns the value, in seconds, of the real time clock of
+ * the operating system. The reference point between calls is consistent,
+ * making time comparison possible.
+ * \return The real time clock of the operating system in seconds.
+ */
+double cloog_util_rtclock() {
+  struct timezone Tzp;
+  struct timeval Tp;
+  int stat = gettimeofday(&Tp, &Tzp);
+  if (stat != 0)
+    cloog_msg(NULL, CLOOG_WARNING, "Error return from gettimeofday: %d", stat);
+  return (Tp.tv_sec + Tp.tv_usec*1.0e-6);
+}

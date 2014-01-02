@@ -449,6 +449,10 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
 		 struct clast_for *f)
 {
     if (options->language == CLOOG_LANGUAGE_C) {
+        if (f->time_var_name) {
+            fprintf(dst, "IF_TIME(%s_start = cloog_util_rtclock());\n",
+                    (f->time_var_name) ? f->time_var_name : "");
+        }
         if ((f->parallel & CLAST_PARALLEL_OMP) && !(f->parallel & CLAST_PARALLEL_MPI)) {
             if (f->LB) {
                 fprintf(dst, "lbp=");
@@ -572,6 +576,14 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
 	fprintf(dst,"END DO\n") ; 
     else
 	fprintf(dst,"}\n") ; 
+
+    if (options->language == CLOOG_LANGUAGE_C) {
+        if (f->time_var_name) {
+            fprintf(dst, "IF_TIME(%s += cloog_util_rtclock() - %s_start);\n",
+                    (f->time_var_name) ? f->time_var_name : "",
+                    (f->time_var_name) ? f->time_var_name : "");
+        }
+    }
 }
 
 void pprint_stmt_list(struct cloogoptions *options, FILE *dst, int indent,

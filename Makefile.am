@@ -85,6 +85,7 @@ SOURCES_CORE = \
 	source/statement.c \
 	source/stride.c \
 	source/union_domain.c \
+	source/util.c \
 	source/version.c
 
 AM_CPPFLAGS = -I. -I$(top_builddir)/include -I$(top_srcdir)/include
@@ -120,6 +121,7 @@ pkginclude_HEADERS = \
 	include/cloog/statement.h \
 	include/cloog/stride.h \
 	include/cloog/union_domain.h \
+	include/cloog/util.h \
 	include/cloog/version.h
 
 pkgmatrixincludedir = $(pkgincludedir)/matrix

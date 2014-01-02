@@ -289,6 +289,8 @@ static void print_macros(FILE *file)
 	"#define ceild(n,d)  (((n)<0) ? -((-(n))/(d)) : ((n)+(d)-1)/(d))\n");
     fprintf(file, "#define max(x,y)    ((x) > (y) ? (x) : (y))\n") ; 
     fprintf(file, "#define min(x,y)    ((x) < (y) ? (x) : (y))\n\n") ; 
+    fprintf(file, "#ifdef TIME \n#define IF_TIME(foo) foo; \n"
+                  "#else\n#define IF_TIME(foo)\n#endif\n");
 }
 
 static void print_declarations(FILE *file, int n, char **names)
