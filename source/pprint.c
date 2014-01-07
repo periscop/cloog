@@ -348,9 +348,33 @@ int pprint_osl_body(struct cloogoptions *options, FILE *dst,
   return 0;
 }
 
+/* pprint_parentheses_are_safer function:
+ * this function returns 1 if it decides that it would be safer to put
+ * parentheses around the clast_assignment when it is used as a macro
+ * parameter, 0 otherwise.
+ * \param[in] s Pointer to the clast_assignment to check.
+ * \return 1 if we should print parentheses around s, 0 otherwise.
+ */
+static int pprint_parentheses_are_safer(struct clast_assignment * s) {
+  /* Expressions of the form X = Y should not be used in macros, so we
+   * consider readability first for them and avoid parentheses.
+   * Also, expressions having only one term can live without parentheses.
+   */
+  if ((s->LHS) ||
+      (s->RHS->type == clast_expr_term) ||
+      ((s->RHS->type == clast_expr_red) &&
+       (((struct clast_reduction *)(s->RHS))->n == 1) &&
+       (((struct clast_reduction *)(s->RHS))->elts[0]->type ==
+        clast_expr_term)))
+    return 0;
+
+  return 1;
+}
+
 void pprint_user_stmt(struct cloogoptions *options, FILE *dst,
 		       struct clast_user_stmt *u)
 {
+    int parenthesis_to_close = 0;
     struct clast_stmt *t;
 
     if (pprint_osl_body(options, dst, u))
@@ -363,10 +387,21 @@ void pprint_user_stmt(struct cloogoptions *options, FILE *dst,
     fprintf(dst, "(");
     for (t = u->substitutions; t; t = t->next) {
 	assert(CLAST_STMT_IS_A(t, stmt_ass));
+        if (pprint_parentheses_are_safer((struct clast_assignment *)t)) {
+	  fprintf(dst, "(");
+          parenthesis_to_close = 1;
+        }
 	pprint_assignment(options, dst, (struct clast_assignment *)t);
-	if (t->next)
+	if (t->next) {
+            if (parenthesis_to_close) {
+	      fprintf(dst, ")");
+              parenthesis_to_close = 0;
+            }
 	    fprintf(dst, ",");
+        }
     }
+    if (parenthesis_to_close)
+      fprintf(dst, ")");
     fprintf(dst, ")");
     if (options->language != CLOOG_LANGUAGE_FORTRAN)
 	fprintf(dst, ";");

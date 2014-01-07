@@ -1,4 +1,4 @@
-/* Generated from ../../../git/cloog/test/durbin_e_s.cloog by CLooG 0.14.0-238-gb1cb779 gmp bits in 0.01s. */
+/* Generated from ./durbin_e_s.cloog by CLooG 0.18.1-2-g43fc508 gmp bits in 0.00s. */
 S4(1,0,0);
 S7(1,0,0);
 S8(1,0,3);
@@ -7,7 +7,7 @@ for (i=2;i<=9;i++) {
   for (j=-7;j<=i-9;j++) {
     S3(i,j,1);
   }
-  S6(i,i-9,2);
+  S6(i,(i-9),2);
   S8(i,0,3);
   for (j=1;j<=i-1;j++) {
     S5(i,j,3);
