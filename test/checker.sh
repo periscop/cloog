@@ -60,6 +60,10 @@ TEST_OUTPUT_EXTENSION="$5" ## Extension of the generated file
 TEST_RUN="$6"              ## "1" if the checking policy is to generate,
                            ## compile and run, generate only otherwise
 
+TEST_REGENERATE="$7"       ## "regenerate" to replace the original file with
+                           ## the generated one in the case of a check fail
+                           ## !!! USE WITH CARE !!!
+
 failedtest=0;
 cloog=$top_builddir/cloog$EXEEXT
 echo "             /*-----------------------------------------------*"
@@ -105,8 +109,12 @@ for x in $TEST_FILES; do
     else
 	echo "generating... \c";
 	$cloog $options -q $input > cloog_temp;
-	diff -u -w --ignore-matching-lines='CLooG' cloog_temp $output;
+	diff -u -w --ignore-matching-lines='CLooG' $output cloog_temp;
 	result=$?;
+        if [ "$result" -ne "0" ] && [ "$TEST_REGENERATE" = "regenerate" ]; then
+            echo -e "\033[31mREGENERATING... \033[0m";
+            cp cloog_temp $output;
+        fi;
 	rm -f cloog_temp;
     fi;
 

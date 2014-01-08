@@ -44,4 +44,4 @@ special_refactored=`echo "$SPECIAL_OPTIONS" | \
                     sed "s/#/ /g"           | \
                     sed "s/'//g"`
 
-$CHECKER "SPECIAL" "$special_refactored" "" "cloog" "c" "0"
+$CHECKER "SPECIAL" "$special_refactored" "" "cloog" "c" "0" "${1:-keep}"

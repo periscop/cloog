@@ -315,8 +315,14 @@ TESTS_ENVIRONMENT = \
 	SPECIAL_OPTIONS="$(SPECIAL_OPTIONS)"
 
 test_run: generate_test$(EXEEXT)
-	$(TESTS_ENVIRONMENT) \
-	$(srcdir)/check_run.sh
+	$(TESTS_ENVIRONMENT) $(srcdir)/check_run.sh
+
+test_regenerate:
+	$(TESTS_ENVIRONMENT) $(srcdir)/check_c.sh regenerate ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/check_fortran.sh regenerate ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/check_strided.sh regenerate ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/check_openscop.sh regenerate ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/check_special.sh regenerate
 
 check_SCRIPTS = \
 	check_c.sh \
