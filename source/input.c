@@ -57,40 +57,35 @@ CloogInput *cloog_input_from_osl_scop(CloogState *state, osl_scop_p scop) {
  */
 CloogInput *cloog_input_read(FILE *file, CloogOptions *options)
 {
-	char line[MAX_STRING];
-	char language;
-	CloogDomain *context;
-	CloogUnionDomain *ud;
-	int nb_par;
+  char line[MAX_STRING];
+  char language;
+  CloogDomain *context;
+  CloogUnionDomain *ud;
+  int nb_par;
 
 #ifdef OSL_SUPPORT
-	if (options->openscop) {
-		osl_scop_p scop = osl_scop_read(file);
-		CloogInput * input = cloog_input_from_osl_scop(options->state,
-		                                               scop);
-		cloog_options_copy_from_osl_scop(scop, options);
-		return input;
-	}
+  if (options->openscop) {
+    osl_scop_p scop = osl_scop_read(file);
+    CloogInput *input = cloog_input_from_osl_scop(options->state, scop);
+    cloog_options_copy_from_osl_scop(scop, options);
+    return input;
+  }
 #endif
 
-	/* First of all, we read the language to use. */
-	if (!next_line(file, line, sizeof(line)))
-		cloog_die("Input error.\n");
-	if (sscanf(line, "%c", &language) != 1)
-		cloog_die("Input error.\n");
-   
-	if (language == 'f')
-		options->language = CLOOG_LANGUAGE_FORTRAN;
-	else
-		options->language = CLOOG_LANGUAGE_C;
+  /* First of all, we read the language to use. */
+  if (!next_line(file, line, sizeof(line))) cloog_die("Input error.\n");
+  if (sscanf(line, "%c", &language) != 1) cloog_die("Input error.\n");
 
-	/* We then read the context data. */
-	context = cloog_domain_read_context(options->state, file);
-	nb_par = cloog_domain_parameter_dimension(context);
+  if (language == 'f') options->language = CLOOG_LANGUAGE_FORTRAN;
+  else options->language = CLOOG_LANGUAGE_C;
 
-	ud = cloog_union_domain_read(file, nb_par, options);
+  /* We then read the context data. */
+  context = cloog_domain_read_context(options->state, file);
+  nb_par = cloog_domain_parameter_dimension(context);
 
-	return cloog_input_alloc(context, ud);
+  ud = cloog_union_domain_read(file, nb_par, options);
+
+  return cloog_input_alloc(context, ud);
 }
 
 /**
