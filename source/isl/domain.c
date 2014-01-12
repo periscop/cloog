@@ -1389,20 +1389,20 @@ CloogDomain *cloog_domain_cube(CloogState *state,
 				int dim, cloog_int_t min, cloog_int_t max)
 {
 	int i;
-	struct isl_basic_set *cube;
-	struct isl_basic_set *interval;
-	struct isl_basic_set_list *list;
+	isl_space *space;
+	isl_set *cube;
 
 	if (dim == 0)
 		return cloog_domain_universe(state, dim);
 
-	interval = isl_basic_set_interval(state->backend->ctx, min, max);
-	list = isl_basic_set_list_alloc(state->backend->ctx, dim);
-	for (i = 0; i < dim; ++i)
-		list = isl_basic_set_list_add(list, isl_basic_set_copy(interval));
-	isl_basic_set_free(interval);
-	cube = isl_basic_set_list_product(list);
-	return cloog_domain_from_isl_set(isl_set_from_basic_set(cube));
+	space = isl_space_set_alloc(state->backend->ctx, 0, dim);
+	cube = isl_set_universe(space);
+	for (i = 0; i < dim; ++i) {
+		cube = isl_set_lower_bound(cube, isl_dim_set, i, min);
+		cube = isl_set_upper_bound(cube, isl_dim_set, i, max);
+	}
+
+	return cloog_domain_from_isl_set(cube);
 }
 
 
