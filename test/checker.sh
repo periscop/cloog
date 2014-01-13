@@ -57,12 +57,15 @@ TEST_INPUT_EXTENSION="$4"  ## Extension of the input file
 
 TEST_OUTPUT_EXTENSION="$5" ## Extension of the generated file
 
-TEST_RUN="$6"              ## "1" if the checking policy is to generate,
-                           ## compile and run, generate only otherwise
-
-TEST_REGENERATE="$7"       ## "regenerate" to replace the original file with
-                           ## the generated one in the case of a check fail
-                           ## !!! USE WITH CARE !!!
+TEST_TYPE="$6"             ## - "generate" to simply test code generation
+                           ##   (default)
+                           ## - "regenerate" to replace the original file with
+                           ##    the generated one in the case of a check fail
+                           ##    !!! USE WITH CARE !!!
+                           ## - "valgrind" to test the valgrind output on
+                           ##   code generation
+                           ## - "run" if the checking policy is to generate,
+                           ##   compile and run, generate only otherwise
 
 failedtest=0;
 cloog=$top_builddir/cloog$EXEEXT
@@ -83,7 +86,7 @@ for x in $TEST_FILES; do
         echo "(options $options), \c";
     fi;
 
-    if [ "$TEST_RUN" = "1" ]; then
+    if [ "$TEST_TYPE" = "run" ]; then
 	generate_test=$srcdir/generate_test$EXEEXT
 	test_run=$srcdir/test_run$EXEEXT
 	good="$srcdir/$name.good.$TEST_OUTPUT_EXTENSION";
@@ -106,12 +109,17 @@ for x in $TEST_FILES; do
 	$test_run;
 	result=$?;
 	rm -f $test_run;
+    elif [ "$TEST_TYPE" = "valgrind" ]; then
+	echo "generating...";
+	valgrind --leak-check=full --show-reachable=yes --error-exitcode=1 \
+                 $top_builddir/.libs/cloog$EXEEXT $options -q $input > /dev/null;
+	result=$?;
     else
 	echo "generating... \c";
 	$cloog $options -q $input > cloog_temp;
 	diff -u -w --ignore-matching-lines='CLooG' $output cloog_temp;
 	result=$?;
-        if [ "$result" -ne "0" ] && [ "$TEST_REGENERATE" = "regenerate" ]; then
+        if [ "$result" -ne "0" ] && [ "$TEST_TYPE" = "regenerate" ]; then
             echo -e "\033[31mREGENERATING... \033[0m";
             cp cloog_temp $output;
         fi;
@@ -119,7 +127,7 @@ for x in $TEST_FILES; do
     fi;
 
     if [ "$result" -ne "0" ]; then
-        echo -e "\033[31mFAIL: $output is not the same\033[0m";
+        echo -e "\033[31mFAIL: $output has a problem\033[0m";
         failedtest=`expr $failedtest + 1`;
     else
         echo "PASS";

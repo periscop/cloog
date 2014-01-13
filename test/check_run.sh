@@ -44,12 +44,12 @@ special_refactored=`echo "$SPECIAL_OPTIONS" | \
                     sed "s/#/ /g"           | \
                     sed "s/'//g"`
 
-$CHECKER "RUN C" "$FINITE_CLOOGTEST_C" "" "cloog" "c" "1" "${1:-keep}"
+$CHECKER "RUN C" "$FINITE_CLOOGTEST_C" "" "cloog" "c" "run"
 failedtest=$?;
 
-$CHECKER "RUN SPECIAL" "$special_refactored" "" "cloog" "c" "1" "${1:-keep}"
+$CHECKER "RUN SPECIAL" "$special_refactored" "" "cloog" "c" "run"
 failedtest=`expr $failedtest + $?`;
 
-$CHECKER "RUN SPECIAL -sh 1" "$special_refactored" "-sh 1" "cloog" "c" "1" "${1:-keep}"
+$CHECKER "RUN SPECIAL -sh 1" "$special_refactored" "-sh 1" "cloog" "c" "run"
 failedtest=`expr $failedtest + $?`;
 return $failedtest;

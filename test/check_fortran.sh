@@ -35,4 +35,4 @@
 # *                                                                           *
 # *****************************************************************************/
 
-$CHECKER "FORTRAN" "$CLOOGTEST_FORTRAN" "" "cloog" "f" "0" "${1:-keep}"
+$CHECKER "FORTRAN" "$CLOOGTEST_FORTRAN" "" "cloog" "f" "${1:-generate}"

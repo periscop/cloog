@@ -35,4 +35,4 @@
 # *                                                                           *
 # *****************************************************************************/
 
-$CHECKER "OPENSCOP" "$CLOOGTEST_OPENSCOP" "-openscop" "scop" "c" "0" "${1:-keep}"
+$CHECKER "OPENSCOP" "$CLOOGTEST_OPENSCOP" "-openscop" "scop" "c" "${1:-generate}"

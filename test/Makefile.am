@@ -298,6 +298,8 @@ valgrind:
 		valgrind $(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog ; \
 	done
 
+valcheck: test_valgrind
+
 CHECKER := "$(srcdir)/checker.sh"
 
 TESTS_ENVIRONMENT = \
@@ -316,6 +318,13 @@ TESTS_ENVIRONMENT = \
 
 test_run: generate_test$(EXEEXT)
 	$(TESTS_ENVIRONMENT) $(srcdir)/check_run.sh
+
+test_valgrind:
+	$(TESTS_ENVIRONMENT) $(srcdir)/check_c.sh valgrind ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/check_fortran.sh valgrind ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/check_strided.sh valgrind ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/check_openscop.sh valgrind ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/check_special.sh valgrind
 
 test_regenerate:
 	$(TESTS_ENVIRONMENT) $(srcdir)/check_c.sh regenerate ; \
