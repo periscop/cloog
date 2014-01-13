@@ -110,10 +110,25 @@ for x in $TEST_FILES; do
 	result=$?;
 	rm -f $test_run;
     elif [ "$TEST_TYPE" = "valgrind" ]; then
-	echo "generating...";
-	valgrind --leak-check=full --show-reachable=yes --error-exitcode=1 \
-                 $top_builddir/.libs/cloog$EXEEXT $options -q $input > /dev/null;
-	result=$?;
+	echo "generating... \c";
+#	valgrind --leak-check=full --error-exitcode=1 \
+	valgrind --error-exitcode=1 \
+                 $top_builddir/.libs/cloog$EXEEXT $options -q $input \
+		 > /dev/null 2> cloog_temp;
+	errors=$?;
+	leaks=`grep "in use at exit" cloog_temp | cut -f 2 -d ':'`
+	if [ "$errors" = "1" ]; then
+		echo -e "\033[31mMemory error detected... \033[0m";
+		cat cloog_temp;
+		result="1";
+	elif [ "$leaks" != " 0 bytes in 0 blocks" ]; then
+		echo -e "\033[31mMemory leak detected... \033[0m";
+		cat cloog_temp;
+		result="1";
+	else
+		result="0";
+	fi;
+	rm -f cloog_temp;
     else
 	echo "generating... \c";
 	$cloog $options -q $input > cloog_temp;

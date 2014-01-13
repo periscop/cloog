@@ -285,19 +285,6 @@ generate_good:
 		$(top_builddir)/cloog$(EXEEXT) -callable 1 $$options $(srcdir)/$$x.cloog -o $(srcdir)/$$x.good.c ; \
 	done; done
 
-valgrind:
-	@echo "             /*-----------------------------------------------*"
-	@echo "              *            Checking files by Valgrind         *"
-	@echo "              *-----------------------------------------------*/"
-	for x in $(CLOOGTEST_C) ; do \
-		echo "Valgrinding $$x.c" ; \
-		valgrind $(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog ; \
-	done ; \
-	for x in $(CLOOGTEST_FORTRAN) ; do \
-		echo "Valgrinding $$x.f" ; \
-		valgrind $(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog ; \
-	done
-
 valcheck: test_valgrind
 
 CHECKER := "$(srcdir)/checker.sh"
