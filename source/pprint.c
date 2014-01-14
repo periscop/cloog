@@ -626,3 +626,9 @@ void clast_pprint(FILE *foo, struct clast_stmt *root,
 {
     pprint_stmt_list(options, foo, indent, root);
 }
+
+
+void clast_pprint_expr(struct cloogoptions *i, FILE *dst, struct clast_expr *e)
+{
+    pprint_expr(i, dst, e);
+}

@@ -60,6 +60,7 @@ extern "C"
 void clast_pprint(FILE *foo, struct clast_stmt *root, int indent, 
 	    CloogOptions *options);
 
+void clast_pprint_expr(struct cloogoptions *i, FILE *dst, struct clast_expr *e);
 
 #if defined(__cplusplus)
   }
