@@ -112,9 +112,8 @@ for x in $TEST_FILES; do
     elif [ "$TEST_TYPE" = "valgrind" ]; then
 	echo "generating... \c";
 #	valgrind --leak-check=full --error-exitcode=1 \
-	valgrind --error-exitcode=1 \
-                 $top_builddir/.libs/cloog$EXEEXT $options -q $input \
-		 > /dev/null 2> cloog_temp;
+	libtool --mode=execute valgrind --error-exitcode=1 \
+                 $cloog $options -q $input > /dev/null 2> cloog_temp;
 	errors=$?;
 	leaks=`grep "in use at exit" cloog_temp | cut -f 2 -d ':'`
 	if [ "$errors" = "1" ]; then
