@@ -43,7 +43,7 @@ else
 GENERATE_TEST = generate_test
 endif
 noinst_PROGRAMS = $(GENERATE_TEST)
-AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include
+INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 LDADD = ../libcloog-isl.la
 generate_test_SOURCES = generate_test.c
 
@@ -210,6 +210,7 @@ else
 CLOOGTEST_OPENSCOP = \
 	openscop/matmult \
 	openscop/empty \
+	openscop/multiscop \
 	openscop/union
 endif
 
@@ -321,11 +322,11 @@ test_regenerate:
 	$(TESTS_ENVIRONMENT) $(srcdir)/check_special.sh regenerate
 
 check_SCRIPTS = \
-	check_c.sh \
-	check_fortran.sh \
-	check_strided.sh \
-	check_openscop.sh \
-	check_special.sh
+	$(srcdir)/check_c.sh \
+	$(srcdir)/check_fortran.sh \
+	$(srcdir)/check_strided.sh \
+	$(srcdir)/check_openscop.sh \
+	$(srcdir)/check_special.sh
 
 TESTS = $(check_SCRIPTS)
 
