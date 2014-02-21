@@ -156,6 +156,8 @@ install-data-local:
 
 uninstall-local:
 	rm -f "$(DESTDIR)$(pkgconfig_libdir)/$(pkgconfig_libfile)"
+	rm -f "$(DESTDIR)$(libdir)/isl/isl-config.cmake"
+	rm -f "$(DESTDIR)$(libdir)/$(PACKAGE_NAME)/cloog-isl-config.cmake"
 
 dist-hook:
 	rm -f $(distdir)/test/Makefile
