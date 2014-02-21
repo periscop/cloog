@@ -141,6 +141,7 @@ version.h: @GIT_INDEX@
 EXTRA_DIST = \
 	autoconf/Doxyfile.in \
 	source/matrix/constraintset.c \
+	cmake \
 	doc/cloog.texi \
 	doc/images \
 	examples
