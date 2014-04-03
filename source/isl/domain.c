@@ -625,9 +625,6 @@ CloogDomain *cloog_domain_from_osl_relation(CloogState *state,
   CloogDomain *domain = NULL;
 
   if (relation != NULL) {
-    if (relation->precision != OSL_PRECISION_MP)
-      cloog_die("Non-GMP precision is not supported yet.\n");
-
     str = osl_relation_spprint_polylib(relation, NULL);
     set = isl_set_read_from_str(ctx, str);
     free(str);
@@ -652,9 +649,6 @@ CloogScattering *cloog_scattering_from_osl_relation(CloogState *state,
   CloogScattering *scattering = NULL;
 
   if (relation != NULL) {
-    if (relation->precision != OSL_PRECISION_MP)
-      cloog_die("Non-GMP precision is not supported yet.\n");
-
     if (relation->type != OSL_TYPE_SCATTERING)
       cloog_die("Cannot convert a non-scattering relation to a scattering.\n");
 
