@@ -56,6 +56,7 @@
 #ifdef OSL_SUPPORT
 #include <osl/scop.h>
 #include <osl/extensions/coordinates.h>
+#include <osl/extensions/loop.h>
 #endif
 
 /******************************************************************************
@@ -361,6 +362,61 @@ static void print_callable_postamble(FILE *file, CloogProgram *program)
     fprintf(file, "}\n"); 
 }
 
+/*
+* add tags clast loops according to information in scop's osl_loop extension
+*/
+int annotate_loops( osl_scop_p program , struct clast_stmt *root){
+
+  int j, nclastloops, nclaststmts;
+  struct clast_for **clastloops = NULL;
+  int *claststmts = NULL;
+
+  if (program == NULL) {
+    printf("Exiting ANootate loops\n");
+    return 1;
+  }
+
+  osl_loop_p ll = osl_generic_lookup(program->extension, OSL_URI_LOOP);
+  while (ll) {
+    //for each loop
+    osl_loop_p loop = ll;
+
+    ClastFilter filter = {loop->iter, loop->stmt_ids, 
+                                 loop->nb_stmts, subset};
+    clast_filter(root, filter, &clastloops, &nclastloops, 
+                                 &claststmts, &nclaststmts);
+
+    /* There should be at least one */
+    if (nclastloops==0) {  //FROM PLUTO
+       /* Sometimes loops may disappear (1) tile size larger than trip count
+       * 2) it's a scalar dimension but can't be determined from the
+       * trans matrix */
+       printf("Warning: parallel poly loop not found in AST\n");
+       ll = ll->next;
+       continue;
+    }
+    for (j=0; j<nclastloops; j++) {
+
+      if (loop->directive & CLAST_PARALLEL_VEC) {
+        clastloops[j]->parallel += CLAST_PARALLEL_VEC;
+      }
+
+      if (loop->directive & CLAST_PARALLEL_OMP) {
+        clastloops[j]->parallel += CLAST_PARALLEL_OMP;
+        clastloops[j]->private_vars = strdup(loop->private_vars);
+      }
+    }
+
+    if (clastloops) { free(clastloops); clastloops=NULL;}
+    if (claststmts) { free(claststmts); claststmts=NULL;}
+
+    ll = ll->next;
+  }
+
+  return 0;
+}
+
+
 /**
  * cloog_program_osl_pprint function:
  * this function pretty-prints the C or FORTRAN code generated from an
@@ -420,6 +476,7 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
 
       /* Generate the clast from the pseudo-AST then pretty-print it. */
       root = cloog_clast_create(program, options);
+      annotate_loops(options->scop, root);
       clast_pprint(file, root, coordinates->indent, options);
       cloog_clast_free(root);
 
