@@ -13,8 +13,7 @@
 #pragma scop
   /* Scattering iterators. */
   int t2, t3, t4, t5, t6, t9;
-  /* Original iterators. */
-  int i, j, k, l, m, n;
+  int lbp, ubp;
   int lbv, ubv;
   if (N >= 1) {
     lbp=0;
