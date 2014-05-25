@@ -11,10 +11,15 @@
 #endif
 /* matmul.c  128*128 matrix multiply */
 #pragma scop
+  /* Scattering iterators. */
+  int t2, t3, t4, t5, t6, t9;
+  /* Original iterators. */
+  int i, j, k, l, m, n;
+  int lbv, ubv;
   if (N >= 1) {
     lbp=0;
     ubp=floord(N-1,32);
-#pragma omp parallel for private(lbv,ubv)
+#pragma omp parallel for private(lbv,ubv,t3,t4,t5,t6,t7,t8,t9)
     for (t2=lbp;t2<=ubp;t2++) {
       for (t3=0;t3<=floord(N-1,32);t3++) {
         for (t4=32*t2;t4<=min(N-1,32*t2+31);t4++) {
@@ -30,7 +35,7 @@
     }
     lbp=0;
     ubp=floord(N-1,32);
-#pragma omp parallel for private(lbv,ubv)
+#pragma omp parallel for private(lbv,ubv,t3,t4,t5,t6,t7,t8,t9)
     for (t2=lbp;t2<=ubp;t2++) {
       for (t3=0;t3<=floord(N-1,32);t3++) {
         for (t4=0;t4<=floord(N-1,32);t4++) {

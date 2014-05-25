@@ -190,7 +190,7 @@ t2
 # Statement identifiers
 1
 # Private variables
-lbv,ubv
+lbv,ubv,t3,t4,t5,t6,t7,t8,t9
 # Directive
 1
 # ===========================================
@@ -202,7 +202,7 @@ t2
 # Statement identifiers
 2
 # Private variables
-lbv,ubv
+lbv,ubv,t3,t4,t5,t6,t7,t8,t9
 # Directive
 1
 # ===========================================

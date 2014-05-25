@@ -370,10 +370,10 @@ int annotate_loops( osl_scop_p program , struct clast_stmt *root){
   int j, nclastloops, nclaststmts;
   struct clast_for **clastloops = NULL;
   int *claststmts = NULL;
+  int ret = 0;
 
   if (program == NULL) {
-    printf("Exiting ANootate loops\n");
-    return 1;
+    return ret;
   }
 
   osl_loop_p ll = osl_generic_lookup(program->extension, OSL_URI_LOOP);
@@ -398,11 +398,13 @@ int annotate_loops( osl_scop_p program , struct clast_stmt *root){
     for (j=0; j<nclastloops; j++) {
 
       if (loop->directive & CLAST_PARALLEL_VEC) {
-        clastloops[j]->parallel += CLAST_PARALLEL_VEC;
+        clastloops[j]->parallel |= CLAST_PARALLEL_VEC;
+        ret |= CLAST_PARALLEL_VEC;
       }
 
       if (loop->directive & CLAST_PARALLEL_OMP) {
-        clastloops[j]->parallel += CLAST_PARALLEL_OMP;
+        clastloops[j]->parallel |= CLAST_PARALLEL_OMP;
+        ret |= CLAST_PARALLEL_OMP;
         clastloops[j]->private_vars = strdup(loop->private_vars);
       }
     }
@@ -413,7 +415,7 @@ int annotate_loops( osl_scop_p program , struct clast_stmt *root){
     ll = ll->next;
   }
 
-  return 0;
+  return ret;
 }
 
 
@@ -439,8 +441,10 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
   char c;
   osl_scop_p scop = options->scop;
   osl_coordinates_p coordinates;
+  char* parvar[2] = {"lbv", "ubv"};
   struct clast_stmt *root;
   FILE * original;
+  int annotate_result = 0;
 
   if (scop && !options->compilable && !options->callable) {
     coordinates = osl_generic_lookup(scop->extension, OSL_URI_COORDINATES);
@@ -476,7 +480,10 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
 
       /* Generate the clast from the pseudo-AST then pretty-print it. */
       root = cloog_clast_create(program, options);
-      annotate_loops(options->scop, root);
+      annotate_result = annotate_loops(options->scop, root);
+      print_iterator_declarations(file, program, options);
+      if(annotate_result & CLAST_PARALLEL_VEC)
+        print_declarations(file, 2, parvar);
       clast_pprint(file, root, coordinates->indent, options);
       cloog_clast_free(root);
 
