@@ -210,6 +210,7 @@ else
 CLOOGTEST_OPENSCOP = \
 	openscop/matmult \
 	openscop/empty \
+	openscop/loops \
 	openscop/union
 endif
 
