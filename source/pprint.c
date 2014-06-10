@@ -509,6 +509,11 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
             }
             fprintf(dst, "%*s", indent, "");
         }
+        if (f->parallel & CLAST_PARALLEL_USR) {
+           fprintf(dst, "#%s\n",
+                        (f->usr)? f->usr: "");
+           fprintf(dst, "%*s", indent, "");
+        }
 
     }
 
