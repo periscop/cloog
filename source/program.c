@@ -320,6 +320,7 @@ static void print_iterator_declarations(FILE *file, CloogProgram *program,
     }
 }
 
+#ifdef OSL_SUPPORT
 static int get_osl_loop_flags (osl_scop_p scop) {
   int flags = 0;
   osl_loop_p ll = osl_generic_lookup(scop->extension, OSL_URI_LOOP);
@@ -360,6 +361,7 @@ static void print_iterator_declarations_osl(FILE *file, CloogProgram *program,
   if(loopflags & CLAST_PARALLEL_VEC)
     print_declarations(file, 2, vecvar);
 }
+#endif
 
 static void print_callable_preamble(FILE *file, CloogProgram *program,
 	CloogOptions *options)
@@ -403,6 +405,7 @@ static void print_callable_postamble(FILE *file, CloogProgram *program)
     fprintf(file, "}\n"); 
 }
 
+#ifdef OSL_SUPPORT
 /*
 * add tags clast loops according to information in scop's osl_loop extension
 */
@@ -458,6 +461,7 @@ int annotate_loops(osl_scop_p program, struct clast_stmt *root){
 
   return ret;
 }
+#endif
 
 
 /**
