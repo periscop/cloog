@@ -55,6 +55,7 @@
 
 #ifdef OSL_SUPPORT
 #include <osl/scop.h>
+#include <osl/macros.h>
 #include <osl/extensions/coordinates.h>
 #include <osl/extensions/loop.h>
 #endif
@@ -67,7 +68,7 @@
 /**
  * cloog_program_print function:
  * this function is a human-friendly way to display the CloogProgram data
- * structure, it shows all the different fields and includes an indentation
+ * structure list, it shows all the different fields and includes an indentation
  * level (level) in order to work with others print_structure functions.
  * - July 1st 2005: first version based on the old cloog_program_print function.
  */
@@ -77,73 +78,91 @@ CloogProgram * program ;
 int level ;
 { int i, j ;
 
-  /* Go to the right level. */
-  for (i=0; i<level; i++)
-  fprintf(file,"|\t") ;
-  
-  fprintf(file,"+-- CloogProgram\n") ;
-  
-  /* A blank line. */
-  for (i=0; i<=level+1; i++)
-  fprintf(file,"|\t") ;
-  fprintf(file,"\n") ;
-  
-  /* Print the language. */
-  for (i=0; i<=level; i++)
-  fprintf(file,"|\t") ;
-  fprintf(file, "Language: %c\n",program->language) ;
-  
-  /* A blank line. */
-  for (i=0; i<=level+1; i++)
-  fprintf(file,"|\t") ;
-  fprintf(file,"\n") ;
+  while (program) {
+    /* Go to the right level. */
+    for (i=0; i<level; i++)
+    fprintf(file,"|\t") ;
 
-  /* Print the scattering dimension number. */
-  for (i=0; i<=level; i++)
-  fprintf(file,"|\t") ;
-  fprintf(file,"Scattering dimension number: %d\n",program->nb_scattdims) ;
-  
-  /* A blank line. */
-  for (i=0; i<=level+1; i++)
-  fprintf(file,"|\t") ;
-  fprintf(file,"\n") ;
-  
-  /* Print the scalar scattering dimension informations. */
-  for (i=0; i<=level; i++)
-  fprintf(file,"|\t") ;
-  if (program->scaldims != NULL)
-  { fprintf(file,"Scalar dimensions:") ;
-    for (i=0;i<program->nb_scattdims;i++)
-    fprintf(file," %d:%d ",i,program->scaldims[i]) ;
+    fprintf(file,"+-- CloogProgram\n") ;
+
+    /* A blank line. */
+    for (i=0; i<=level+1; i++)
+    fprintf(file,"|\t") ;
     fprintf(file,"\n") ;
-  }
-  else
-  fprintf(file,"No scalar scattering dimensions\n") ;
-  
-  /* A blank line. */
-  for (i=0; i<=level+1; i++)
-  fprintf(file,"|\t") ;
-  fprintf(file,"\n") ;
 
-  /* Print the parameter and the iterator names. */
-  cloog_names_print_structure(file,program->names,level+1) ;
- 
-  /* A blank line. */
-  for (i=0; i<=level+1; i++)
-  fprintf(file,"|\t") ;
-  fprintf(file,"\n") ;
-  
-  /* Print the context. */
-  cloog_domain_print_structure(file, program->context, level+1, "Context");
-    
-  /* Print the loop. */
-  cloog_loop_print_structure(file,program->loop,level+1) ;
+    /* Print the language. */
+    for (i=0; i<=level; i++)
+    fprintf(file,"|\t") ;
+    fprintf(file, "Language: %c\n",program->language) ;
+
+    /* A blank line. */
+    for (i=0; i<=level+1; i++)
+    fprintf(file,"|\t") ;
+    fprintf(file,"\n") ;
+
+    /* Print the scattering dimension number. */
+    for (i=0; i<=level; i++)
+    fprintf(file,"|\t") ;
+    fprintf(file,"Scattering dimension number: %d\n",program->nb_scattdims) ;
+
+    /* A blank line. */
+    for (i=0; i<=level+1; i++)
+    fprintf(file,"|\t") ;
+    fprintf(file,"\n") ;
+
+    /* Print the scalar scattering dimension informations. */
+    for (i=0; i<=level; i++)
+    fprintf(file,"|\t") ;
+    if (program->scaldims != NULL)
+    { fprintf(file,"Scalar dimensions:") ;
+      for (i=0;i<program->nb_scattdims;i++)
+      fprintf(file," %d:%d ",i,program->scaldims[i]) ;
+      fprintf(file,"\n") ;
+    }
+    else
+    fprintf(file,"No scalar scattering dimensions\n") ;
+
+    /* A blank line. */
+    for (i=0; i<=level+1; i++)
+    fprintf(file,"|\t") ;
+    fprintf(file,"\n") ;
+
+    /* Print the parameter and the iterator names. */
+    cloog_names_print_structure(file,program->names,level+1) ;
+
+    /* A blank line. */
+    for (i=0; i<=level+1; i++)
+    fprintf(file,"|\t") ;
+    fprintf(file,"\n") ;
+
+    /* Print the context. */
+    cloog_domain_print_structure(file, program->context, level+1, "Context");
+
+    /* Print the loop. */
+    cloog_loop_print_structure(file,program->loop,level+1) ;
+
+    /* One more time something that is here only for a better look. */
+    for (j=0; j<2; j++)
+    { for (i=0; i<=level+1; i++)
+      fprintf(file,"|\t") ;
+
+      fprintf(file,"\n") ;
+    }
+
+    program = program->next;
+    if (program != NULL) {
+      for (i=0; i<=level; i++)
+       fprintf(file,"|\t") ;
+
+      fprintf(file,"V\n") ;
+    }
+  } // end of while(program)
 
   /* One more time something that is here only for a better look. */
   for (j=0; j<2; j++)
   { for (i=0; i<=level; i++)
     fprintf(file,"|\t") ;
-      
+
     fprintf(file,"\n") ;
   }
 }
@@ -461,93 +480,571 @@ int annotate_loops(osl_scop_p program, struct clast_stmt *root){
 
 
 /**
+ * cloog_program_sort_ascending function:
+ * this function bubble sorts a list of CloogPrograms in ascending order
+ * based on their Coordinates
+ * Nodes with missing coodinates, they are always swapped with
+ * their predecessors. After sorting they'll be at the head of the list 
+ *
+ * \param[in] program address of a pointer to a list of CloogPrograms
+ */
+void cloog_program_sort_ascending(CloogProgram **program,
+                                  CloogOptions **options) {
+#ifdef OSL_SUPPORT
+  if (*program==NULL || (*program)->next==NULL)
+    return;
+
+  osl_coordinates_p co = NULL;
+  osl_coordinates_p nco = NULL;
+
+  CloogProgram *head = *program;
+  CloogOptions *ops  = *options;
+
+  //start from head 
+  CloogProgram *listend = NULL; //last element in correct position
+  while (listend != head) {
+    CloogProgram *node = head; //start from beginning each time
+    CloogProgram *prev = head;
+    CloogOptions *node_ops = ops; //start from beginning each time
+    CloogOptions *prev_ops = ops;
+
+    //push this element as far in the list as it could go
+    while (node->next != listend) {
+
+      co = osl_generic_lookup(node_ops->scop->extension,
+                              OSL_URI_COORDINATES);
+      nco = osl_generic_lookup(node_ops->next->scop->extension,
+                               OSL_URI_COORDINATES);
+      if ( co &&
+              ( !nco //missin next coordinates, swap. next is smaller!
+                || (strcmp(co->name, nco->name)>0) //next filename smaller, swap. 
+                || ((strcmp(co->name, nco->name)==0) && (co->line_start > nco->line_start))
+               )
+          ) {
+        //swap programs
+        CloogProgram* next = node->next; 
+        node->next = next->next;
+        next->next = node;
+
+        //swap options
+        CloogOptions* nextops = node_ops->next; 
+        node_ops->next = nextops->next;
+        nextops->next = node_ops;
+
+
+        if (node==head) {
+          node = next;
+          head = next;
+
+          node_ops = nextops;
+          ops = nextops;
+        }
+        else {
+          node = next;
+          prev->next = next;
+
+          node_ops = nextops;
+          prev_ops->next = nextops;
+        }
+      }
+
+      prev = node;
+      node = node->next;
+
+      prev_ops = node_ops;
+      node_ops = node_ops->next;
+    }
+
+    //update listend to the last sorted element
+    //bring it one step closer to head
+    listend = node;
+  }
+
+  *program = head;
+  *options = ops;
+#endif
+}
+
+
+#ifdef OSL_SUPPORT
+/**
+ * cloog_program_verify_coordinates function:
+ * Takes as input a list of CloogPrograms and a list of CLoogOptions.
+ * There is a one-to-one relation between the program and options lists.
+ * This function verifies that there exists a CloogOptions for each
+ * CloogProgram and that the CloogOptions contains a pointer to osl_scop_p
+ * which, in turn, contains the coordinates of the SCoP.
+ *
+ * \param[in] program address of a pointer to a list of CloogPrograms
+ * \param[in] options address of a pointer to a list of CloogOptions
+ * \return            1 if CloogPrograms in order, 0 otherise
+ */
+int cloog_program_verify_coordinates(CloogProgram * program,
+                                     CloogOptions * options) {
+  osl_scop_p        scop = NULL;
+  osl_coordinates_p coordinates = NULL;
+
+  while (program) {
+    if(options==NULL)  //Program with no Options
+      return 0;
+
+    scop = options->scop;
+    if (scop==NULL) {
+        cloog_msg(options, CLOOG_WARNING,
+                  "Missing SCoP in program Options\n");
+        return 0;
+    }
+
+    coordinates = osl_generic_lookup(scop->extension, OSL_URI_COORDINATES);
+    if (coordinates == NULL) {
+        return 0;
+    }
+
+    program = program->next;
+    options = options->next;
+  }
+
+  return 1;
+}
+#endif
+
+/**
+ * cloog_program_count function:
+ * this function returns the number of programs in the list 
+ */
+int cloog_program_count( CloogProgram *program ) {
+  int nprog = 0;
+  while(program){
+    nprog++;
+    program = program->next;
+  }
+
+  return nprog;
+}
+
+
+/**
+ * cloog_program_count_filename function:
+ * this function returns the number of programs comming from
+ * the file whose name is given in input
+ */
+int cloog_program_count_filename( CloogProgram *program, CloogOptions * options,
+                                  const char * const filename)
+{
+#ifdef OSL_SUPPORT
+  int nprog = 0;
+  osl_scop_p scop = NULL;
+  osl_coordinates_p coordinates = NULL;
+
+  while(program){
+    if(options==NULL)  //Program with no Options
+      return 0;
+
+    scop = options->scop;
+    if (scop==NULL) {
+        cloog_msg(options, CLOOG_WARNING,
+                  "Missing SCoP in program Options\n");
+        return 0;
+    }
+
+    coordinates = osl_generic_lookup(scop->extension, OSL_URI_COORDINATES);
+
+    if (coordinates && !strcmp(coordinates->name, filename))
+      nprog++;
+
+    program = program->next;
+    options = options->next;
+  }
+
+  return nprog;
+#endif
+  return 0;
+}
+
+
+/**
+ * cloog_program_count_no_coordinates function:
+ * this function returns the number of programs for which we
+ * are unable to find the corresponding Coordinates extensions.
+ */
+int cloog_program_count_no_coordinates( CloogProgram *program,
+                                        CloogOptions * options)
+{
+#ifdef OSL_SUPPORT
+  int nprog = 0;
+  osl_scop_p scop = NULL;
+  osl_coordinates_p coordinates = NULL;
+
+  while(program){
+    if(options==NULL)  //Program with no Options
+      return 0;
+
+    scop = options->scop;
+    if (scop==NULL) {
+        cloog_msg(options, CLOOG_WARNING,
+                  "Missing SCoP in program Options\n");
+        return 0;
+    }
+
+    coordinates = osl_generic_lookup(scop->extension, OSL_URI_COORDINATES);
+
+    if (!coordinates)
+      nprog++;
+
+    program = program->next;
+    options = options->next;
+  }
+
+  return nprog;
+#endif
+  return 0;
+}
+
+/**
  * cloog_program_osl_pprint function:
  * this function pretty-prints the C or FORTRAN code generated from an
- * OpenScop specification by overwriting SCoP in a given code, if the
+ * OpenScop specification by overwriting SCoP in a given file, if the
  * options -compilable or -callable are not set. The SCoP coordinates are
- * provided through the OpenScop "Coordinates" extension. It returns 1 if
- * it succeeds to find an OpenScop coordinates information
- * to pretty-print the generated code, 0 otherwise.
- * \param[in] file    The output stream (possibly stdout).
- * \param[in] program The generated pseudo-AST to pretty-print.
- * \param[in] options CLooG options (contains the OpenSCop specification).
+ * provided through the OpenScop "Coordinates" extension. The infilename
+ * arguments specifies scops pertaining to which file are to be replaced.
+ * It returns 1 if it succeeds to find an OpenScop coordinates information and
+ * pretty-print the generated code, 0 otherwise.
+ * Note: This function assumes that the programs have already been sorted
+ * in ascending order of their filenames and coordinates.
+ *
+ * \param[in] file        The output stream (possibly stdout).
+ * \param[in] program     The generated pseudo-AST to pretty-print.
+ * \param[in] infilename  The original file containing SCoP code
+ * \param[in] options     CLooG options (contains the OpenSCop specification).
  * \return 1 on success to pretty-print at the place of a SCoP, 0 otherwise.
  */
 int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
-                             CloogOptions * options) {
+                             char* infilename, CloogOptions * options) {
 #ifdef OSL_SUPPORT
   int lines = 0;
   int columns = 0;
   int read = 1;
+  int macros_printed=0;
   char c;
   osl_scop_p scop = options->scop;
-  osl_coordinates_p coordinates;
+  osl_coordinates_p coordinates = NULL;
+  osl_coordinates_p print_coordinates = NULL;
   struct clast_stmt *root;
-  FILE * original;
+  FILE * original = NULL;
+  int orig_file_open = 0;
+  int scop_num = 0;
+  int nprog = 0;
   int annotate_result = 0;
 
-  if (scop && !options->compilable && !options->callable) {
+  nprog = cloog_program_count_filename(program, options, infilename);
+
+  while (program) {
+
+    scop = options->scop;
+
+    //get coordinates and filename
     coordinates = osl_generic_lookup(scop->extension, OSL_URI_COORDINATES);
-    if (coordinates) {
-      original = fopen(coordinates->name, "r");
-      if (!original) {
-        cloog_msg(options, CLOOG_WARNING,
-                  "unable to open the file specified in the SCoP "
-                  "coordinates\n");
+
+    if (coordinates && !strcmp(infilename, coordinates->name)) {
+
+      //memorize the coordinates for last SCoP printed
+      print_coordinates = coordinates;
+      if (!orig_file_open) {
+        original = fopen(print_coordinates->name, "r");
+        if (!original) {
+          cloog_msg(options, CLOOG_ERROR,
+                    "unable to open the file %s specified in the SCoP "
+                    "coordinates\n", print_coordinates->name);
+          return 0;
+        }
+        else {
+          orig_file_open = 1;
+        }
+      }
+
+      if (!options->compilable && !options->callable){
+
+        /* Print the macros the generated code may need. */
+        if (!macros_printed) {
+          print_macros(file);
+          macros_printed=1;
+        }
+
+        /* Print what was before the SCoP in the original file. */
+        while (((lines < print_coordinates->line_start - 1) ||
+                (columns < print_coordinates->column_start - 1)) &&
+                (read != EOF)) {
+          read = fscanf(original, "%c", &c);
+          columns++;
+          if (read != EOF) {
+            if (c == '\n') {
+              lines++;
+              columns = 0;
+            }
+            fprintf(file, "%c", c);
+          }
+        }
+
+        /* Carriage return to preserve indentation if necessary. */
+        if (print_coordinates->column_start > 0)
+          fprintf(file, "\n");
+
+        /* Generate the clast from the pseudo-AST then pretty-print it. */
+        root = cloog_clast_create(program, options);
+        annotate_result = annotate_loops(options->scop, root);
+        print_iterator_declarations_osl(file, program, options);
+        if(nprog!=1) fprintf(file, "/* <scop_%d_code_start> */\n", scop_num);
+        clast_pprint(file, root, print_coordinates->indent, options);
+        if(nprog!=1) fprintf(file, "/* </scop_%d_code_end> */\n", scop_num);
+        cloog_clast_free(root);
+        scop_num++;
+
+        /* Skip the SCoP in the original file. */
+        while (read != EOF) {
+          read = fscanf(original, "%c", &c);
+          columns++;
+          if (read != EOF) {
+
+            if (((lines == print_coordinates->line_end - 1) &&
+                 (columns > print_coordinates->column_end)) ||
+                (lines > print_coordinates->line_end - 1)) {
+
+              fprintf(file, "%c", c); //
+              break;  // go to next SCoP to dump
+            }
+
+            if (c == '\n') {
+              lines++;
+              columns = 0;
+            }
+
+          }
+        }
+
+      }
+      else { //callable or !scop
+        cloog_msg(options, CLOOG_ERROR,
+                  "\"-callable\" option incompatible with \"-openscop\"!\n");
+        if (orig_file_open)
+          fclose(original);
+
         return 0;
       }
 
-      /* Print the macros the generated code may need. */
-      print_macros(file);
+    } //if filename==
 
-      /* Print what was before the SCoP in the original file. */
-      while (((lines < coordinates->line_start - 1) ||
-              (columns < coordinates->column_start - 1)) && (read != EOF)) {
-        read = fscanf(original, "%c", &c);
-        columns++;
-        if (read != EOF) {
-          if (c == '\n') {
-            lines++;
-            columns = 0;
-          }
-          fprintf(file, "%c", c);
-        }
+    program = program->next;
+    options = options->next;
+  }
+
+  /* Print what was after the last SCoP in the original file. */
+  while (read != EOF) {
+    read = fscanf(original, "%c", &c);
+    columns++;
+    if (read != EOF) {
+
+      if (((lines == print_coordinates->line_end - 1) &&
+           (columns > print_coordinates->column_end)) ||
+          (lines > print_coordinates->line_end - 1)) {
+
+          fprintf(file, "%c", c); //copy the tail
       }
 
-      /* Carriage return to preserve indentation if necessary. */
-      if (coordinates->column_start > 0)
-        fprintf(file, "\n");
-
-      /* Generate the clast from the pseudo-AST then pretty-print it. */
-      root = cloog_clast_create(program, options);
-      annotate_result = annotate_loops(options->scop, root);
-      print_iterator_declarations_osl(file, program, options);
-      clast_pprint(file, root, coordinates->indent, options);
-      cloog_clast_free(root);
-
-      /* Print what was after the SCoP in the original file. */
-      while (read != EOF) {
-        read = fscanf(original, "%c", &c);
-        columns++;
-        if (read != EOF) {
-          if (((lines == coordinates->line_end - 1) &&
-               (columns > coordinates->column_end)) ||
-              (lines > coordinates->line_end - 1))
-            fprintf(file, "%c", c);
-          if (c == '\n') {
-            lines++;
-            columns = 0;
-          }
-        }
+      if (c == '\n') {
+        lines++;
+        columns = 0;
       }
-
-      fclose(original);
-      return 1;
     }
   }
+
+  if (orig_file_open)
+    fclose(original);
+
+  return 1;
+
 #endif
   return 0;
 }
+
+
+/**
+ * cloog_program_osl_pprint_no_coordinates function:
+ * this function pretty-prints the C or FORTRAN code generated from an
+ * OpenScop specification, if the options -compilable or -callable are not set.
+ * This function will generate code only for SCoPs which are missing the
+ * Coordinates extension. It'll write the generated code on standard output.
+ * It returns 1 if it succeeds to find an OpenScop coordinates information and
+ * pretty-print the generated code, 0 otherwise.
+ * Note: This function assumes that the programs have already been sorted
+ * in ascending order of their filenames and coordinates.
+ *
+ * \param[in] file        The output stream (normally stdout).
+ * \param[in] program     The generated pseudo-AST to pretty-print.
+ * \param[in] options     CLooG options (contains the OpenSCop specification).
+ * \return 1 on success to pretty-print at the place of a SCoP, 0 otherwise.
+ */
+int cloog_program_osl_pprint_no_coordinates(FILE * file, CloogProgram * program,
+                             CloogOptions * options) {
+#ifdef OSL_SUPPORT
+  osl_scop_p scop = options->scop;
+  osl_coordinates_p coordinates = NULL;
+  struct clast_stmt *root;
+  int scop_num = 0;
+  int nprog = 0;
+  int annotate_result = 0;
+
+  nprog = cloog_program_count_no_coordinates(program, options);
+
+  while (program) {
+
+    scop = options->scop;
+
+    //get coordinates and filename
+    coordinates = osl_generic_lookup(scop->extension, OSL_URI_COORDINATES);
+
+    if(!coordinates) {
+
+      if (!options->compilable && !options->callable){
+
+        /* Generate the clast from the pseudo-AST then pretty-print it. */
+        root = cloog_clast_create(program, options);
+        annotate_result = annotate_loops(options->scop, root);
+        if(nprog!=1) fprintf(file, "/* <scop_%d_code_start> */\n", scop_num);
+        clast_pprint(file , root, 0, options);
+        if(nprog!=1) fprintf(file , "/* </scop_%d_code_end> */\n", scop_num);
+        cloog_clast_free(root);
+        scop_num++;
+
+      }
+      else { //callable or !scop
+        //cleanup
+        printf("\"-callable\" option incompatible with \"-openscop\"!\n");
+        return 0;
+      }
+
+    } //if filename==
+
+    program = program->next;
+    options = options->next;
+  }
+
+  return 1;
+
+#endif
+  return 0;
+}
+
+/**
+ * cloog_get_scop_filenames fucntion:
+ * this function will search in the Coordinats extensions of all scops
+ * and return all the unique input filenames that it could find.
+ *
+ * \param[in]  options     List of CloogOptions containing pointers to SCoPs
+ * \param[out] filenames  Pointer to 2D character array for filenames
+ * \return Returns the number of unique filenames found
+ */
+int cloog_get_scop_filenames(CloogOptions *options, char ***filenames){
+
+#ifdef OSL_SUPPORT
+  int nfiles = 0;
+  int found = 0;
+  int i = 0;
+  char ** names = NULL;
+  char *name = NULL;
+  osl_scop_p scop = NULL;
+  osl_coordinates_p co = NULL;
+
+  while(options){
+
+    scop = options->scop;
+    //get coordinates extension
+    co = osl_generic_lookup(scop->extension, OSL_URI_COORDINATES);
+
+    if(co){
+      //get filename
+      name = co->name;
+      if(name==NULL){
+        fprintf(stderr, "Error: No filename in coordinates.\n");
+        return 0;
+      }
+  
+      //see if filename already retrieved
+      found = 0;
+      for(i=0; i< nfiles; i++)
+        if(!strcmp(names[i], name))
+          found = 1;
+  
+      //save filename
+      if(!found){
+        OSL_realloc(names, char**, ++nfiles); 
+        names[nfiles-1] = strdup(name);
+      }
+    }
+
+    options = options->next;
+  }
+
+  *filenames = names;
+  return nfiles;
+#endif
+  return 0;
+}
+
+
+/*
+ * cloog_program_osl_pprint_all_files function:
+ * This function will look for unique filenames in the list of SCoPs.
+ * The for each input file, it'll create a corresponding output file by
+ * replacing the original SCoPs by code generated by CLooG.
+ * In the end, if there are any SCoPs without the Coordinates extensions,
+ * it'll output their corresponding code on standard output.
+ *
+ */
+int cloog_program_osl_pprint_all_files(program, options)
+CloogProgram * program ;
+CloogOptions * options ;
+{
+#ifdef OSL_SUPPORT
+  int nfiles = 0;
+  int i = 0;
+  int success = 0;
+  char **filenames = NULL;
+  char *ext = ".cloog";
+
+  //get all filenames
+  nfiles = cloog_get_scop_filenames(options, &filenames);
+
+  //for each file
+  for(i=0; i< nfiles; i++){
+    char *outfilename = strdup(filenames[i]);
+    OSL_realloc(outfilename, char*, strlen(outfilename)+strlen(ext)+1);
+    strcat(outfilename, ext);
+    FILE *outfile = fopen(outfilename, "w");
+    //  print all scops in that file
+    success = cloog_program_osl_pprint(outfile, program, filenames[i], options);
+
+    fclose(outfile);
+    if(!success)  //failed to write output_file
+      remove(outfilename);
+    else
+      cloog_msg(options, CLOOG_INFO, "Code generated in file %s\n", outfilename);
+  }
+
+  if(!cloog_program_verify_coordinates(program, options)){
+    cloog_msg(options, CLOOG_WARNING, "Missing Coordinates in SCoPs\n");
+    cloog_program_osl_pprint_no_coordinates(stdout, program, options);
+  }
+
+  //free memory
+  for(i=0; i< nfiles; i++)
+    free(filenames[i]);
+  free(filenames);
+
+  return 1;
+#endif
+  return 0;
+}
+
 
 /**
  * cloog_program_pprint function:
@@ -561,117 +1058,147 @@ CloogProgram * program ;
 CloogOptions * options ;
 {
   int i, j, indentation = 0;
+  int print_headers = 0;
+  int print_main    = 0;
   CloogStatement * statement ;
   CloogBlockList * blocklist ;
   CloogBlock * block ;
   struct clast_stmt *root;
+  int scop_num = 0;
 
-  if (cloog_program_osl_pprint(file, program, options))
+  if (options->openscop){
+    cloog_program_osl_pprint_all_files(program, options);
     return;
+  }
 
-  if (program->language == 'f')
-    options->language = CLOOG_LANGUAGE_FORTRAN ;
-  else
-    options->language = CLOOG_LANGUAGE_C ;
+  int nprog = cloog_program_count(program);
+
+  while (program) {
+    if (program->language == 'f')
+      options->language = CLOOG_LANGUAGE_FORTRAN ;
+    else
+      options->language = CLOOG_LANGUAGE_C ;
  
 #ifdef CLOOG_RUSAGE
-  print_comment(file, options, "Generated from %s by %s in %.2fs.",
-		options->name, cloog_version(), options->time);
+    print_comment(file, options, "Generated from %s by %s in %.2fs.",
+		          options->name, cloog_version(), options->time);
 #else
-  print_comment(file, options, "Generated from %s by %s.",
-		options->name, cloog_version());
+    print_comment(file, options, "Generated from %s by %s.",
+	                options->name, cloog_version());
 #endif
 #ifdef CLOOG_MEMORY
-  print_comment(file, options, "CLooG asked for %d KBytes.", options->memory);
-  cloog_msg(CLOOG_INFO, "%.2fs and %dKB used for code generation.\n",
-	  options->time,options->memory);
+    print_comment(file, options, "CLooG asked for %d KBytes.",
+                  options->memory);
+    cloog_msg(CLOOG_INFO, "%.2fs and %dKB used for code generation.\n",
+	            options->time,options->memory);
 #endif
-  
-  /* If the option "compilable" is set, we provide the whole stuff to generate
-   * a compilable code. This code just do nothing, but now the user can edit
-   * the source and set the statement macros and parameters values.
-   */
-  if (options->compilable && (program->language == 'c'))
-  { /* The headers. */
-    fprintf(file,"/* DON'T FORGET TO USE -lm OPTION TO COMPILE. */\n\n") ;
-    fprintf(file,"/* Useful headers. */\n") ;
-    fprintf(file,"#include <stdio.h>\n") ;
-    fprintf(file,"#include <stdlib.h>\n") ;
-    fprintf(file,"#include <math.h>\n\n") ;
-
-    /* The value of parameters. */
-    fprintf(file,"/* Parameter value. */\n") ;
-    for (i = 1; i <= program->names->nb_parameters; i++)
-      fprintf(file, "#define PARVAL%d %d\n", i, options->compilable);
     
-    /* The macros. */
-    print_macros(file);
-
-    /* The statement macros. */
-    fprintf(file,"/* Statement macros (please set). */\n") ;
-    blocklist = program->blocklist ;
-    while (blocklist != NULL)
-    { block = blocklist->block ;
-      statement = block->statement ;
-      while (statement != NULL)
-      { fprintf(file,"#define S%d(",statement->number) ;
-        if (block->depth > 0)
-        { fprintf(file,"%s",program->names->iterators[0]) ;
-          for(j=1;j<block->depth;j++)
-          fprintf(file,",%s",program->names->iterators[j]) ;
-        }
-        fprintf(file,") {total++;") ;
-	if (block->depth > 0) {
-          fprintf(file, " printf(\"S%d %%d", statement->number);
-          for(j=1;j<block->depth;j++)
-            fprintf(file, " %%d");
-          
-          fprintf(file,"\\n\",%s",program->names->iterators[0]) ;
-	  for(j=1;j<block->depth;j++)
-          fprintf(file,",%s",program->names->iterators[j]) ;
-          fprintf(file,");") ;
-        }
-        fprintf(file,"}\n") ;
+    /* If the option "compilable" is set, we provide the whole stuff to generate
+     * a compilable code. This code just do nothing, but now the user can edit
+     * the source and set the statement macros and parameters values.
+     */
+    if (options->compilable && (program->language == 'c'))
+    { /* The headers. */
+      if(!print_headers){
+        fprintf(file,"/* DON'T FORGET TO USE -lm OPTION TO COMPILE. */\n\n") ;
+        fprintf(file,"/* Useful headers. */\n") ;
+        fprintf(file,"#include <stdio.h>\n") ;
+        fprintf(file,"#include <stdlib.h>\n") ;
+        fprintf(file,"#include <math.h>\n\n") ;
+    
+        /* The value of parameters. */
+        fprintf(file,"/* Parameter value. */\n") ;
+        for (i = 1; i <= program->names->nb_parameters; i++)
+          fprintf(file, "#define PARVAL%d %d\n", i, options->compilable);
         
-	statement = statement->next ;
+        /* The macros. */
+        print_macros(file);
+        print_headers = 1;
       }
-      blocklist = blocklist->next ;
-    }
     
-    /* The iterator and parameter declaration. */
-    fprintf(file,"\nint main() {\n") ; 
-    print_iterator_declarations(file, program, options);
-    if (program->names->nb_parameters > 0)
-    { fprintf(file,"  /* Parameters. */\n") ;
-      fprintf(file, "  int %s=PARVAL1",program->names->parameters[0]);
-      for(i=2;i<=program->names->nb_parameters;i++)
-        fprintf(file, ", %s=PARVAL%d", program->names->parameters[i-1], i);
-      
-      fprintf(file,";\n");
-    }
-    fprintf(file,"  int total=0;\n");
-    fprintf(file,"\n") ;
-    
-    /* And we adapt the identation. */
-    indentation += 2 ;
-  } else if (options->callable && program->language == 'c') {
-    print_callable_preamble(file, program, options);
-    indentation += 2;
-  }
-  
-  root = cloog_clast_create(program, options);
-  clast_pprint(file, root, indentation, options);
-  cloog_clast_free(root);
-  
-  /* The end of the compilable code in case of 'compilable' option. */
-  if (options->compilable && (program->language == 'c'))
-  {
-    fprintf(file, "\n  printf(\"Number of integral points: %%d.\\n\",total);");
-    fprintf(file, "\n  return 0;\n}\n");
-  } else if (options->callable && program->language == 'c')
-    print_callable_postamble(file, program);
-}
+      /* The statement macros. */
+      //don't need macros when using openscop
+      if (options->openscop==0) {
+        fprintf(file,"/* Statement macros (please set). */\n") ;
+        blocklist = program->blocklist ;
+        while (blocklist != NULL)
+        { block = blocklist->block ;
+          statement = block->statement ;
+          while (statement != NULL)
+          { fprintf(file,"#define S%d(", statement->number) ;
+            if (block->depth > 0)
+            { fprintf(file,"%s",program->names->iterators[0]) ;
+              for(j=1;j<block->depth;j++)
+              fprintf(file,",%s",program->names->iterators[j]) ;
+            }
+            fprintf(file,") {total++;") ;
+    	      if (block->depth > 0) {
+              fprintf(file, " printf(\"S%d %%d", statement->number);
+              for (j=1;j<block->depth;j++)
+                fprintf(file, " %%d");
+              
+              fprintf(file,"\\n\",%s",program->names->iterators[0]) ;
+    	        for (j=1;j<block->depth;j++)
+              fprintf(file,",%s",program->names->iterators[j]) ;
+              fprintf(file,");") ;
+            }
+            fprintf(file,"}\n") ;
+            
+    	      statement = statement->next ;
+          }
+          blocklist = blocklist->next ;
+        }
+      }
+        
+        /* The iterator and parameter declaration. */
+      if (!print_main)
+        fprintf(file,"\nint main() {\n") ; 
 
+        print_iterator_declarations(file, program, options);
+
+      if (!print_main) {
+        if (program->names->nb_parameters > 0)
+        { fprintf(file,"  /* Parameters. */\n") ;
+          fprintf(file, "  int %s=PARVAL1",program->names->parameters[0]);
+          for(i=2;i<=program->names->nb_parameters;i++)
+            fprintf(file, ", %s=PARVAL%d", program->names->parameters[i-1], i);
+          
+          fprintf(file,";\n");
+        }
+        fprintf(file,"  int total=0;\n");
+        fprintf(file,"\n") ;
+        print_main= 1;
+      }
+      
+      /* And we adapt the identation. */
+      indentation += 2 ;
+    } else if (options->callable && program->language == 'c') {
+      print_callable_preamble(file, program, options);
+      indentation += 2;
+    }
+    
+    root = cloog_clast_create(program, options);
+    if(nprog!=1) fprintf(file, "/* <scop_%d_code_start> */\n", scop_num);
+    clast_pprint(file, root, indentation, options);
+    if(nprog!=1) fprintf(file, "/* </scop_%d_code_end> */\n", scop_num);
+    cloog_clast_free(root);
+    
+    /* The end of the compilable code in case of 'compilable' option. */
+    if (options->compilable && (program->language == 'c') 
+        && (program->next==NULL))
+    {
+      fprintf(file, "\n  printf(\"Number of integral points: %%d.\\n\",total);");
+      fprintf(file, "\n  return 0;\n}\n");
+    } else if (options->callable && program->language == 'c') {
+      print_callable_postamble(file, program);
+    }
+
+    program = program->next;
+    scop_num++;
+    options = options->next;
+  }
+
+}
 
 /******************************************************************************
  *                         Memory deallocation function                       *
@@ -683,14 +1210,21 @@ CloogOptions * options ;
  * This function frees the allocated memory for a CloogProgram structure.
  */
 void cloog_program_free(CloogProgram * program)
-{ cloog_names_free(program->names) ;
-  cloog_loop_free(program->loop) ;
-  cloog_domain_free(program->context) ;
-  cloog_block_list_free(program->blocklist) ;
-  if (program->scaldims != NULL)
-  free(program->scaldims) ;
-  
-  free(program) ;
+{ 
+  while(program){
+    CloogProgram *temp = program;
+
+    cloog_names_free(program->names) ;
+    cloog_loop_free(program->loop) ;
+    cloog_domain_free(program->context) ;
+    cloog_block_list_free(program->blocklist) ;
+
+    if (program->scaldims != NULL)
+    free(program->scaldims) ;
+
+    program = program->next;
+    free(temp) ;
+  }
 }
 
 
@@ -841,12 +1375,28 @@ CloogProgram *cloog_program_alloc(CloogDomain *context, CloogUnionDomain *ud,
  */
 CloogProgram *cloog_program_read(FILE *file, CloogOptions *options)
 {
-  CloogInput *input;
-  CloogProgram *p;
+  CloogInput *input, *ihead;
+  CloogProgram *p = NULL;
+  CloogProgram **p_ptr = &p;
 
-  input = cloog_input_read(file, options);
-  p = cloog_program_alloc(input->context, input->ud, options);
-  free(input);
+  ihead = input = cloog_input_read(file, options);
+
+  CloogOptions* ops = options;
+
+  //generate a list of cloog_programs from cloog_inputs
+  while (input) {
+    *p_ptr = cloog_program_alloc(input->context, input->ud, ops);
+
+    input = input->next;
+    ops = ops->next;
+    p_ptr = &(*p_ptr)->next;
+  }
+
+  //free the inputs
+  while (ihead) {
+    input = ihead; ihead=ihead->next;
+    free(input);
+  }
 
   return p;
 }
@@ -881,6 +1431,7 @@ CloogProgram * cloog_program_malloc()
   program->blocklist    = NULL ;
   program->scaldims     = NULL ;
   program->usr          = NULL;
+  program->next         = NULL;
   
   return program ;
 }  
@@ -902,97 +1453,108 @@ CloogProgram * cloog_program_generate(program, options)
 CloogProgram * program ;
 CloogOptions * options ;
 {
-#ifdef CLOOG_RUSAGE
-  float time;
-  struct rusage start, end ;
-#endif
   CloogLoop * loop ;
-#ifdef CLOOG_MEMORY
-  char status_path[MAX_STRING_VAL] ;
-  FILE * status ;
- 
-  /* We initialize the memory need to 0. */
-  options->memory = 0 ;
+  CloogProgram *original = program;
+
+  while (program) {
+
+#ifdef CLOOG_RUSAGE
+    float time;
+    struct rusage start, end ;
 #endif
 
-  if (options->override)
-  {
-    cloog_msg(options, CLOOG_WARNING,
-    "you are using -override option, be aware that the "
-    "generated\n                code may be incorrect.\n") ;
-  }
-  else
-  { /* Playing with options may be dangerous, here are two possible issues :
-     * 1. Using -l option less than scattering dimension number may lead to
-     *    an illegal target code (since the scattering is not respected), if
-     *    it is the case, we set -l depth to the first acceptable value.
-     */
-    if ((program->nb_scattdims > options->l) && (options->l >= 0))
+#ifdef CLOOG_MEMORY
+    char status_path[MAX_STRING_VAL] ;
+    FILE * status ;
+ 
+    /* We initialize the memory need to 0. */
+    options->memory = 0 ;
+#endif
+
+    if (options->override)
     {
       cloog_msg(options, CLOOG_WARNING,
-      "-l depth is less than the scattering dimension number "
-      "(the \n                generated code may be incorrect), it has been "
-      "automaticaly set\n                to this value (use option -override "
-      "to override).\n") ;
-      options->l = program->nb_scattdims ;
+      "you are using -override option, be aware that the "
+      "generated\n                code may be incorrect.\n") ;
+    }
+    else
+    { /* Playing with options may be dangerous, here are two possible issues :
+       * 1. Using -l option less than scattering dimension number may lead to
+       *    an illegal target code (since the scattering is not respected), if
+       *    it is the case, we set -l depth to the first acceptable value.
+       */
+      if ((program->nb_scattdims > options->l) 
+          && (options->l >= 0))
+      {
+        cloog_msg(options, CLOOG_WARNING,
+        "-l depth is less than the scattering dimension number "
+        "(the \n                generated code may be incorrect), it has been "
+        "automaticaly set\n                to this value (use option -override "
+        "to override).\n") ;
+        options->l = program->nb_scattdims ;
+      }
+        
+      /* 2. Using -f option greater than one while -l depth is greater than the
+       *    scattering dimension number may lead to iteration duplication (try
+       *    test/daegon_lu_osp.cloog with '-f 3' to test) because of the step 4b
+       *    of the cloog_loop_generate function, if it is the case, we set -l to
+       *    the first acceptable value.
+       */
+      if (((options->f > 1) || (options->f < 0)) &&
+          ((options->l > program->nb_scattdims) || 
+           (options->l < 0)))
+      {
+        cloog_msg(options, CLOOG_WARNING,
+        "-f depth is more than one, -l depth has been "
+        "automaticaly set\n                to the scattering dimension number "
+        "(target code may have\n                duplicated iterations), -l depth "
+        "has been automaticaly set to\n                this value (use option "
+        "-override to override).\n") ;
+        options->l = program->nb_scattdims ;
+      }
+    }
+    
+#ifdef CLOOG_RUSAGE
+    getrusage(RUSAGE_SELF, &start) ;
+#endif
+    if (program->loop != NULL)
+    { loop = program->loop ;
+      
+      /* Here we go ! */
+      loop = cloog_loop_generate(loop, program->context, 0, 0,
+                                 program->scaldims,
+  			       program->nb_scattdims,
+  			       options);
+  			          
+#ifdef CLOOG_MEMORY
+      /* We read into the status file of the process how many memory it uses. */
+      sprintf(status_path,"/proc/%d/status",getpid()) ;
+      status = fopen(status_path, "r") ;
+      while (fscanf(status,"%s",status_path) && strcmp(status_path,"VmData:")!=0);
+      fscanf(status,"%d",&(options->memory)) ;
+      fclose(status) ;
+#endif
+      
+      if ((!options->nosimplify) && (program->loop != NULL))
+        loop = cloog_loop_simplify(loop, program->context, 0,
+                                   program->nb_scattdims, options);
+     
+      program->loop = loop ;
     }
       
-    /* 2. Using -f option greater than one while -l depth is greater than the
-     *    scattering dimension number may lead to iteration duplication (try
-     *    test/daegon_lu_osp.cloog with '-f 3' to test) because of the step 4b
-     *    of the cloog_loop_generate function, if it is the case, we set -l to
-     *    the first acceptable value.
-     */
-    if (((options->f > 1) || (options->f < 0)) &&
-        ((options->l > program->nb_scattdims) || (options->l < 0)))
-    {
-      cloog_msg(options, CLOOG_WARNING,
-      "-f depth is more than one, -l depth has been "
-      "automaticaly set\n                to the scattering dimension number "
-      "(target code may have\n                duplicated iterations), -l depth "
-      "has been automaticaly set to\n                this value (use option "
-      "-override to override).\n") ;
-      options->l = program->nb_scattdims ;
-    }
-  }
-  
 #ifdef CLOOG_RUSAGE
-  getrusage(RUSAGE_SELF, &start) ;
-#endif
-  if (program->loop != NULL)
-  { loop = program->loop ;
-    
-    /* Here we go ! */
-    loop = cloog_loop_generate(loop, program->context, 0, 0,
-                               program->scaldims,
-			       program->nb_scattdims,
-			       options);
-			          
-#ifdef CLOOG_MEMORY
-    /* We read into the status file of the process how many memory it uses. */
-    sprintf(status_path,"/proc/%d/status",getpid()) ;
-    status = fopen(status_path, "r") ;
-    while (fscanf(status,"%s",status_path) && strcmp(status_path,"VmData:")!=0);
-    fscanf(status,"%d",&(options->memory)) ;
-    fclose(status) ;
-#endif
-    
-    if ((!options->nosimplify) && (program->loop != NULL))
-      loop = cloog_loop_simplify(loop, program->context, 0,
-                                 program->nb_scattdims, options);
-   
-    program->loop = loop ;
-  }
-    
-#ifdef CLOOG_RUSAGE
-  getrusage(RUSAGE_SELF, &end) ;
-  /* We calculate the time spent in code generation. */
-  time =  (end.ru_utime.tv_usec -  start.ru_utime.tv_usec)/(float)(MEGA) ;
-  time += (float)(end.ru_utime.tv_sec - start.ru_utime.tv_sec) ;
-  options->time = time ;
+    getrusage(RUSAGE_SELF, &end) ;
+    /* We calculate the time spent in code generation. */
+    time =  (end.ru_utime.tv_usec -  start.ru_utime.tv_usec)/(float)(MEGA) ;
+    time += (float)(end.ru_utime.tv_sec - start.ru_utime.tv_sec) ;
+    options->time = time ;
 #endif
   
-  return program ;
+    program = program->next;
+    options = options->next;
+  }
+  
+  return original ;
 }
 
 

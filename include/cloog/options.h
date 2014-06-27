@@ -123,6 +123,7 @@ struct cloogoptions
   int noblocks ;  /* 1 if I don't want to make statement blocks, 0 otherwise. */
   int noscalars ; /* 1 if I don't want to use scalar dimensions, 0 otherwise. */
   int nosimplify; /* 1 if I don't want to simplify polyhedra, 0 otherwise. */
+  CloogOptions* next;/* Pointer to the next CloogOptions */
 } ;
 
 
@@ -160,7 +161,9 @@ void cloog_options_read(CloogState *state, int argc, char **argv,
  *                            Processing functions                            *
  ******************************************************************************/
 CloogOptions *cloog_options_malloc(CloogState *state);
-void cloog_options_copy_from_osl_scop(struct osl_scop *, CloogOptions *);
+void cloog_options_copy_from_osl_scop(struct osl_scop *scop,
+                                      CloogOptions *options);
+CloogOptions* cloog_options_clone(CloogOptions *options);
 
 
 #if defined(__cplusplus)

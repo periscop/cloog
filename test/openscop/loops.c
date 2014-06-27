@@ -1,20 +1,3 @@
-/* Useful macros. */
-#define floord(n,d) (((n)<0) ? -((-(n)+(d)-1)/(d)) : (n)/(d))
-#define ceild(n,d)  (((n)<0) ? -((-(n))/(d)) : ((n)+(d)-1)/(d))
-#define max(x,y)    ((x) > (y) ? (x) : (y))
-#define min(x,y)    ((x) < (y) ? (x) : (y))
-
-#ifdef TIME 
-#define IF_TIME(foo) foo; 
-#else
-#define IF_TIME(foo)
-#endif
-/* matmul.c  128*128 matrix multiply */
-#pragma scop
-  /* Scattering iterators. */
-  int t2, t3, t4, t5, t6, t9;
-  int lbp, ubp;
-  int lbv, ubv;
   if (N >= 1) {
     lbp=0;
     ubp=floord(N-1,32);
@@ -53,4 +36,3 @@
       }
     }
   }
-#pragma endscop

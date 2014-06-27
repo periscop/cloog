@@ -59,6 +59,8 @@ int main(int argv, char * argc[])
   program = cloog_program_generate(program,options) ;
   if (options->structure)
   cloog_program_print(stdout,program) ;
+  /* Sort the program in ascending order of coordinates*/
+  cloog_program_sort_ascending(&program, &options);
   cloog_program_pprint(output,program,options) ;
   cloog_program_free(program) ;
 
