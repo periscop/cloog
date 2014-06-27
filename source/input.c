@@ -90,6 +90,10 @@ CloogInput *cloog_input_read(FILE *file, CloogOptions *options)
 
 		return input;
 	}
+#else
+	if (options->openscop) {
+		cloog_die("CLooG has not been compiled with OpenScop support.\n");
+	}
 #endif
 
 	/* First of all, we read the language to use. */

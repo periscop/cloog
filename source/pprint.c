@@ -312,14 +312,7 @@ int pprint_osl_body(struct cloogoptions *options, FILE *dst,
       stmt = stmt->next;
 
     /* Ensure it has a printable body. */
-    body = NULL;
-    if (osl_generic_has_URI(stmt->body, OSL_URI_BODY)) {
-      body = stmt->body->data;
-    } else if (osl_generic_has_URI(stmt->body, OSL_URI_EXTBODY)) {
-      if (stmt->body->data != NULL) {
-        body = ((osl_extbody_p)(stmt->body->data))->body;
-      }
-    }
+    body = osl_statement_get_body(stmt);
     if ((body != NULL) &&
         (body->expression != NULL) &&
         (body->iterators != NULL)) {

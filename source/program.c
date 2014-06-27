@@ -57,6 +57,7 @@
 #include <osl/scop.h>
 #include <osl/macros.h>
 #include <osl/extensions/coordinates.h>
+#include <osl/extensions/loop.h>
 #endif
 
 /******************************************************************************
@@ -338,6 +339,47 @@ static void print_iterator_declarations(FILE *file, CloogProgram *program,
     }
 }
 
+static int get_osl_loop_flags (osl_scop_p scop) {
+  int flags = 0;
+  osl_loop_p ll = osl_generic_lookup(scop->extension, OSL_URI_LOOP);
+  while (ll) {
+    flags |= ll->directive;
+    ll = ll->next;
+  }
+
+  return flags;
+}
+
+static void print_iterator_declarations_osl(FILE *file, CloogProgram *program,
+	CloogOptions *options)
+{
+  osl_coordinates_p co = NULL;
+  int loopflags = 0;
+  char* vecvar[2] = {"lbv", "ubv"};
+  char* parvar[2] = {"lbp", "ubp"};
+
+  osl_scop_p scop = options->scop;
+  CloogNames *names = program->names;
+
+  if (names->nb_scattering) {
+	  fprintf(file, "  /* Scattering iterators. */\n");
+	  print_declarations(file, names->nb_scattering, names->scattering);
+  }
+
+  co = osl_generic_lookup(scop->extension, OSL_URI_COORDINATES);
+  if (co==NULL //if coordinates exist then iterators already declared in file
+      && names->nb_iterators) {
+	  fprintf(file, "  /* Original iterators. */\n");
+	  print_declarations(file, names->nb_iterators, names->iterators);
+  }
+
+  loopflags = get_osl_loop_flags(scop);
+  if(loopflags & CLAST_PARALLEL_OMP)
+    print_declarations(file, 2, parvar);
+  if(loopflags & CLAST_PARALLEL_VEC)
+    print_declarations(file, 2, vecvar);
+}
+
 static void print_callable_preamble(FILE *file, CloogProgram *program,
 	CloogOptions *options)
 {
@@ -379,6 +421,63 @@ static void print_callable_postamble(FILE *file, CloogProgram *program)
 {
     fprintf(file, "}\n"); 
 }
+
+/*
+* add tags clast loops according to information in scop's osl_loop extension
+*/
+int annotate_loops(osl_scop_p program, struct clast_stmt *root){
+
+  int j, nclastloops, nclaststmts;
+  struct clast_for **clastloops = NULL;
+  int *claststmts = NULL;
+  int ret = 0;
+
+  if (program == NULL) {
+    return ret;
+  }
+
+  osl_loop_p ll = osl_generic_lookup(program->extension, OSL_URI_LOOP);
+  while (ll) {
+    //for each loop
+    osl_loop_p loop = ll;
+
+    ClastFilter filter = {loop->iter, loop->stmt_ids, 
+                                 loop->nb_stmts, subset};
+    clast_filter(root, filter, &clastloops, &nclastloops, 
+                                 &claststmts, &nclaststmts);
+
+    /* There should be at least one */
+    if (nclastloops==0) {  //FROM PLUTO
+       /* Sometimes loops may disappear (1) tile size larger than trip count
+       * 2) it's a scalar dimension but can't be determined from the
+       * trans matrix */
+       printf("Warning: parallel poly loop not found in AST\n");
+       ll = ll->next;
+       continue;
+    }
+    for (j=0; j<nclastloops; j++) {
+
+      if (loop->directive & CLAST_PARALLEL_VEC) {
+        clastloops[j]->parallel |= CLAST_PARALLEL_VEC;
+        ret |= CLAST_PARALLEL_VEC;
+      }
+
+      if (loop->directive & CLAST_PARALLEL_OMP) {
+        clastloops[j]->parallel |= CLAST_PARALLEL_OMP;
+        ret |= CLAST_PARALLEL_OMP;
+        clastloops[j]->private_vars = strdup(loop->private_vars);
+      }
+    }
+
+    if (clastloops) { free(clastloops); clastloops=NULL;}
+    if (claststmts) { free(claststmts); claststmts=NULL;}
+
+    ll = ll->next;
+  }
+
+  return ret;
+}
+
 
 /**
  * cloog_program_sort_ascending function:
@@ -635,6 +734,7 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
   int orig_file_open = 0;
   int scop_num = 0;
   int nprog = 0;
+  int annotate_result = 0;
 
   nprog = cloog_program_count_filename(program, options, infilename);
 
@@ -691,6 +791,8 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
 
         /* Generate the clast from the pseudo-AST then pretty-print it. */
         root = cloog_clast_create(program, options);
+        annotate_result = annotate_loops(options->scop, root);
+        print_iterator_declarations_osl(file, program, options);
         if(nprog!=1) fprintf(file, "/* <scop_%d_code_start> */\n", scop_num);
         clast_pprint(file, root, print_coordinates->indent, options);
         if(nprog!=1) fprintf(file, "/* </scop_%d_code_end> */\n", scop_num);
@@ -789,6 +891,7 @@ int cloog_program_osl_pprint_no_coordinates(FILE * file, CloogProgram * program,
   struct clast_stmt *root;
   int scop_num = 0;
   int nprog = 0;
+  int annotate_result = 0;
 
   nprog = cloog_program_count_no_coordinates(program, options);
 
@@ -805,6 +908,7 @@ int cloog_program_osl_pprint_no_coordinates(FILE * file, CloogProgram * program,
 
         /* Generate the clast from the pseudo-AST then pretty-print it. */
         root = cloog_clast_create(program, options);
+        annotate_result = annotate_loops(options->scop, root);
         if(nprog!=1) fprintf(file, "/* <scop_%d_code_start> */\n", scop_num);
         clast_pprint(file , root, 0, options);
         if(nprog!=1) fprintf(file , "/* </scop_%d_code_end> */\n", scop_num);

@@ -211,6 +211,7 @@ CLOOGTEST_OPENSCOP = \
 	openscop/matmult \
 	openscop/empty \
 	openscop/multiscop \
+	openscop/loops \
 	openscop/union
 endif
 
