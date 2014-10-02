@@ -46,6 +46,7 @@ if BUNDLED_OSL
     OSL_LA = $(top_builddir)/osl/libosl.la
 endif
 
+AUTOMAKE_OPTIONS = subdir-objects
 SUBDIRS = $(MAYBE_ISL) $(MAYBE_OSL) . doc test
 DIST_SUBDIRS = $(MAYBE_ISL) $(MAYBE_OSL) . doc test
 
