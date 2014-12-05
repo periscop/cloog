@@ -1089,7 +1089,7 @@ int cloog_domain_lazy_equal(CloogDomain *d1, CloogDomain *d2)
 {
 	isl_set *set1 = isl_set_from_cloog_domain(d1);
 	isl_set *set2 = isl_set_from_cloog_domain(d2);
-	return isl_set_fast_is_equal(set1, set2);
+	return isl_set_plain_is_equal(set1, set2);
 }
 
 struct cloog_bound_split {
@@ -1280,7 +1280,7 @@ int cloog_domain_lazy_disjoint(CloogDomain *d1, CloogDomain *d2)
 {
 	isl_set *set1 = isl_set_from_cloog_domain(d1);
 	isl_set *set2 = isl_set_from_cloog_domain(d2);
-	return isl_set_fast_is_disjoint(set1, set2);
+	return isl_set_plain_is_disjoint(set1, set2);
 } 
  
  
@@ -1298,7 +1298,7 @@ int cloog_scattering_list_lazy_same(CloogScatteringList *list)
 		one_map = isl_map_from_cloog_scattering(one->scatt);
 		for (other = one->next; other; other = other->next) {
 			other_map = isl_map_from_cloog_scattering(other->scatt);
-			if (isl_map_fast_is_equal(one_map, other_map))
+			if (isl_map_plain_is_equal(one_map, other_map))
 				return 1;
 		}
 	}
