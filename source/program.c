@@ -291,17 +291,18 @@ static void print_macros(FILE *file)
     fprintf(file, "#define max(x,y)    ((x) > (y) ? (x) : (y))\n") ; 
     fprintf(file, "#define min(x,y)    ((x) < (y) ? (x) : (y))\n\n") ; 
     fprintf(file, "#ifdef TIME \n#define IF_TIME(foo) foo; \n"
-                  "#else\n#define IF_TIME(foo)\n#endif\n");
+                  "#else\n#define IF_TIME(foo)\n#endif\n\n");
 }
 
-static void print_declarations(FILE *file, int n, char **names)
+static void print_declarations(FILE *file, int n, char **names, int indentation)
 {
     int i;
 
-    fprintf(file, "  int %s", names[0]); 
+    for (i = 0; i < indentation; i++)
+      fprintf(file, " ");
+    fprintf(file, "int %s", names[0]);
     for (i = 1; i < n; i++)
-	fprintf(file, ", %s", names[i]); 
-
+	fprintf(file, ", %s", names[i]);
     fprintf(file, ";\n");
 }
 
@@ -312,11 +313,11 @@ static void print_iterator_declarations(FILE *file, CloogProgram *program,
 
     if (names->nb_scattering) {
 	fprintf(file, "  /* Scattering iterators. */\n");
-	print_declarations(file, names->nb_scattering, names->scattering);
+	print_declarations(file, names->nb_scattering, names->scattering, 2);
     }
     if (names->nb_iterators) {
 	fprintf(file, "  /* Original iterators. */\n");
-	print_declarations(file, names->nb_iterators, names->iterators);
+	print_declarations(file, names->nb_iterators, names->iterators, 2);
     }
 }
 
@@ -375,9 +376,10 @@ static int get_osl_loop_flags (osl_scop_p scop) {
 }
 
 static void print_iterator_declarations_osl(FILE *file, CloogProgram *program,
-    CloogOptions *options)
+    int indent, CloogOptions *options)
 {
   osl_coordinates_p co = NULL;
+  int i;
   int loopflags = 0;
   char* vecvar[2] = {"lbv", "ubv"};
   char* parvar[2] = {"lbp", "ubp"};
@@ -386,22 +388,28 @@ static void print_iterator_declarations_osl(FILE *file, CloogProgram *program,
   CloogNames *names = program->names;
 
   if (names->nb_scattering) {
-    fprintf(file, "  /* Scattering iterators. */\n");
-    print_declarations(file, names->nb_scattering, names->scattering);
+    for (i = 0; i < indent; i++)
+      fprintf(file, " ");
+    fprintf(file, "/* Scattering iterators. */\n");
+    print_declarations(file, names->nb_scattering, names->scattering, indent);
   }
 
   co = osl_generic_lookup(scop->extension, OSL_URI_COORDINATES);
   if (co==NULL //if coordinates exist then iterators already declared in file
       && names->nb_iterators) {
-    fprintf(file, "  /* Original iterators. */\n");
-    print_declarations(file, names->nb_iterators, names->iterators);
+    for (i = 0; i < indent; i++)
+      fprintf(file, " ");
+    fprintf(file, "/* Original iterators. */\n");
+    print_declarations(file, names->nb_iterators, names->iterators, indent);
   }
 
   loopflags = get_osl_loop_flags(scop);
   if(loopflags & CLAST_PARALLEL_OMP)
-    print_declarations(file, 2, parvar);
+    print_declarations(file, 2, parvar, indent);
   if(loopflags & CLAST_PARALLEL_VEC)
-    print_declarations(file, 2, vecvar);
+    print_declarations(file, 2, vecvar, indent);
+  
+  fprintf(file, "\n");
 }
 
 /*
@@ -480,27 +488,38 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
   int lines = 0;
   int columns = 0;
   int read = 1;
+  int indentation = 0;
   char c;
   osl_scop_p scop = options->scop;
   osl_coordinates_p coordinates;
   struct clast_stmt *root;
-  FILE * original;
+  FILE* original = NULL;
 
   if (scop && !options->compilable && !options->callable) {
+#ifdef CLOOG_RUSAGE
+    print_comment(file, options, "Generated from %s by %s in %.2fs.",
+                  options->name, cloog_version(), options->time);
+#else
+    print_comment(file, options, "Generated from %s by %s.",
+                  options->name, cloog_version());
+#endif
     coordinates = osl_generic_lookup(scop->extension, OSL_URI_COORDINATES);
     if (coordinates) {
       original = fopen(coordinates->name, "r");
+      indentation = coordinates->indent;
       if (!original) {
         cloog_msg(options, CLOOG_WARNING,
                   "unable to open the file specified in the SCoP "
                   "coordinates\n");
-        return 0;
+        coordinates = NULL;
       }
+    }
 
-      /* Print the macros the generated code may need. */
-      print_macros(file);
+    /* Print the macros the generated code may need. */
+    print_macros(file);
 
-      /* Print what was before the SCoP in the original file. */
+    /* Print what was before the SCoP in the original file (if any). */
+    if (coordinates) {
       while (((lines < coordinates->line_start - 1) ||
               (columns < coordinates->column_start - 1)) && (read != EOF)) {
         read = fscanf(original, "%c", &c);
@@ -517,15 +536,17 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
       /* Carriage return to preserve indentation if necessary. */
       if (coordinates->column_start > 0)
         fprintf(file, "\n");
+    }
 
-      /* Generate the clast from the pseudo-AST then pretty-print it. */
-      root = cloog_clast_create(program, options);
-      annotate_loops(options->scop, root);
-      print_iterator_declarations_osl(file, program, options);
-      clast_pprint(file, root, coordinates->indent, options);
-      cloog_clast_free(root);
+    /* Generate the clast from the pseudo-AST then pretty-print it. */
+    root = cloog_clast_create(program, options);
+    annotate_loops(options->scop, root);
+    print_iterator_declarations_osl(file, program, indentation, options);
+    clast_pprint(file, root, indentation, options);
+    cloog_clast_free(root);
 
-      /* Print what was after the SCoP in the original file. */
+    /* Print what was after the SCoP in the original file (if any). */
+    if (coordinates) {
       while (read != EOF) {
         read = fscanf(original, "%c", &c);
         columns++;
@@ -542,8 +563,9 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
       }
 
       fclose(original);
-      return 1;
     }
+
+    return 1;
   }
 #endif
   return 0;

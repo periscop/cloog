@@ -163,17 +163,6 @@ c[i][j] = c[i][j] + a[i][k]*b[k][j];
 7 b
 </arrays>
 
-<coordinates>
-# File name
-openscop/loops.orig.c
-# Starting line and column
-3 0
-# Ending line and column
-10 0
-# Indentation
-2
-</coordinates>
-
 <scatnames>
 t1 t2 t3 t4 t5 t6 t7 t8 t9
 </scatnames>
