@@ -1,3 +1,9 @@
+version: 0.18.3
+date: Mon Dec  8 11:06:42 PDT 2014
+changes:
+	- Update to isl 0.14
+	- Support for OpenScop loop extension
+
 version: 0.18.1
 date: Tue Jul  2 07:32:18 PDT 2013
 changes:
