@@ -34,9 +34,9 @@
 @setfilename cloog.info
 @settitle CLooG - a loop generator for scanning polyhedra
 
-@set EDITION 2.1
+@set EDITION 2.1.1
 @include gitversion.texi
-@set UPDATED October 15th 2007
+@set UPDATED December 8th 2014
 @setchapternewpage odd
 
 @c %**end of header
@@ -69,7 +69,7 @@ results from the use of the CLooG software or its library:
 @}
 @end example
 
-Copyright @copyright{} 2002-2005 C@'edric Bastoul.
+Copyright @copyright{} 2002-2014 C@'edric Bastoul.
 
 @c quotation
 Permission is granted to copy, distribute and/or modify this document under
@@ -1275,6 +1275,8 @@ void test(int M, int N)
            place of a given SCoP in a given file. The use of
            this extension is disabled when the options
            @emph{-compilable} or @emph{-callable} are set.
+     @item @emph{loop} to add loop decorations such as OpenMP
+           or vectorization pragmas.
      @end itemize
 
 @node Help
