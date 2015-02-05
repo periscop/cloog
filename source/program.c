@@ -306,15 +306,43 @@ static void print_declarations(FILE *file, int n, char **names, int indentation)
     fprintf(file, ";\n");
 }
 
+static void print_scattering_declarations(FILE *file, CloogProgram *program,
+        int indentation)
+{
+    int i, j, found;
+    int nb_scatnames = 0;
+    CloogNames *names = program->names;
+
+    // Copy pointer only to those scatering names that do not duplicate
+    // iterator names.
+    char **scatnames = (char **) malloc(sizeof(char *) * names->nb_scattering);
+    for (i = 0; i < names->nb_scattering; ++i) {
+      for (j = 0; j < names->nb_iterators; ++j) {
+        found = 0;
+        if (strcmp(names->scattering[i], names->iterators[j]) == 0) {
+          found = 1;
+        }
+      }
+      if (!found) {
+        // Save a pointer (intentional!) to the names in the new array.
+        scatnames[nb_scatnames++] = names->scattering[i];
+      }
+    }
+
+    if (nb_scatnames) {
+        for (i = 0; i < indentation; i++)
+            fprintf(file, " ");
+        fprintf(file, "/* Scattering iterators. */\n");
+        print_declarations(file, nb_scatnames, scatnames, indentation);
+    }
+}
+
 static void print_iterator_declarations(FILE *file, CloogProgram *program,
 	CloogOptions *options)
 {
     CloogNames *names = program->names;
 
-    if (names->nb_scattering) {
-	fprintf(file, "  /* Scattering iterators. */\n");
-	print_declarations(file, names->nb_scattering, names->scattering, 2);
-    }
+    print_scattering_declarations(file, program, 2);
     if (names->nb_iterators) {
 	fprintf(file, "  /* Original iterators. */\n");
 	print_declarations(file, names->nb_iterators, names->iterators, 2);
@@ -387,12 +415,7 @@ static void print_iterator_declarations_osl(FILE *file, CloogProgram *program,
   osl_scop_p scop = options->scop;
   CloogNames *names = program->names;
 
-  if (names->nb_scattering) {
-    for (i = 0; i < indent; i++)
-      fprintf(file, " ");
-    fprintf(file, "/* Scattering iterators. */\n");
-    print_declarations(file, names->nb_scattering, names->scattering, indent);
-  }
+  print_scattering_declarations(file, program, indent);
 
   co = osl_generic_lookup(scop->extension, OSL_URI_COORDINATES);
   if (co==NULL //if coordinates exist then iterators already declared in file

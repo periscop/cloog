@@ -211,7 +211,9 @@ CLOOGTEST_OPENSCOP = \
 	openscop/matmult \
 	openscop/empty \
 	openscop/loops \
-	openscop/union
+	openscop/union \
+	openscop/coordinates \
+	openscop/clay
 endif
 
 SPECIAL_TESTS = \
@@ -345,4 +347,6 @@ EXTRA_DIST = \
 	$(CLOOGTEST_OPENSCOP:%=%.c) \
 	$(SPECIAL_TESTS:%=%.cloog) \
 	$(SPECIAL_TESTS:%=%.c) \
-	$(SPECIAL_TESTS:%=%.good.c)
+	$(SPECIAL_TESTS:%=%.good.c) \
+	openscop/clay_orig.c \
+	openscop/coordinates_orig.c
