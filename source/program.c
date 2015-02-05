@@ -309,7 +309,7 @@ static void print_declarations(FILE *file, int n, char **names, int indentation)
 static void print_scattering_declarations(FILE *file, CloogProgram *program,
         int indentation)
 {
-    int i, j, found;
+    int i, j, found = 0;
     int nb_scatnames = 0;
     CloogNames *names = program->names;
 
@@ -335,6 +335,7 @@ static void print_scattering_declarations(FILE *file, CloogProgram *program,
         fprintf(file, "/* Scattering iterators. */\n");
         print_declarations(file, nb_scatnames, scatnames, indentation);
     }
+    free(scatnames);
 }
 
 static void print_iterator_declarations(FILE *file, CloogProgram *program,
