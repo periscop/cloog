@@ -164,6 +164,9 @@ int           cloog_scattering_dimension(CloogScattering *, CloogDomain *);
 int           cloog_domain_isconvex(CloogDomain *) ;
 CloogDomain * cloog_domain_cube(CloogState *state,
 				int dim, cloog_int_t min, cloog_int_t max);
+CloogDomain *cloog_domain_from_bounds(
+    CloogState *state, struct cloog_vec *lower_bounds,
+    struct cloog_vec *upper_bounds);
 CloogDomain * cloog_domain_from_context(CloogDomain *context);
 CloogDomain * cloog_domain_scatter(CloogDomain *domain, CloogScattering *scatt);
 int           cloog_scattering_fully_specified(CloogScattering *scattering,

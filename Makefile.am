@@ -172,6 +172,9 @@ dist-hook:
 valcheck:
 	$(MAKE) test_valgrind -C test
 
+test_hybrid:
+	$(MAKE) test_hybrid -C test
+
 total:
 	@echo "             /*-----------------------------------------------*"
 	@echo "              *                     CLooG                     *"

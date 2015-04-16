@@ -41,11 +41,13 @@ if NO_ISL
 GENERATE_TEST =
 else
 GENERATE_TEST = generate_test
+GENERATE_TEST_ADVANCED = generate_test_advanced
 endif
-noinst_PROGRAMS = $(GENERATE_TEST)
+noinst_PROGRAMS = $(GENERATE_TEST) $(GENERATE_TEST_ADVANCED)
 AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include
 LDADD = ../libcloog-isl.la
 generate_test_SOURCES = generate_test.c
+generate_test_advanced_SOURCES = generate_test_advanced.c
 
 FORCE:
 ../libcloog-isl.la: FORCE
@@ -306,8 +308,11 @@ TESTS_ENVIRONMENT = \
 	CLOOGTEST_OPENSCOP="$(CLOOGTEST_OPENSCOP)" \
 	SPECIAL_OPTIONS="$(SPECIAL_OPTIONS)"
 
-test_run: generate_test$(EXEEXT)
+test_run: generate_test_advanced$(EXEEXT)
 	$(TESTS_ENVIRONMENT) $(srcdir)/check_run.sh
+
+test_hybrid: generate_test_advanced$(EXEEXT)
+	$(TESTS_ENVIRONMENT) $(srcdir)/check_hybrid.sh
 
 test_valgrind:
 	$(TESTS_ENVIRONMENT) $(srcdir)/check_c.sh valgrind ; \

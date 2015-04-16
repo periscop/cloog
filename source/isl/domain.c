@@ -1476,6 +1476,39 @@ CloogDomain *cloog_domain_cube(CloogState *state,
 	return cloog_domain_from_isl_set(cube);
 }
 
+/**
+ * cloog_domain_from_bounds
+ * Create an N dimensional domain where each dimension's bounds are taken from
+ * each pair of vector bounds [lower_bounds[i], upper_bounds[i]].
+ */
+CloogDomain *cloog_domain_from_bounds(
+    CloogState *state, struct cloog_vec *lower_bounds,
+    struct cloog_vec *upper_bounds) {
+  unsigned i, dim;
+  isl_space *space;
+  isl_set *domain;
+  isl_val *min_v;
+  isl_val *max_v;
+
+  assert(lower_bounds->size == upper_bounds->size);
+
+  dim = upper_bounds->size;
+
+  if (dim == 0)
+    return cloog_domain_universe(state, 0);
+
+  space = isl_space_set_alloc(state->backend->ctx, 0, dim);
+  domain = isl_set_universe(space);
+  for (i = 0; i < dim; ++i) {
+    min_v = cloog_int_to_isl_val(isl_set_get_ctx(domain), lower_bounds->p[i]);
+    max_v = cloog_int_to_isl_val(isl_set_get_ctx(domain), upper_bounds->p[i]);
+    domain = isl_set_lower_bound_val(domain, isl_dim_set, i, min_v);
+    domain = isl_set_upper_bound_val(domain, isl_dim_set, i, max_v);
+  }
+
+  return cloog_domain_from_isl_set(domain);
+}
+
 
 /**
  * cloog_domain_scatter function:

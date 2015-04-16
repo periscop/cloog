@@ -3,9 +3,9 @@
 #   /**-------------------------------------------------------------------**
 #    **                              CLooG                                **
 #    **-------------------------------------------------------------------**
-#    **                          check_run.sh                             **
+#    **                           check_hybrid.sh                         **
 #    **-------------------------------------------------------------------**
-#    **                 First version: November 18th 2011                 **
+#    **                 First version: May 11th 2015                      **
 #    **-------------------------------------------------------------------**/
 #
 
@@ -44,12 +44,12 @@ special_refactored=`echo "$SPECIAL_OPTIONS" | \
                     sed "s/#/ /g"           | \
                     sed "s/'//g"`
 
-$CHECKER "RUN C" "$FINITE_CLOOGTEST_C" "" "cloog" "c" "run"
+$CHECKER "RUN C" "$FINITE_CLOOGTEST_C" "" "cloog" "c" "hybrid"
 failedtest=$?;
 
-$CHECKER "RUN SPECIAL" "$special_refactored" "" "cloog" "c" "run"
+$CHECKER "RUN SPECIAL" "$special_refactored" "" "cloog" "c" "hybrid"
 failedtest=`expr $failedtest + $?`;
 
-$CHECKER "RUN SPECIAL -sh 1" "$special_refactored" "-sh 1" "cloog" "c" "run"
+$CHECKER "RUN SPECIAL -sh 1" "$special_refactored" "-sh 1" "cloog" "c" "hybrid"
 failedtest=`expr $failedtest + $?`;
 exit $failedtest;
