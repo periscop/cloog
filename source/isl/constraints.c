@@ -441,14 +441,17 @@ void cloog_constraint_set_normalize(CloogConstraintSet *matrix, int level)
 
 /**
  * cloog_constraint_set_copy function:
- * this functions builds and returns a "hard copy" (not a pointer copy) of a
- * CloogConstraintSet data structure.
+ * this functions builds and returns a "soft copy" of a CloogConstraintSet data
+ * structure.
+ *
+ * NOTE: this function used to return a "hard copy" (not a pointer copy) but isl
+ * doesn't provide isl_basic_set_dup() anymore and a soft copy works as well.
  */
 CloogConstraintSet *cloog_constraint_set_copy(CloogConstraintSet *constraints)
 {
 	isl_basic_set *bset;
 	bset = cloog_constraints_set_to_isl(constraints);
-	return cloog_constraint_set_from_isl_basic_set(isl_basic_set_dup(bset));
+	return cloog_constraint_set_from_isl_basic_set(isl_basic_set_copy(bset));
 }
 
 
