@@ -271,7 +271,7 @@ char ** cloog_names_read_strings(FILE *file, int nb_items)
   /* We first read name option. */
   while (fgets(s,MAX_STRING,file) == 0) ;
   while ((*s=='#' || *s=='\n') || (sscanf(s," %d",&option)<1))
-  fgets(s,MAX_STRING,file) ;
+    if (fgets(s, MAX_STRING, file));
   
   /* If there is no item to read, then return NULL. */
   if (nb_items == 0)
