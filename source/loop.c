@@ -316,7 +316,8 @@ CloogLoop *cloog_loop_read(CloogState *state,
   /* To read that stupid "0 0 0" line. */
   while (fgets(s,MAX_STRING,foo) == 0) ;
   while ((*s=='#' || *s=='\n') || (sscanf(s," %d %d %d",&op1,&op2,&op3)<3))
-    if (fgets(s, MAX_STRING, foo));
+    if (fgets(s, MAX_STRING, foo))
+      continue;
 
   return cloog_loop_from_domain(state, domain, number);
 }
