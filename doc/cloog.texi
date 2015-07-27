@@ -34,9 +34,9 @@
 @setfilename cloog.info
 @settitle CLooG - a loop generator for scanning polyhedra
 
-@set EDITION 2.1.1
+@set EDITION 2.1.2
 @include gitversion.texi
-@set UPDATED December 8th 2014
+@set UPDATED July 27th 2015
 @setchapternewpage odd
 
 @c %**end of header
@@ -2232,6 +2232,7 @@ to match CLooG's header version with the library's version.
 @menu
 * Basic Library Utilization::
 * Scanning isl Sets::
+* Source to Source Compiler::
 @end menu
 
 @node Basic Library Utilization
@@ -2364,6 +2365,100 @@ gcc -DCLOOG_INT_GMP example-isl.c -lcloog-isl -o example-isl
 @noindent A calling command could be:
 @example
 ./example-isl
+@end example
+
+@node Source to Source Compiler
+@subsection Source to Source Compiler
+Here is an example of a source (to polyhedra) to source compiler. It uses the
+Clan library to raise a SCoP from C to the OpenScop representation, and CLooG
+to translate back the SCoP to C. You may analyze the polyhedral representation
+and apply optimizing transformation to that representation to build your own
+high-level optimizing compiler. That example requires to install Clan, OpenScop
+and to build CLooG with the OpenScop support. This example is provided in the
+@code{example} directory of the CLooG distribution.
+
+@example
+/* poc.c A complete C to polyhedra to C compiler */
+#include <stdlib.h>
+#include <osl/osl.h>
+#include <clan/clan.h>
+#include <cloog/cloog.h>
+
+/* Use the Clan library to convert a SCoP from C to OpenScop */
+osl_scop_p read_scop_from_c(FILE* input, char* input_name) @{
+  clan_options_p clanoptions;
+  osl_scop_p scop;
+
+  clanoptions = clan_options_malloc();
+  clanoptions->precision = OSL_PRECISION_MP;
+  CLAN_strdup(clanoptions->name, input_name);
+  scop = clan_scop_extract(input, clanoptions);
+  clan_options_free(clanoptions);
+  return scop;
+@}
+
+/* Use the CLooG library to output a SCoP from OpenScop to C */
+void print_scop_to_c(FILE* output, osl_scop_p scop) @{
+  CloogState* state;
+  CloogOptions* options;
+  CloogInput* input;
+  struct clast_stmt* clast;
+
+  state = cloog_state_malloc();
+  options = cloog_options_malloc(state);
+  options->openscop = 1;
+  cloog_options_copy_from_osl_scop(scop, options);
+  input = cloog_input_from_osl_scop(options->state, scop);
+  clast = cloog_clast_create_from_input(input, options);
+  clast_pprint(output, clast, 0, options);
+  
+  cloog_clast_free(clast);
+  options->scop = NULL; // don't free the scop
+  cloog_options_free(options);
+  cloog_state_free(state); // the input is freed inside
+@}
+
+int main(int argc, char* argv[]) @{
+  osl_scop_p scop;
+  FILE* input;
+
+  if ((argc < 2) || (argc > 2)) @{
+    fprintf(stderr, "usage: %s file.c\n", argv[0]);
+    exit(0);
+  @}
+
+  if (argc == 1)
+    input = stdin;
+  else
+    input = fopen(argv[1], "r");
+
+  if (input == NULL) @{
+    fprintf(stderr, "cannot open input file\n");
+    exit(0);
+  @}
+
+  scop = read_scop_from_c(input, argv[1]);
+  osl_scop_print(stdout, scop);
+
+  // UPDATE THE SCOP IN A SMART WAY HERE 
+
+  print_scop_to_c(stdout, scop);
+  osl_scop_free(scop);
+  
+  fclose(input);
+  return 0;
+@}
+@end example
+
+@noindent The compilation (with default isl/GMP with OpenScop support
+version installed, along with the OpenScop library and Clan library)
+command could be:
+@example
+gcc -DCLOOG_INT_GMP poc.c -lcloog-isl -lclan -losl -o poc
+@end example
+@noindent A calling command could be:
+@example
+./poc scop.c
 @end example
 
 

@@ -39,25 +39,20 @@ under Cygwin) after compilation.
 
 
 #   **-------------------------------------------------------------------**
-#   **                       II. cloog2loopgen                           **
+#   **                    II. polyhedral_compiler                        **
 #   **-------------------------------------------------------------------**/
 
-NO MORE EXISTS !
+This example shows a complete source-to-source polyhedral compiler based on the
+OpenScop polyhedral representation. It requires both the OpenScop and Clan library
+to be installed, see:
+- OpenScop:
+  https://github.com/periscop/openscop
+  http://icps.u-strasbg.fr/~bastoul/development/openscop
+- Clan:
+  https://github.com/periscop/clan
+  http://icps.u-strasbg.fr/~bastoul/development/clan
+This compiler takes as input a C file with a SCoP inside, raises that SCoP to the
+OpenScop representation, and converts that representation back to C. Simply add your
+optimizing algorithm in the middle and you just have an optimizing compiler in
+the polyhedral model!
 
-This example creates a program converting a CLooG input file to a LoopGen input
-file. This can be useful to compare the two tools (I do not support LoopGen,
-don't ask me if you find some bugs !). The usage of the created tool is:
-'cloog2loopgen input_file output_file'.
-
-
-#   **-------------------------------------------------------------------**
-#   **                       III. cloog2Omega                            **
-#   **-------------------------------------------------------------------**/
-
-
-NO MORE EXISTS !
-
-This example creates a program converting a CLooG input file to an Omega
-CodeGen input file. This can be useful to compare the two tools (I do not
-support CodeGen, don't ask me if you find some bugs !). The usage of the
-created tool is: 'cloog2omega input_file output_file'.
