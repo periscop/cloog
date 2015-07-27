@@ -4,7 +4,7 @@ How to generate a new release of CLooG:
 1) Update the version number
 
 See commit 88986e for an example
-(Modifies the version number in configure.ac)
+(Simply modifies the version number in configure.ac)
 
 2) Commit the modification of version number in configure.ac
 
@@ -15,6 +15,19 @@ git -am "CLooG 0.18.2"
 git tag -am "CLooG 0.18.2" cloog-0.18.2
 
 4) Create release tarball
+
+4.1) Be sure to configure with bundled isl and osl (otherwise they will
+     not be provided in the release tarball
+
+./configure --with-isl=bundled --with-osl=bundled
+
+4.2) Get submodules in isl (otherwise make dist will fail)
+
+cd isl
+git submodule init
+git submodule update
+
+4.3) finally make dist in CLooG's directory
 
 make dist
 
