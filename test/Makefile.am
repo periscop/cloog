@@ -312,14 +312,20 @@ test_run: generate_test_advanced$(EXEEXT)
 	$(TESTS_ENVIRONMENT) $(srcdir)/check_run.sh
 
 test_hybrid: generate_test_advanced$(EXEEXT)
-	$(TESTS_ENVIRONMENT) $(srcdir)/check_hybrid.sh
+	$(RM) -rf $(srcdir)/logs; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/check_hybrid.sh; \
+	echo -e "\n\x1b[1m\x1b[7m Summary \x1b[0m\n"; \
+	cat $(srcdir)/logs/checker.summary.log
 
 test_valgrind:
+	$(RM) -rf $(srcdir)/logs; \
 	$(TESTS_ENVIRONMENT) $(srcdir)/check_c.sh valgrind ; \
 	$(TESTS_ENVIRONMENT) $(srcdir)/check_fortran.sh valgrind ; \
 	$(TESTS_ENVIRONMENT) $(srcdir)/check_strided.sh valgrind ; \
 	$(TESTS_ENVIRONMENT) $(srcdir)/check_openscop.sh valgrind ; \
-	$(TESTS_ENVIRONMENT) $(srcdir)/check_special.sh valgrind
+	$(TESTS_ENVIRONMENT) $(srcdir)/check_special.sh valgrind; \
+	echo -e "\n\x1b[1m\x1b[7m Summary \x1b[0m\n"; \
+	cat $(srcdir)/logs/checker.summary.log
 
 test_regenerate:
 	$(TESTS_ENVIRONMENT) $(srcdir)/check_c.sh regenerate ; \

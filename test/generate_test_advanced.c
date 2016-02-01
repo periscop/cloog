@@ -890,6 +890,7 @@ static const char help[] =
 "\t-u upper_bound : Set upper bound to upper_bound\n"
 "\t-l lower_bound : Set lower bound to lower_bound\n"
 "\t-m margin : Set margin to bound\n"
+"\t-o : input file is in OpenScop format\n"
 "\t-h : Print this help\n";
 #else
 static const char help[] =
@@ -900,7 +901,7 @@ static inline void print_help(FILE *out) {
   fprintf(out, "\x1b[1m%s\x1b[0m", help);
 }
 
-static const char getopt_flags[] = "hl:u:m:";
+static const char getopt_flags[] = "ohl:u:m:";
 
 int main(int argc, char **argv) {
 
@@ -919,6 +920,7 @@ int main(int argc, char **argv) {
         *input_name,
         *output_name;
 
+  int set_openscop_option = 0;
 #if _POSIX_C_SOURCE >=2 || _XOPEN_SOURCE
   int opt;
   while ((opt = getopt(argc, argv, getopt_flags)) != -1) {
@@ -934,6 +936,9 @@ int main(int argc, char **argv) {
         break;
       case 'm':
         margin_val = optarg;
+        break;
+      case 'o':
+        set_openscop_option = 1;
         break;
     }
   }
@@ -974,6 +979,8 @@ int main(int argc, char **argv) {
 
   state = cloog_state_malloc();
   options = cloog_options_malloc(state);
+  if (set_openscop_option)
+    options->openscop = 1;
   program = cloog_program_read(input_file, options);
   context = cloog_domain_copy(program->context);
   context = cloog_domain_from_context(context);
@@ -1041,6 +1048,10 @@ int main(int argc, char **argv) {
   //cloog_domain_print_constraints(stdout, iterators, 0);
 #endif
 
+  /* Create a new state and new options for the new program. */
+  CloogState* new_state = cloog_state_malloc();
+  CloogOptions* new_options = cloog_options_malloc(new_state);
+
   p = cloog_program_malloc();
   assert(p);
   p->names = cloog_names_malloc();
@@ -1048,13 +1059,13 @@ int main(int argc, char **argv) {
   p->names->nb_iterators = parameters.nb_names;
   p->names->iterators = cloog_names_generate_items(parameters.nb_names, "p", 0);
   p->language = 'c';
-  p->context = cloog_domain_universe(state, 0);
-  statement = cloog_statement_alloc(state, 1);
-  p->loop = cloog_loop_malloc(state);
+  p->context = cloog_domain_universe(new_state, 0);
+  statement = cloog_statement_alloc(new_state, 1);
+  p->loop = cloog_loop_malloc(new_state);
   p->loop->domain = iterators;
   p->loop->block = cloog_block_alloc(statement, 0, NULL, parameters.nb_names);
   p->blocklist = cloog_block_list_alloc(p->loop->block);
-  p = cloog_program_generate(p, options);
+  p = cloog_program_generate(p, new_options);
 
   fprintf(output_file, "%s", preamble1);
   print_good_test_declaration(output_file, param_bounds);
@@ -1064,7 +1075,7 @@ int main(int argc, char **argv) {
   fprintf(output_file, "h_test = %s;\n", initial_hash_value);
   print_macros(output_file);
   fprint_cloog_program_parameters_decl(output_file, p);
-  cloog_program_pprint(output_file, p, options);
+  cloog_program_pprint(output_file, p, new_options);
   fprintf(output_file, "if (h_good == %s) {\n", initial_hash_value);
   fprintf(output_file, "%s", postamble);
 
@@ -1077,10 +1088,13 @@ int main(int argc, char **argv) {
 
   free_bounds(param_bounds);
 
+  cloog_program_free(p);
+  cloog_options_free(new_options) ;
+  cloog_state_free(new_state);
+
   cloog_clast_free(root);
   cloog_domain_free(context);
   cloog_domain_free(temp);
-  cloog_program_free(p);
   cloog_program_free(program);
   cloog_options_free(options) ;
   cloog_state_free(state);
