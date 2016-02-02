@@ -460,6 +460,8 @@ static int annotate_loops(osl_scop_p program, struct clast_stmt *root){
     clast_filter(root, filter, &clastloops, &nclastloops, 
                  &claststmts, &nclaststmts);
 
+    if (claststmts) { free(claststmts); claststmts=NULL;}
+
     /* There should be at least one */
     if (nclastloops==0) {  //FROM PLUTO
        /* Sometimes loops may disappear (1) tile size larger than trip count
@@ -486,7 +488,6 @@ static int annotate_loops(osl_scop_p program, struct clast_stmt *root){
     }
 
     if (clastloops) { free(clastloops); clastloops=NULL;}
-    if (claststmts) { free(claststmts); claststmts=NULL;}
 
     ll = ll->next;
   }
