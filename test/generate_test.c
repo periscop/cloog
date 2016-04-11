@@ -36,7 +36,7 @@ static const char preamble[] =
 "	int i;\n"
 "	union u {\n"
 "		int v;\n"
-"		unsigned char c[1];\n"
+"		unsigned char c[sizeof(int)];\n"
 "	} u;\n"
 "	u.v = v;\n"
 "	for (i = 0; i < sizeof(int); ++i) {\n"
