@@ -77,7 +77,7 @@ readonly TEST_TYPE="$6"             ## - "generate" to simply test code
 
 readonly CLOOG_TEMP="cloog_temp_$$"
 
-readonly LOG_DIR="$srcdir/$$_logs"
+readonly LOG_DIR="$builddir/logs/$TEST_TYPE-$$"
 readonly LOG="$LOG_DIR/checker.log"
 readonly SUMMARY="$LOG_DIR/checker.summary.log"
 
@@ -313,8 +313,8 @@ for x in $TEST_FILES; do
     if [ ! $result -eq 0 ]; then
       # If the comparison failed, attempt to run the generated programs and
       # compare the results.
-      generate_test=$srcdir/generate_test_advanced$EXEEXT
-      test_run=$srcdir/$$_test_hybrid$EXEEXT
+      generate_test=$builddir/generate_test_advanced$EXEEXT
+      test_run=$builddir/$$_test_hybrid$EXEEXT
       good="$srcdir/$name.good.$TEST_OUTPUT_EXTENSION";
       if [ $(echo $options | grep -- "-openscop") ]; then
           generate_test="$generate_test -o"
@@ -350,8 +350,8 @@ for x in $TEST_FILES; do
     fi
 
   elif [ "$TEST_TYPE" = "run" ]; then
-    generate_test=$srcdir/generate_test_advanced$EXEEXT
-    test_run=$srcdir/$$_test_run$EXEEXT
+    generate_test=$builddir/generate_test_advanced$EXEEXT
+    test_run=$builddir/$$_test_run$EXEEXT
     good="$srcdir/$name.good.$TEST_OUTPUT_EXTENSION";
     if [ $(echo $options | grep -- "-openscop") ]; then
         generate_test="$generate_test -o"
@@ -363,10 +363,10 @@ for x in $TEST_FILES; do
 
     print_step "$input" "$STEP_COMPILING" "$input_log"
     fix_env_compile
-    $COMPILE -c test_test_$$.c -o test_test_$$.o >/dev/null 2>>$input_log
-    $COMPILE -Dtest=good -c $good -o test_good_$$.o >/dev/null 2>>$input_log
+    $COMPILE -c test_test_$$.c -o test_test_$$.o >/dev/null 2>>"$input_log"
+    $COMPILE -Dtest=good -c $good -o test_good_$$.o >/dev/null 2>>"$input_log"
     fix_env_link "$test_run"
-    $LINK test_main_$$.c test_test_$$.o test_good_$$.o > /dev/null 2>>$input_log
+    $LINK test_main_$$.c test_test_$$.o test_good_$$.o > /dev/null 2>>"$input_log"
 
     print_step "$input" "$STEP_RUNNING" "$input_log"
     $test_run;
@@ -427,13 +427,13 @@ for x in $TEST_FILES; do
       test_passed "$input" "$elapsed_time" "$options"
     fi;
 
-    cat $CLOOG_TEMP >> $input_log
+    cat $CLOOG_TEMP >> "$input_log"
     rm -f $CLOOG_TEMP
 
   else
     # Test the file generation.
     print_step "$input" "$STEP_GENERATING" "$input_log"
-    $cloog $options -q "$input" -o $CLOOG_TEMP 2>> $input_log
+    $cloog $options -q "$input" -o $CLOOG_TEMP 2>> "$input_log"
     diff -u -w --ignore-matching-lines='CLooG' $output $CLOOG_TEMP;
     result=$?;
     if [ "$result" -ne "0" ] && [ "$TEST_TYPE" = "regenerate" ]; then
