@@ -35,4 +35,4 @@
 # *                                                                           *
 # *****************************************************************************/
 
-$CHECKER "C" "$CLOOGTEST_C" "" "cloog" "c" "${1:-generate}"
+$CHECKER "C" "$CLOOGTEST_C" "" "cloog" "c" "${1:-hybrid}"

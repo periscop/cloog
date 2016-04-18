@@ -812,7 +812,7 @@ static void print_statement_macro(FILE *out, struct bounds *bounds){
     fprintf(out, "p%u", i);
   }
   fprintf(out, ");\\\n");
-  fprintf(out, "exit(EXIT_FAILURE);\\\n} } while(0)\n");
+  fprintf(out, "exit(2);\\\n} } while(0)\n");
 }
 
 static void print_good_test_declaration(FILE *out, struct bounds *bounds){
@@ -880,7 +880,8 @@ static void print_macros(FILE *file){
 }
 
 static const char postamble[] =
-"fprintf(stderr, \"\\x1b[1m\\x1b[35mWarning : it may be possible that the test did not compute anything\\n\\x1b[0m\");\n"
+"fprintf(stderr, \"\\x1b[1m\\x1b[35mWarning : it may be possible that the test "
+"did not compute anything\\n\\x1b[0m\");\nreturn 1;"
 "}\nreturn EXIT_SUCCESS;\n}\n";
 
 #if _POSIX_C_SOURCE >=2 || _XOPEN_SOURCE

@@ -65,9 +65,6 @@ readonly TEST_TYPE="$6"             ## - "generate" to simply test code
                                     ##   !!! USE WITH CARE !!!
                                     ## - "valgrind" to test the valgrind output
                                     ##    on code generation
-                                    ## - "run" if the checking policy is to
-                                    ##   generate, compile and run, generate
-                                    ##   only otherwise
                                     ## - "hybrid" compare source to source and
                                     ##   if this fails run them afterwards
 
@@ -100,7 +97,6 @@ readonly STEP_GENERATING="generating files"
 readonly STEP_REGENERATING="regenerating files"
 readonly STEP_COMPILING="compiling files"
 readonly STEP_COMPARING="comparing output"
-readonly STEP_RUNNING="running"
 readonly STEP_VALGRIND="running valgrind"
 readonly STEP_GENERATING_HYBRID="generating new files (normal test failed)"
 readonly STEP_COMPILING_HYBRID="compiling new files (normal test failed)"
@@ -183,6 +179,7 @@ log_test_set ()
 test_done () { log_test "$LOG" "$TEXT_BLUE" "DONE" "$@"; }
 test_passed () { log_test "$LOG" "$TEXT_GREEN" "PASS" "$@"; }
 test_failed () { log_test "$LOG" "$TEXT_RED" "FAIL" "$@"; }
+test_unknown () { log_test "$LOG" "$TEXT_YELLOW" "????" "$@"; }
 
 ## pass_test_set(), fail_test_set():
 ##
@@ -306,7 +303,7 @@ for x in $TEST_FILES; do
     $COMPILE -P -E $output -o temp_generated3_$$.c >/dev/null 2>>$input_log
 
     print_step "$input" "$STEP_COMPARING" "$input_log"
-    diff -EZwB temp_generated2_$$.c temp_generated3_$$.c >/dev/null 2>>$input_log
+    diff -u -w temp_generated2_$$.c temp_generated3_$$.c >/dev/null 2>>$input_log
     result=$?
     rm temp_generated_$$.c temp_generated2_$$.c temp_generated3_$$.c
 
@@ -339,46 +336,18 @@ for x in $TEST_FILES; do
       if [ $result -eq 0 ]; then
         test_passed "$input" "$elapsed_time" "$options" \
           "$TEXT_YELLOW""Output comparison failed, execution comparison passed."
+      elif [ $result -eq 1 ]; then
+        test_unknown "$input" "$elapsed_time" "$options" \
+          "$TEXT_YELLOW""The test did not compute anything => Validity unknown."
       else
         test_failed "$input" "$elapsed_time" "$options"
       fi
 
-      rm -f $test_run;
+      rm -f $test_run test_main_$$.c test_test_$$.o test_test_$$.c test_good_$$.o;
     else
       elapsed_time=$(get_elapsed_time $elapsed_time $(get_seconds))
       test_passed "$input" "$elapsed_time" "$options"
     fi
-
-  elif [ "$TEST_TYPE" = "run" ]; then
-    generate_test=$builddir/generate_test_advanced$EXEEXT
-    test_run=$builddir/$$_test_run$EXEEXT
-    good="$srcdir/$name.good.$TEST_OUTPUT_EXTENSION";
-    if [ $(echo $options | grep -- "-openscop") ]; then
-        generate_test="$generate_test -o"
-    fi
-
-    print_step "$input" "$STEP_GENERATING" "$input_log"
-    $cloog $options -q -callable 1 "$input" -o test_test_$$.c;
-    $generate_test "$input" test_main_$$.c;
-
-    print_step "$input" "$STEP_COMPILING" "$input_log"
-    fix_env_compile
-    $COMPILE -c test_test_$$.c -o test_test_$$.o >/dev/null 2>>"$input_log"
-    $COMPILE -Dtest=good -c $good -o test_good_$$.o >/dev/null 2>>"$input_log"
-    fix_env_link "$test_run"
-    $LINK test_main_$$.c test_test_$$.o test_good_$$.o > /dev/null 2>>"$input_log"
-
-    print_step "$input" "$STEP_RUNNING" "$input_log"
-    $test_run;
-    result=$?;
-    elapsed_time=$(get_elapsed_time $elapsed_time $(get_seconds))
-    if [ $result -eq 0 ]; then
-        test_passed "$input" "$elapsed_time" "$options"
-    else
-        test_failed "$input" "$elapsed_time" "$options" \
-                    "$TEXT_RED""Exit code: $result"
-    fi
-    rm -f $test_run;
 
   elif [ "$TEST_TYPE" = "valgrind" ]; then
     print_step "$input" "$STEP_VALGRIND" "$input_log"

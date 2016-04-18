@@ -44,12 +44,21 @@ special_refactored=`echo "$SPECIAL_OPTIONS" | \
                     sed "s/#/ /g"           | \
                     sed "s/'//g"`
 
-$CHECKER "RUN C" "$FINITE_CLOOGTEST_C" "" "cloog" "c" "hybrid"
+$CHECKER "HYBRID C" "$CLOOGTEST_C" "" "cloog" "c" "hybrid"
 failedtest=$?;
 
-$CHECKER "RUN SPECIAL" "$special_refactored" "" "cloog" "c" "hybrid"
+$CHECKER "HYBRID SPECIAL" "$special_refactored" "" "cloog" "c" "hybrid"
 failedtest=`expr $failedtest + $?`;
 
-$CHECKER "RUN SPECIAL -sh 1" "$special_refactored" "-sh 1" "cloog" "c" "hybrid"
+$CHECKER "HYBRID SPECIAL -sh 1" "$special_refactored" "-sh 1" "cloog" "c" "hybrid"
 failedtest=`expr $failedtest + $?`;
+
+$CHECKER "HYBRID STRIDED" "$CLOOGTEST_STRIDED" "-strides 1" "cloog" "c" "hybrid"
+failedtest=`expr $failedtest + $?`;
+
+if ! [ -z $CLOOGTEST_OPENSCOP ] ; then
+$CHECKER "HYBRID OPENSCOP" "$CLOOGTEST_OPENSCOP" "-openscop" "scop" "c" "hybrid"
+failedtest=`expr $failedtest + $?`;
+fi
+
 exit $failedtest;

@@ -35,4 +35,4 @@
 # *                                                                           *
 # *****************************************************************************/
 
-$CHECKER "STRIDED" "$CLOOGTEST_STRIDED" "-strides 1" "cloog" "c" "${1:-generate}"
+$CHECKER "STRIDED" "$CLOOGTEST_STRIDED" "-strides 1" "cloog" "c" "${1:-hybrid}"

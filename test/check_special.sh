@@ -44,4 +44,4 @@ special_refactored=`echo "$SPECIAL_OPTIONS" | \
                     sed "s/#/ /g"           | \
                     sed "s/'//g"`
 
-$CHECKER "SPECIAL" "$special_refactored" "" "cloog" "c" "${1:-generate}"
+$CHECKER "SPECIAL" "$special_refactored" "" "cloog" "c" "${1:-hybrid}"
