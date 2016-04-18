@@ -39,7 +39,7 @@
 # individual tests with %, e.g., "'file1 -f -1' 'file2'" becomes
 # "file1%-f%-1 file2".
 special_refactored=`echo "$SPECIAL_OPTIONS" | \
-                    sed "s/' '/#/g"         | \
+                    sed "s/'  *'/#/g"       | \
                     sed 's/ /%/g'           | \
                     sed "s/#/ /g"           | \
                     sed "s/'//g"`
