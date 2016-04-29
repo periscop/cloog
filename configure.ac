@@ -100,44 +100,74 @@ AC_CHECK_FUNCS([getrusage],
 	[AC_DEFINE([CLOOG_RUSAGE], [], [Print time required to generate code])])
 
 AX_SUBMODULE(isl,no|system|build|bundled,bundled)
-BITS="gmp"
 
 dnl /**************************************************************************
 dnl  *                            Where is GMP?                               *
 dnl  **************************************************************************/
 
+AC_ARG_WITH(cloog-int,
+            [AS_HELP_STRING(
+              [--with-cloog-int=gmp|int|long|longlong],
+              [Integer precision to use (default gmp)])])
+
+if test "x$with_cloog_int" = "x"; then
+  with_cloog_int="gmp"
+fi
+
 AX_SUBMODULE(gmp,system|build,system)
 
 need_get_memory_functions=false
-case "$with_gmp" in
-build)
-    CPPFLAGS="-I$with_gmp_builddir $CPPFLAGS"
-    LDFLAGS="-L$with_gmp_builddir/$lt_cv_objdir $LDFLAGS"
+case "$with_cloog_int" in
+  gmp)
+    BITS="gmp"
+    CLOOG_INT_CONFIGURE="CLOOG_INT_GMP"
+    case "$with_gmp" in
+    build)
+      CPPFLAGS="-I$with_gmp_builddir $CPPFLAGS"
+      LDFLAGS="-L$with_gmp_builddir/$lt_cv_objdir $LDFLAGS"
     ;;
-system)
-    if test "x$with_gmp_prefix" != "x"; then
-	CPPFLAGS="-I$with_gmp_prefix/include $CPPFLAGS"
-    fi
-    
-    if test "$with_gmp_exec_prefix" != "yes" ; then
-	LDFLAGS="-L$with_gmp_exec_prefix/lib $LDFLAGS"
-    fi
+    system)
+      if test "x$with_gmp_prefix" != "x"; then
+        CPPFLAGS="-I$with_gmp_prefix/include $CPPFLAGS"
+      fi
+
+      if test "$with_gmp_exec_prefix" != "yes" ; then
+        LDFLAGS="-L$with_gmp_exec_prefix/lib $LDFLAGS"
+      fi
     ;;
+    esac
+    case "$with_gmp" in
+    build|system)
+      AC_CHECK_HEADER(gmp.h,
+                      [],
+                      [AC_MSG_ERROR(Can't find gmp headers.)])
+      AC_CHECK_LIB(gmp,
+                  __gmpz_init,
+                  [LIBS="$LIBS -lgmp"],
+                  [AC_MSG_ERROR(Can't find gmp library.)])
+      AC_CHECK_DECLS(mp_get_memory_functions,[],[
+        need_get_memory_functions=true
+      ],[#include <gmp.h>])
+    ;;
+    esac
+  ;;
+  int)
+    BITS="int"
+    CLOOG_INT_CONFIGURE="CLOOG_INT_INT"
+  ;;
+  long)
+    BITS="long"
+    CLOOG_INT_CONFIGURE="CLOOG_INT_LONG"
+  ;;
+  longlong)
+    BITS="longlong"
+    CLOOG_INT_CONFIGURE="CLOOG_INT_LONG_LONG"
+  ;;
+  *)
+    AC_MSG_ERROR([Unknown integer type: $with_cloog_int])
+  ;;
 esac
-case "$with_gmp" in
-build|system)
-    AC_CHECK_HEADER(gmp.h,
-                    [],
-                    [AC_MSG_ERROR(Can't find gmp headers.)])
-    AC_CHECK_LIB(gmp,
-                 __gmpz_init,
-                 [LIBS="$LIBS -lgmp"],
-                 [AC_MSG_ERROR(Can't find gmp library.)])
-    AC_CHECK_DECLS(mp_get_memory_functions,[],[
-	    need_get_memory_functions=true
-    ],[#include <gmp.h>])
-    ;;
-esac
+
 AM_CONDITIONAL(NEED_GET_MEMORY_FUNCTIONS,
 		test x$need_get_memory_functions = xtrue)
 
@@ -199,9 +229,6 @@ esac
 AM_CONDITIONAL(BUNDLED_OSL, test $with_osl = bundled)
 AM_CONDITIONAL(NO_OSL, test $with_osl = no)
 
-
-AC_DEFINE([CLOOG_INT_GMP], 1, [Use arbitrary precision integers])
-
 AC_SUBST(GIT_INDEX)
 if test -f $srcdir/.git/HEAD; then
 	GIT_INDEX="\$(top_srcdir)/.git/index"
@@ -222,19 +249,20 @@ AC_SUBST(exec_prefix)
 AC_SUBST(INSTALL)
 
 AC_SUBST(BITS)
+AC_SUBST(CLOOG_INT_CONFIGURE)
 
 AC_SUBST(VERSION_MAJOR)
 AC_SUBST(VERSION_MINOR)
 AC_SUBST(VERSION_REVISION)
 
 PACKAGE_NAME="cloog-isl"
-PACKAGE_CFLAGS="-DCLOOG_INT_GMP=1"
 AX_CREATE_PKGCONFIG_INFO
 
 AC_CONFIG_FILES(Makefile test/Makefile)
 AC_CONFIG_FILES(autoconf/Doxyfile)
 AC_CONFIG_FILES(doc/Makefile)
 AC_CONFIG_FILES(source/version.c)
+AC_CONFIG_FILES(include/cloog/int.h)
 AC_CONFIG_FILES(include/cloog/version.h)
 AC_CONFIG_FILES([genversion.sh], [chmod +x genversion.sh])
 AC_CONFIG_COMMANDS([version.h],
