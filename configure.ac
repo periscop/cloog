@@ -1,4 +1,5 @@
 
+
 dnl /**-------------------------------------------------------------------**
 dnl  **                              CLooG                                **
 dnl  **-------------------------------------------------------------------**
@@ -181,12 +182,31 @@ AC_SUBST(ISL_LIBS)
 case "$with_isl" in
 bundled)
 	ISL_CPPFLAGS="-I$srcdir/isl/include -Iisl/include"
+  CPPFLAGS="-DISL_USING_GMP_VAL=1 $CPPFLAGS"
 	;;
 build)
+  TMPCPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="-I$isl_srcdir/include -I$with_isl_builddir/include $CPPFLAGS"
+  AC_CHECK_HEADER([isl/val_gmp.h])
+  CPPFLAGS="$TMPCPPFLAGS"
+  if test "$ac_cv_header_isl_val_gmp_h" = "yes"; then
+    CPPFLAGS="-DISL_USING_GMP_VAL=1 $CPPFLAGS"
+  else
+    CPPFLAGS="-DISL_USING_GMP_VAL=0 $CPPFLAGS"
+  fi
 	ISL_CPPFLAGS="-I$isl_srcdir/include -I$with_isl_builddir/include"
 	ISL_LIBS="$with_isl_builddir/libisl.la"
 	;;
 system)
+  TMPCPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="-I$with_isl_prefix/include $CPPFLAGS"
+  AC_CHECK_HEADER([isl/val_gmp.h])
+  CPPFLAGS="$TMPCPPFLAGS"
+  if test "$ac_cv_header_isl_val_gmp_h" = "yes"; then
+    CPPFLAGS="-DISL_USING_GMP_VAL=1 $CPPFLAGS"
+  else
+    CPPFLAGS="-DISL_USING_GMP_VAL=0 $CPPFLAGS"
+  fi
 	if test "x$with_isl_prefix" != "x"; then
 		ISL_CPPFLAGS="-I$with_isl_prefix/include"
 	fi
@@ -195,6 +215,8 @@ system)
 	fi
 	ISL_LIBS="-lisl"
 esac
+
+
 AM_CONDITIONAL(BUNDLED_ISL, test $with_isl = bundled)
 AM_CONDITIONAL(NO_ISL, test $with_isl = no)
 
