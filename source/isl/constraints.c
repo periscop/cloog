@@ -6,8 +6,10 @@
 #include <isl/aff.h>
 #include <isl/set.h>
 #include <isl/val.h>
-#include <isl/val_gmp.h>
 
+#if ISL_USING_GMP
+#include <isl/val_gmp.h>
+#endif
 
 #define ALLOC(type) (type*)malloc(sizeof(type))
 #define ALLOCN(type,n) (type*)malloc((n)*sizeof(type))
@@ -22,7 +24,15 @@ __isl_give isl_val *cloog_int_to_isl_val(isl_ctx* ctx, cloog_int_t c)
 #elif defined(CLOOG_INT_LONG_LONG)
 	v = isl_val_int_from_si(ctx, c);
 #elif defined(CLOOG_INT_GMP)
-	v = isl_val_int_from_gmp(ctx, c);
+  #if ISL_USING_GMP // ISL using GMP
+    v = isl_val_int_from_gmp(ctx, c);
+  #else // ISL using iMath or iMath-32
+    // The best way to ensure full precision is to go through strings!!!
+    char* str = NULL;
+    str = mpz_get_str(str, 10, c);
+    v = isl_val_read_from_str(ctx, str);
+    free(str);
+  #endif
 #else
 #error "No integer type defined"
 #endif
@@ -43,7 +53,16 @@ void isl_val_to_cloog_int(__isl_keep isl_val *val, cloog_int_t *cint)
 #elif defined(CLOOG_INT_LONG_LONG)
 	*cint = isl_val_get_num_si(val);
 #elif defined(CLOOG_INT_GMP)
-	isl_val_get_num_gmp(val, *cint);
+  #if ISL_USING_GMP
+    isl_val_get_num_gmp(val, *cint);
+  #else
+    isl_printer *string_printer = isl_printer_to_str(isl_val_get_ctx(val));
+    isl_printer_print_val(string_printer, val);
+    char *str = isl_printer_get_str(string_printer);
+    mpz_set_str(*cint, str, 10);
+    isl_printer_free(string_printer);
+    free(str);
+  #endif
 #else
 #error "No integer type defined"
 #endif
