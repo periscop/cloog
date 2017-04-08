@@ -126,6 +126,7 @@ CloogDomain * cloog_domain_copy(CloogDomain * domain)
 CloogDomain *cloog_domain_convex(CloogDomain *domain)
 {
 	isl_set *set = isl_set_from_cloog_domain(domain);
+  set = isl_set_coalesce(set);
 	set = isl_set_from_basic_set(isl_set_convex_hull(isl_set_copy(set)));
 	return cloog_domain_from_isl_set(set);
 }
