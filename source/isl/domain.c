@@ -135,10 +135,9 @@ CloogDomain *cloog_domain_convex(CloogDomain *domain)
 /**
  * cloog_domain_simple_convex:
  * Given a list (union) of polyhedra, this function returns a "simple"
- * convex hull of this union.  In particular, the constraints of the
- * the returned polyhedron consist of (parametric) lower and upper
- * bounds on individual variables and constraints that appear in the
- * original polyhedra.
+ * convex hull of this union. According to the ISL manual the "simple" convex
+ * hull correspond of a single polyhedron which containing the previous union of
+ * polyhedra.
  */
 CloogDomain *cloog_domain_simple_convex(CloogDomain *domain)
 {
@@ -148,7 +147,7 @@ CloogDomain *cloog_domain_simple_convex(CloogDomain *domain)
 	if (cloog_domain_isconvex(domain))
 		return cloog_domain_copy(domain);
 
-	hull = isl_set_bounded_simple_hull(isl_set_copy(set));
+	hull = isl_set_simple_hull(isl_set_copy(set));
 	return cloog_domain_from_isl_set(isl_set_from_basic_set(hull));
 }
 
