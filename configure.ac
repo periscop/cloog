@@ -241,12 +241,13 @@ build)
 	;;
 system)
 	if test "x$with_osl_prefix" != "x"; then
-		OSL_CPPFLAGS="-D$osl_flag -I$with_osl_prefix/include"
+		OSL_CPPFLAGS="-I$with_osl_prefix/include"
 	fi
 	if test "x$with_osl_exec_prefix" != "x"; then
 		OSL_LDFLAGS="-L$with_osl_exec_prefix/lib"
 	fi
 	OSL_LIBS="-losl"
+	OSL_CPPFLAGS+=" -D$osl_flag"
 esac
 AM_CONDITIONAL(BUNDLED_OSL, test $with_osl = bundled)
 AM_CONDITIONAL(NO_OSL, test $with_osl = no)
