@@ -1,4 +1,4 @@
-/* Generated from ./darte.cloog by CLooG 0.18.1-2-g43fc508 gmp bits in 0.02s. */
+/* Generated from ../test/darte.cloog by CLooG 0.18.4-dac762f gmp bits in 0.05s. */
 if (n >= 1) {
   for (t3=n+3;t3<=3*n+1;t3++) {
     if ((t3+n+1)%2 == 0) {
@@ -16,7 +16,7 @@ if (n >= 1) {
     for (t2=max(-t1+2,t1+3);t2<=-t1+4;t2++) {
       for (t3=t2+2;t3<=t2+2*n;t3++) {
         if ((t1+t2)%2 == 0) {
-          if ((t1+t3)%2 == 0) {
+          if ((t2+t3)%2 == 0) {
             S1(((t1+t2)/2),((-t1+t2)/2),((-t2+t3)/2));
           }
         }
@@ -33,14 +33,14 @@ if (n >= 1) {
           S2(((t1+t2-3)/2),((-t1+t2-1)/2),t3);
         }
         if ((t1+t2)%2 == 0) {
-          if ((t1+t3)%2 == 0) {
+          if ((t2+t3)%2 == 0) {
             S1(((t1+t2)/2),((-t1+t2)/2),((-t2+t3)/2));
           }
         }
       }
       for (t3=max(n+1,t2+2);t3<=t2+2*n;t3++) {
         if ((t1+t2)%2 == 0) {
-          if ((t1+t3)%2 == 0) {
+          if ((t2+t3)%2 == 0) {
             S1(((t1+t2)/2),((-t1+t2)/2),((-t2+t3)/2));
           }
         }
