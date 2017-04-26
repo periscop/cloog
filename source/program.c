@@ -485,6 +485,12 @@ static int annotate_loops(osl_scop_p program, struct clast_stmt *root){
           clastloops[j]->private_vars = strdup(loop->private_vars);
         }
       }
+
+      if (loop->directive & CLAST_PARALLEL_USR) {
+        clastloops[j]->parallel |= CLAST_PARALLEL_USR;
+        ret |= CLAST_PARALLEL_USR;
+        clastloops[j]->usr = strdup(loop->user);
+      }
     }
 
     if (clastloops) { free(clastloops); clastloops=NULL;}

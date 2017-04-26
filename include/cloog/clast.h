@@ -35,6 +35,7 @@ struct clast_term {
 #define CLAST_PARALLEL_OMP 1
 #define CLAST_PARALLEL_MPI 2
 #define CLAST_PARALLEL_VEC 4
+#define CLAST_PARALLEL_USR 8
 
 enum clast_red_type { clast_red_sum, clast_red_min, clast_red_max };
 struct clast_reduction {
@@ -111,6 +112,8 @@ struct clast_for {
     /* Enable execution time reporting for this loop */
     /* Variable name to accumulate execution time this loop */
     char *time_var_name;
+    /* User defined string */
+    char *usr;
 };
 
 struct clast_equation {
