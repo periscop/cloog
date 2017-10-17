@@ -47,8 +47,8 @@ if BUNDLED_OSL
 endif
 
 AUTOMAKE_OPTIONS = subdir-objects
-SUBDIRS = $(MAYBE_ISL) $(MAYBE_OSL) . doc test
-DIST_SUBDIRS = $(MAYBE_ISL) $(MAYBE_OSL) . doc test
+SUBDIRS = $(MAYBE_ISL) $(MAYBE_OSL) . test
+DIST_SUBDIRS = $(MAYBE_ISL) $(MAYBE_OSL) . test
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -143,8 +143,7 @@ EXTRA_DIST = \
 	autoconf/Doxyfile.in \
 	source/matrix/constraintset.c \
 	cmake \
-	doc/cloog.texi \
-	doc/images \
+	doc \
 	examples
 
 install-data-local:
@@ -161,9 +160,7 @@ uninstall-local:
 	rm -f "$(DESTDIR)$(libdir)/$(PACKAGE_NAME)/cloog-isl-config.cmake"
 
 dist-hook:
-	rm -f $(distdir)/test/Makefile
 	$(top_builddir)/genversion.sh > $(distdir)/CLOOG_HEAD
-	(cd doc; make cloog.pdf) && cp doc/cloog.pdf $(distdir)/doc/
 
 #/*****************************************************************************
 # *                                   Rules                                   *
@@ -189,3 +186,17 @@ doc:
 	@echo "              *        Generating CLooG's documentation       *"
 	@echo "              *-----------------------------------------------*/"
 	doxygen ./autoconf/Doxyfile
+
+#/*****************************************************************************
+# *                                   Doc                                     *
+# *****************************************************************************/
+
+if HAVE_TEXI2DVI
+pdf_DATA = doc/cloog.pdf
+dist_pdf_DATA = doc/cloog.pdf
+doc/cloog.pdf: doc/cloog.texi doc/gitversion.texi
+	$(TEXI2DVI) -I $(top_builddir)/doc --pdf $< -o $@
+endif
+
+doc/gitversion.texi: @GIT_INDEX@
+	echo '@set VERSION '`$(top_builddir)/genversion.sh`'' > $@
