@@ -310,8 +310,8 @@ for x in $TEST_FILES; do
     if [ ! $result -eq 0 ]; then
       # If the comparison failed, attempt to run the generated programs and
       # compare the results.
-      generate_test=$builddir/generate_test_advanced$EXEEXT
-      test_run=$builddir/$$_test_hybrid$EXEEXT
+      generate_test=$builddir/test/generate_test_advanced$EXEEXT
+      test_run=$builddir/test/$$_test_hybrid$EXEEXT
       good="$srcdir/$name.good.$TEST_OUTPUT_EXTENSION";
       if [ $(echo $options | grep -- "-openscop") ]; then
           generate_test="$generate_test -o"

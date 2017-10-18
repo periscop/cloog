@@ -47,8 +47,8 @@ if BUNDLED_OSL
 endif
 
 AUTOMAKE_OPTIONS = subdir-objects
-SUBDIRS = $(MAYBE_ISL) $(MAYBE_OSL) . test
-DIST_SUBDIRS = $(MAYBE_ISL) $(MAYBE_OSL) . test
+SUBDIRS = $(MAYBE_ISL) $(MAYBE_OSL) .
+DIST_SUBDIRS = $(MAYBE_ISL) $(MAYBE_OSL) .
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -169,9 +169,6 @@ dist-hook:
 valcheck:
 	$(MAKE) test_valgrind -C test
 
-test_hybrid:
-	$(MAKE) test_hybrid -C test
-
 total:
 	@echo "             /*-----------------------------------------------*"
 	@echo "              *                     CLooG                     *"
@@ -200,3 +197,314 @@ endif
 
 doc/gitversion.texi: @GIT_INDEX@
 	echo '@set VERSION '`$(top_builddir)/genversion.sh`'' > $@
+
+#/*****************************************************************************
+# *                                   Tests                                    *
+# *****************************************************************************/
+
+if NO_ISL
+GENERATE_TEST_ADVANCED =
+else
+GENERATE_TEST_ADVANCED = test/generate_test_advanced
+endif
+noinst_PROGRAMS = $(GENERATE_TEST_ADVANCED)
+test_generate_test_advanced_SOURCES = test/generate_test_advanced.c
+
+FINITE_CLOOGTEST_C = \
+	test/0D-1 \
+	test/0D-2 \
+	test/0D-3 \
+	test/1point-1 \
+	test/1point-2 \
+	test/4-param \
+	test/basic-bounds-1 \
+	test/basic-bounds-2 \
+	test/basic-bounds-3 \
+	test/basic-bounds-4 \
+	test/basic-bounds-5 \
+	test/basic-bounds-6 \
+	test/block \
+	test/block2 \
+	test/block3 \
+	test/byu98-1-2-3 \
+	test/cholesky \
+	test/cholesky2 \
+	test/christian \
+	test/classen \
+	test/classen2 \
+	test/constant \
+	test/constbound \
+	test/darte \
+	test/dealII \
+	test/donotsimp \
+	test/dot \
+	test/dot2 \
+	test/double \
+	test/durbin_e_s \
+	test/emploi \
+	test/esced \
+	test/ex1 \
+	test/forwardsub-1-1-2 \
+	test/forwardsub-2-1-2-3 \
+	test/forwardsub-3-1-2 \
+	test/gauss \
+	test/gesced \
+	test/gesced2 \
+	test/gesced3 \
+	test/guide \
+	test/iftest \
+	test/iftest2 \
+	test/largeur \
+	test/levenshtein-1-2-3 \
+	test/lex \
+	test/lineality-1-2 \
+	test/lineality-2-1-2 \
+	test/logo \
+	test/logopar \
+	test/lu \
+	test/lu2 \
+	test/lub \
+	test/lux \
+	test/min-1-1 \
+	test/min-2-1 \
+	test/min-3-1 \
+	test/min-4-1 \
+	test/mode \
+	test/multi-mm-1 \
+	test/no_lindep \
+	test/orc \
+	test/rectangle \
+	test/singleton \
+	test/square+triangle-1-1-2-3 \
+	test/swim \
+	test/test \
+	test/thomasset \
+	test/tiling \
+	test/uday_scalars \
+	test/union \
+	test/vivien \
+	test/vivien2 \
+	test/walters \
+	test/walters2 \
+	test/walters3 \
+	test/wavefront \
+	test/yosr \
+	test/yosr2 \
+	test/non_optimal/nul_complex1 \
+	test/non_optimal/usvd_e_t \
+	test/non_optimal/youcef \
+	test/reservoir/cholesky2 \
+	test/reservoir/fusion1 \
+	test/reservoir/fusion2 \
+	test/reservoir/jacobi2 \
+	test/reservoir/jacobi3 \
+	test/reservoir/lim-lam1 \
+	test/reservoir/lim-lam2 \
+	test/reservoir/lim-lam3 \
+	test/reservoir/lim-lam4 \
+	test/reservoir/lim-lam5 \
+	test/reservoir/lim-lam6 \
+	test/reservoir/liu-zhuge1 \
+	test/reservoir/loechner3 \
+	test/reservoir/loechner4 \
+	test/reservoir/loechner5 \
+	test/reservoir/mg-interp2 \
+	test/reservoir/mg-interp \
+	test/reservoir/mg-psinv \
+	test/reservoir/mg-resid \
+	test/reservoir/mg-rprj3 \
+	test/reservoir/pingali1 \
+	test/reservoir/pingali2 \
+	test/reservoir/pingali3 \
+	test/reservoir/pingali4 \
+	test/reservoir/pingali5 \
+	test/reservoir/pingali6 \
+	test/reservoir/QR \
+	test/reservoir/tang-xue1 \
+	test/reservoir/two
+
+CLOOG_ISL_TEST_C = \
+	test/isl/mod \
+	test/isl/mod2 \
+	test/isl/mod3 \
+	test/isl/mod4
+
+CLOOGTEST_C = \
+	test/infinite \
+	test/infinite2 \
+	test/infinite3 \
+	test/infinite4 \
+	$(FINITE_CLOOGTEST_C) \
+	$(CLOOG_ISL_TEST_C)
+
+CLOOGTEST_FORTRAN = \
+	test/dartef \
+	test/iftestf \
+	test/levenshtein-1-2-3f \
+	test/yosrf
+
+CLOOG_ISL_TEST_STRIDED = \
+	test/isl/mxm-shared
+
+CLOOGTEST_STRIDED = \
+	test/basic-bounds-2 \
+	test/mod4 \
+	test/nul_basic1 \
+	test/nul_basic2 \
+	test/nul_lcpc \
+	test/multi-stride \
+	test/multi-stride2 \
+	test/stride3 \
+	test/stride4 \
+	test/reservoir/bastoul3 \
+	test/reservoir/stride \
+	test/reservoir/stride2 \
+	$(CLOOG_ISL_TEST_STRIDED)
+
+if NO_OSL
+CLOOGTEST_OPENSCOP =
+else
+CLOOGTEST_OPENSCOP = \
+	test/openscop/matmult \
+	test/openscop/empty \
+	test/openscop/loops \
+	test/openscop/union \
+	test/openscop/coordinates \
+	test/openscop/clay
+endif
+
+SPECIAL_TESTS = \
+	test/isl/unroll \
+	test/isl/jacobi-shared \
+	test/isl/unroll2 \
+	test/backtrack \
+	test/vasilache \
+	test/merge \
+	test/equality \
+	test/equality2 \
+	test/otl \
+	test/param-split \
+	test/pouchet \
+	test/stride \
+	test/stride2 \
+	test/sor1d
+
+SPECIAL_OPTIONS = \
+	'test/isl/unroll -first-unroll 1' \
+	'test/isl/jacobi-shared -f 4 -l -1 -override -strides 1 -sh 1' \
+	'test/isl/unroll2 -first-unroll 1' \
+	'test/backtrack -f 1 -backtrack' \
+	'test/vasilache -f 8 -l 9' \
+	'test/merge -f -1' \
+	'test/equality -f -1 -l 2 -override' \
+	'test/equality2 -f -1 -l 4 -esp 1 -override' \
+	'test/otl -block 1 -esp 0 -otl 0' \
+	'test/param-split -f -1' \
+	'test/pouchet -f 3 -l 7' \
+	'test/stride -f -1 -strides 1' \
+	'test/stride2 -f -1 -strides 1' \
+	'test/sor1d -f -1'
+
+generate:
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *                 Generate files                *"
+	@echo "              *-----------------------------------------------*/"
+	@for x in $(CLOOGTEST_C) ; do \
+		echo "Generate $$x.c" ; \
+		$(top_builddir)/cloog $(srcdir)/$$x.cloog -o $(srcdir)/$$x.c ; \
+	done ; \
+	for x in $(CLOOGTEST_FORTRAN) ; do \
+		echo "Generate $$x.f" ; \
+		$(top_builddir)/cloog $(srcdir)/$$x.cloog -o $(srcdir)/$$x.f ; \
+	done ; \
+	for x in $(CLOOGTEST_STRIDED) ; do \
+		echo "Generate $$x.c" ; \
+		$(top_builddir)/cloog $(srcdir)/$$x.cloog \
+			-strides 1 -o $(srcdir)/$$x.c ; \
+	done ; \
+	for x in $(CLOOGTEST_OPENSCOP) ; do \
+		echo "Generate $$x.c" ; \
+		$(top_builddir)/cloog $(srcdir)/$$x.scop \
+		-openscop -o $(srcdir)/$$x.c ; \
+	done ; \
+	for line in $(SPECIAL_OPTIONS); do \
+		options=`echo $$line | sed -e 's/^[^ ]* //'`; \
+		x=`echo $$line | sed -e 's/ .*//'`; \
+		echo "Generate file $$x ($$options)" ; \
+		$(top_builddir)/cloog$(EXEEXT) $(srcdir)/$$x.cloog \
+		    $$options > $(srcdir)/$$x.c ; \
+	done
+
+generate_good:
+	@for x in $(FINITE_CLOOGTEST_C) ; do \
+		echo "Generate $$x.good.c" ; \
+		$(top_builddir)/cloog$(EXEEXT) -callable 1 $(srcdir)/$$x.cloog -o $(srcdir)/$$x.good.c ; \
+	done; \
+	for line in $(SPECIAL_OPTIONS); do echo $$line | while read x options; do \
+		echo "Generate $$x.good.c ($$options)" ; \
+		$(top_builddir)/cloog$(EXEEXT) -callable 1 $$options $(srcdir)/$$x.cloog -o $(srcdir)/$$x.good.c ; \
+	done; done
+
+valcheck: test_valgrind
+
+CHECKER := "$(srcdir)/test/checker.sh"
+
+TESTS_ENVIRONMENT = \
+	builddir=$(builddir) \
+	top_builddir=$(top_builddir) \
+	srcdir=$(srcdir) \
+	EXEXT=$(EXEEXT) \
+	CHECKER=$(CHECKER) \
+	COMPILE="$(COMPILE)" \
+	LINK="$(LINK)" \
+	FINITE_CLOOGTEST_C="$(FINITE_CLOOGTEST_C)" \
+	CLOOGTEST_C="$(CLOOGTEST_C)" \
+	CLOOGTEST_FORTRAN="$(CLOOGTEST_FORTRAN)" \
+	CLOOGTEST_STRIDED="$(CLOOGTEST_STRIDED)" \
+	CLOOGTEST_OPENSCOP="$(CLOOGTEST_OPENSCOP)" \
+	SPECIAL_OPTIONS="$(SPECIAL_OPTIONS)"
+
+test_hybrid: test/generate_test_advanced$(EXEEXT)
+	$(TESTS_ENVIRONMENT) $(srcdir)/test/check_hybrid.sh;
+
+test_valgrind:
+	$(RM) -rf $(srcdir)/logs; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/test/check_c.sh valgrind ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/test/check_fortran.sh valgrind ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/test/check_strided.sh valgrind ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/test/check_openscop.sh valgrind ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/test/check_special.sh valgrind;
+
+test_regenerate:
+	$(TESTS_ENVIRONMENT) $(srcdir)/test/check_c.sh regenerate ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/test/check_fortran.sh regenerate ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/test/check_strided.sh regenerate ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/test/check_openscop.sh regenerate ; \
+	$(TESTS_ENVIRONMENT) $(srcdir)/test/check_special.sh regenerate
+
+check_SCRIPTS = \
+	test/check_c.sh \
+	test/check_fortran.sh \
+	test/check_strided.sh \
+	test/check_openscop.sh \
+	test/check_special.sh
+
+TESTS = $(check_SCRIPTS)
+
+EXTRA_DIST += \
+	$(check_SCRIPTS) \
+	$(srcdir)/test/checker.sh \
+	$(CLOOGTEST_C:%=%.cloog) \
+	$(CLOOGTEST_C:%=%.c) \
+	$(FINITE_CLOOGTEST_C:%=%.good.c) \
+	$(CLOOGTEST_FORTRAN:%=%.cloog) \
+	$(CLOOGTEST_FORTRAN:%=%.f) \
+	$(CLOOGTEST_STRIDED:%=%.cloog) \
+	$(CLOOGTEST_STRIDED:%=%.c) \
+	$(CLOOGTEST_OPENSCOP:%=%.scop) \
+	$(CLOOGTEST_OPENSCOP:%=%.c) \
+	$(SPECIAL_TESTS:%=%.cloog) \
+	$(SPECIAL_TESTS:%=%.c) \
+	$(SPECIAL_TESTS:%=%.good.c) \
+	test/openscop/clay_orig.c \
+	test/openscop/coordinates_orig.c

@@ -281,7 +281,7 @@ AC_SUBST(VERSION_REVISION)
 PACKAGE_NAME="cloog-isl"
 AX_CREATE_PKGCONFIG_INFO
 
-AC_CONFIG_FILES(Makefile test/Makefile)
+AC_CONFIG_FILES(Makefile)
 AC_CONFIG_FILES(autoconf/Doxyfile)
 AC_CONFIG_FILES(source/version.c)
 AC_CONFIG_FILES(include/cloog/int.h)
