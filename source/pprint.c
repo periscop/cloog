@@ -446,7 +446,32 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
             fprintf(dst, "IF_TIME(%s_start = cloog_util_rtclock());\n",
                     (f->time_var_name) ? f->time_var_name : "");
         }
-        if ((f->parallel & CLAST_PARALLEL_OMP) && !(f->parallel & CLAST_PARALLEL_MPI)) {
+        if ((f->parallel & CLAST_PARALLEL_OMP) && (f->parallel & CLAST_PARALLEL_USER)
+               && !(f->parallel & CLAST_PARALLEL_MPI)) {
+            if (f->LB) {
+                fprintf(dst, "lbp=");
+                pprint_expr(options, dst, f->LB);
+                fprintf(dst, ";\n");
+            }
+            if (f->UB) {
+                fprintf(dst, "%*s", indent, "");
+                fprintf(dst, "ubp=");
+                pprint_expr(options, dst, f->UB);
+                fprintf(dst, ";\n");
+            }
+            fprintf(dst, "#pragma %s%s%s%s%s%s%s\n",
+                    (f->user_directive)? f->user_directive : "omp parallel for",
+                    (f->private_vars)? " private(":"",
+                    (f->private_vars)? f->private_vars: "",
+                    (f->private_vars)? ")":"",
+                    (f->reduction_vars)? " reduction(": "",
+                    (f->reduction_vars)? f->reduction_vars: "",
+                    (f->reduction_vars)? ")": "");
+
+            fprintf(dst, "%*s", indent, "");
+        }
+        if ((f->parallel & CLAST_PARALLEL_OMP) && !(f->parallel & CLAST_PARALLEL_MPI)
+               && !(f->parallel & CLAST_PARALLEL_USER)) {
             if (f->LB) {
                 fprintf(dst, "lbp=");
                 pprint_expr(options, dst, f->LB);
