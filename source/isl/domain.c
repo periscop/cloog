@@ -1351,10 +1351,22 @@ int cloog_domain_isconvex(CloogDomain * domain)
 CloogDomain *cloog_domain_cut_first(CloogDomain *domain, CloogDomain **rest)
 {
 	isl_set *set = isl_set_from_cloog_domain(domain);
-	struct isl_basic_set *first;
+	isl_basic_set *first;
+	isl_basic_set_list *list;
+	int i, n;
 
-	first = isl_set_copy_basic_set(set);
-	set = isl_set_drop_basic_set(set, first);
+	list = isl_set_get_basic_set_list(set);
+	isl_set_free(set);
+	n = isl_basic_set_list_n_basic_set(list);
+	assert(n > 0);
+
+	first = isl_basic_set_list_get_basic_set(list, 0);
+	set = isl_set_empty(isl_basic_set_get_space(first));
+	for (i = 1; i < n; ++i) {
+		set = isl_set_union(set, isl_set_from_basic_set(
+			isl_basic_set_list_get_basic_set(list, i)));
+	}
+	isl_basic_set_list_free(list);
 	*rest = cloog_domain_from_isl_set(set);
 
 	return cloog_domain_from_isl_set(isl_set_from_basic_set(first));
