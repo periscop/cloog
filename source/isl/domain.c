@@ -237,6 +237,7 @@ void cloog_domain_sort(CloogDomain **doms, unsigned nb_doms, unsigned level,
 	unsigned char **follows;
 	isl_set *set_i, *set_j;
 	isl_basic_set *bset_i, *bset_j;
+	isl_basic_set_list *list_i, *list_j;
 
 	if (!nb_doms)
 		return;
@@ -262,8 +263,12 @@ void cloog_domain_sort(CloogDomain **doms, unsigned nb_doms, unsigned level,
 				continue;
 			set_i = isl_set_from_cloog_domain(doms[i]);
 			set_j = isl_set_from_cloog_domain(doms[j]);
-			bset_i = isl_set_copy_basic_set(set_i);
-			bset_j = isl_set_copy_basic_set(set_j);
+			list_i = isl_set_get_basic_set_list(set_i);
+			list_j = isl_set_get_basic_set_list(set_j);
+			bset_i = isl_basic_set_list_get_basic_set(list_i, 0);
+			bset_j = isl_basic_set_list_get_basic_set(list_j, 0);
+			isl_basic_set_list_free(list_i);
+			isl_basic_set_list_free(list_j);
 			cmp = isl_basic_set_compare_at(bset_i, bset_j, level-1);
 			isl_basic_set_free(bset_i);
 			isl_basic_set_free(bset_j);
