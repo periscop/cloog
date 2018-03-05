@@ -58,8 +58,12 @@ CloogConstraintSet *cloog_domain_constraints(CloogDomain *domain)
 {
 	isl_basic_set *bset;
 	isl_set *set = isl_set_from_cloog_domain(domain);
+	isl_basic_set_list *list;
 	assert(isl_set_n_basic_set(set) == 1);
-	bset = isl_set_copy_basic_set(set);
+
+	list = isl_set_get_basic_set_list(set);
+	bset = isl_basic_set_list_get_basic_set(list, 0);
+	isl_basic_set_list_free(list);
 	return cloog_constraint_set_from_isl_basic_set(bset);
 }
 
