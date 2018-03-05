@@ -74,6 +74,7 @@ void cloog_domain_print_constraints(FILE *foo, CloogDomain *domain,
 	isl_printer *p;
 	isl_basic_set *bset;
 	isl_set *set = isl_set_from_cloog_domain(domain);
+	isl_basic_set_list *list;
 
 	p = isl_printer_to_file(isl_set_get_ctx(set), foo);
 	if (print_number) {
@@ -81,7 +82,9 @@ void cloog_domain_print_constraints(FILE *foo, CloogDomain *domain,
 		p = isl_printer_print_set(p, set);
 	} else {
 		assert(isl_set_n_basic_set(set) == 1);
-		bset = isl_set_copy_basic_set(set);
+		list = isl_set_get_basic_set_list(set);
+		bset = isl_basic_set_list_get_basic_set(list, 0);
+		isl_basic_set_list_free(list);
 		p = isl_printer_set_output_format(p, ISL_FORMAT_POLYLIB);
 		p = isl_printer_print_basic_set(p, bset);
 		isl_basic_set_free(bset);
