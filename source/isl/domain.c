@@ -587,6 +587,39 @@ static struct isl_basic_set *isl_basic_set_read_from_matrix(struct isl_ctx *ctx,
 }
 
 /**
+ * isl_basic_map_read_from_matrix:
+ * Convert matrix to basic_map. The matrix contains nparam parameter columns.
+ * Returns a pointer to the basic_map if successful; NULL otherwise.
+ */
+static isl_basic_map *isl_basic_map_read_from_matrix(isl_ctx *ctx,
+	CloogMatrix* matrix, int nparam, int n_in)
+{
+	struct isl_space *dim;
+	struct isl_basic_map *bmap;
+	int i;
+	unsigned nrows, ncolumns;
+
+	nrows = matrix->NbRows;
+	ncolumns = matrix->NbColumns;
+	int nvariables = ncolumns - 2 - nparam;
+
+	dim = isl_space_alloc(ctx, nparam, n_in, nvariables - n_in);
+
+	bmap = isl_basic_map_universe(isl_space_copy(dim));
+
+	for (i = 0; i < nrows; ++i) {
+		cloog_int_t *row = matrix->p[i];
+		struct isl_constraint *constraint =
+			isl_constraint_read_from_matrix(isl_space_copy(dim), row);
+		bmap = isl_basic_map_add_constraint(bmap, constraint);
+	}
+
+	isl_space_free(dim);
+
+	return bmap;
+}
+
+/**
  * cloog_domain_from_cloog_matrix:
  * Create a CloogDomain containing the constraints described in matrix.
  * nparam is the number of parameters contained in the domain.
@@ -613,16 +646,9 @@ CloogScattering *cloog_scattering_from_cloog_matrix(CloogState *state,
 	CloogMatrix *matrix, int nb_scat, int nb_par)
 {
 	struct isl_ctx *ctx = state->backend->ctx;
-	struct isl_basic_set *bset;
 	struct isl_basic_map *scat;
-	struct isl_space *dims;
-	unsigned dim;
 
-	bset = isl_basic_set_read_from_matrix(ctx, matrix, nb_par);
-	dim = isl_basic_set_n_dim(bset) - nb_scat;
-	dims = isl_space_alloc(ctx, nb_par, nb_scat, dim);
-
-	scat = isl_basic_map_from_basic_set(bset, dims);
+	scat = isl_basic_map_read_from_matrix(ctx, matrix, nb_par, nb_scat);
 	scat = isl_basic_map_reverse(scat);
 	return cloog_scattering_from_isl_map(isl_map_from_basic_map(scat));
 }
