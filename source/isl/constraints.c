@@ -656,16 +656,51 @@ int cloog_constraint_is_equality(CloogConstraint *constraint)
 	return isl_constraint_is_equality(cloog_constraint_to_isl(constraint));
 }
 
+typedef struct cloog_drop_constraint_data
+{
+  isl_constraint* constraint;
+  isl_basic_set* basic_set;
+} cloog_drop_constraint_data;
+
+static inline isl_stat cloog_basic_set_ignore_constraint(
+    __isl_take isl_constraint* const c, void* const user)
+{
+  cloog_drop_constraint_data* const data = user;
+  isl_constraint* const ignore = data->constraint;
+
+  isl_aff* a1 = isl_constraint_get_aff(c);
+  isl_aff* a2 = isl_constraint_get_aff(ignore);
+  isl_pw_aff* pw1 = isl_pw_aff_from_aff(a1);
+  isl_pw_aff* pw2 = isl_pw_aff_from_aff(a2);
+
+  if (!isl_pw_aff_is_equal(pw1, pw2))
+    data->basic_set = isl_basic_set_add_constraint(data->basic_set, c);
+  else
+    isl_constraint_free(c);
+
+  isl_pw_aff_free(pw1);
+  isl_pw_aff_free(pw2);
+
+  return isl_stat_ok;
+}
+
 CloogConstraintSet *cloog_constraint_set_drop_constraint(
 	CloogConstraintSet *constraints, CloogConstraint *constraint)
 {
-	isl_basic_set *bset;
-	isl_constraint *c;
+  isl_basic_set* bset = cloog_constraints_set_to_isl(constraints);
+  isl_constraint* c = cloog_constraint_to_isl(cloog_constraint_copy(constraint));
 
-	bset = cloog_constraints_set_to_isl(constraints);
-	c = cloog_constraint_to_isl(cloog_constraint_copy(constraint));
-	bset = isl_basic_set_drop_constraint(bset, c);
-	return cloog_constraint_set_from_isl_basic_set(bset);
+  isl_space* space = isl_basic_set_get_space(bset);
+  isl_basic_set* result = isl_basic_set_universe(space);
+  cloog_drop_constraint_data data = { .basic_set = result, .constraint = c, };
+  isl_basic_set_foreach_constraint(
+      bset, cloog_basic_set_ignore_constraint, &data);
+
+  isl_basic_set_free(bset);
+  isl_constraint_free(c);
+
+  result = data.basic_set;
+  return cloog_constraint_set_from_isl_basic_set(result);
 }
 
 void cloog_constraint_coefficient_get(CloogConstraint *constraint,
