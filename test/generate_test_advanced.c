@@ -902,7 +902,7 @@ static inline void print_help(FILE *out) {
   fprintf(out, "\x1b[1m%s\x1b[0m", help);
 }
 
-static const char getopt_flags[] = "ohl:u:m:";
+static const char getopt_flags[] = "+ohl:u:m:";
 
 int main(int argc, char **argv) {
 
@@ -943,12 +943,14 @@ int main(int argc, char **argv) {
         break;
     }
   }
-  if ((argc - optind) != 2) {
+
+  if ((argc - optind) < 2) {
     fprintf(stderr,
         "\x1b[1m\x1b[31mError: Bad arguments\x1b[0m\n\n");
     print_help(stderr);
     return EXIT_FAILURE;
   }
+
   input_name = argv[optind];
   output_name = argv[optind + 1];
 
@@ -979,7 +981,17 @@ int main(int argc, char **argv) {
   }
 
   state = cloog_state_malloc();
-  options = cloog_options_malloc(state);
+  FILE *input = NULL, *output = NULL;
+  cloog_options_read(state, argc-1, argv+1, &input, &output, &options);
+  if (input != NULL && input != stdin)
+    fclose(input);
+  if (output != NULL && output != stdout)
+    fclose(output);
+  options->name = NULL; // No need to free because it is pointing to argv ...
+#ifdef DEBUG
+  cloog_options_print(stderr, options);
+#endif
+
   if (set_openscop_option)
     options->openscop = 1;
   program = cloog_program_read(input_file, options);

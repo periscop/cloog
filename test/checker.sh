@@ -319,7 +319,7 @@ for x in $TEST_FILES; do
 
       print_step "$input" "$STEP_GENERATING_HYBRID" "$input_log"
       $cloog $options -q -callable 1 "$input" -o test_test_$$.c;
-      $generate_test "$input" test_main_$$.c >/dev/null 2>>$input_log
+      $generate_test "$input" test_main_$$.c $options >/dev/null 2>>$input_log
 
       print_step "$input" "$STEP_COMPILING_HYBRID" "$input_log"
       fix_env_compile
