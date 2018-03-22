@@ -55,6 +55,7 @@ struct bounds {
   } lowerbound;
 };
 
+#ifdef DEBUG
 static void print_bounds(FILE *out, struct bounds *bounds) {
   unsigned end = bounds->names.nb_names;
   unsigned i;
@@ -68,6 +69,7 @@ static void print_bounds(FILE *out, struct bounds *bounds) {
     fprintf(out, "\n");
   }
 }
+#endif
 
 
 #define get_lowerbound(bounds,where) ( (bounds)->lowerbound.value->p[(where)] )
@@ -232,7 +234,7 @@ static bool get_expression_reduction_bound(struct clast_reduction *reduc,
     char which_bound,
     cloog_int_t *bound) {
 
-  bool valid;
+  bool valid = false;
   switch (reduc->type) {
     case clast_red_sum:
       valid = get_expression_reduction_sum_bound(reduc, bounds,
@@ -255,7 +257,7 @@ static bool get_expression_bin_bound(struct clast_binary *bin,
     char which_bound,
     cloog_int_t *bound) {
 
-  bool valid;
+  bool valid = false;
 
   switch (bin->type) {
     case clast_bin_div:
@@ -287,7 +289,7 @@ static bool get_expression_bound(struct clast_expr *expr,
     char which_bound,
     cloog_int_t *bound) {
 
-  bool valid;
+  bool valid = false;
   switch (expr->type) {
     case clast_expr_name :
       valid = get_expression_name_bound((struct clast_name*) expr,
@@ -599,7 +601,7 @@ static bool update_expr_red_bound(struct clast_reduction *reduction,
     cloog_int_t value, struct bounds *bounds, char which_bound,
     cloog_int_t div) {
 
-  bool retval;
+  bool retval = false;
 
   switch (reduction->type) {
     case clast_red_sum:
