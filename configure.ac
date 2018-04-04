@@ -41,8 +41,8 @@ dnl *                                                                         *
 dnl ***************************************************************************/
 
 m4_define([version_major], [0])
-m4_define([version_minor], [18])
-m4_define([version_revision], [5])
+m4_define([version_minor], [19])
+m4_define([version_revision], [0])
 
 AC_PREREQ(2.53)
 AC_INIT([cloog], [version_major.version_minor.version_revision],
