@@ -180,10 +180,12 @@ void cloog_program_dump_cloog(FILE * foo, CloogProgram * program,
   "# ASK THE AUTHOR IF YOU *NEED* SOMETHING MORE ROBUST\n") ;
 
   /* Language. */
-  if (program->language == 'c')
-  fprintf(foo,"# Language: C\n") ;
-  else
-  fprintf(foo,"# Language: FORTRAN\n") ;
+  if (program->language == 'f')
+    fprintf(foo,"# Language: FORTRAN\n");
+  else if (program->language == 'p')
+    fprintf(foo,"# Language: PYTHON\n");
+  else 
+    fprintf(foo,"# Language: C\n") ;
   fprintf(foo,"%c\n\n",program->language) ;
 
   /* Context. */
@@ -274,6 +276,10 @@ static void print_comment(FILE *file, CloogOptions *options,
     fprintf(file, "! ");
     vfprintf(file, fmt, args);
     fprintf(file, "\n");
+  } else if (options->language == CLOOG_LANGUAGE_PYTHON) {
+    fprintf(file, "# ");
+    vfprintf(file, fmt, args);
+    fprintf(file, "\n");
   } else {
     fprintf(file, "/* ");
     vfprintf(file, fmt, args);
@@ -285,13 +291,13 @@ static void print_macros(FILE *file)
 {
     fprintf(file, "/* Useful macros. */\n") ;
     fprintf(file,
-	"#define floord(n,d) (((n)<0) ? -((-(n)+(d)-1)/(d)) : (n)/(d))\n");
+        "#define floord(n,d) (((n)<0) ? -((-(n)+(d)-1)/(d)) : (n)/(d))\n");
     fprintf(file,
-	"#define ceild(n,d)  (((n)<0) ? -((-(n))/(d)) : ((n)+(d)-1)/(d))\n");
+        "#define ceild(n,d)  (((n)<0) ? -((-(n))/(d)) : ((n)+(d)-1)/(d))\n");
     fprintf(file, "#define max(x,y)    ((x) > (y) ? (x) : (y))\n") ; 
     fprintf(file, "#define min(x,y)    ((x) < (y) ? (x) : (y))\n\n") ; 
     fprintf(file, "#ifdef TIME \n#define IF_TIME(foo) foo; \n"
-                  "#else\n#define IF_TIME(foo)\n#endif\n\n");
+        "#else\n#define IF_TIME(foo)\n#endif\n\n");
 }
 
 static void print_declarations(FILE *file, int n, char **names, int indentation)
@@ -455,12 +461,15 @@ static int annotate_loops(osl_scop_p program, struct clast_stmt *root){
     //for each loop
     osl_loop_p loop = ll;
     ClastFilter filter = { loop->iter, loop->stmt_ids, 
-                           loop->nb_stmts, subset};
+                           loop->nb_stmts, subset };
 
     clast_filter(root, filter, &clastloops, &nclastloops, 
                  &claststmts, &nclaststmts);
 
-    if (claststmts) { free(claststmts); claststmts=NULL;}
+    if (claststmts) {
+      free(claststmts); 
+      claststmts = NULL;
+    }
 
     /* There should be at least one */
     if (nclastloops==0) {  //FROM PLUTO
@@ -496,7 +505,10 @@ static int annotate_loops(osl_scop_p program, struct clast_stmt *root){
 
     }
 
-    if (clastloops) { free(clastloops); clastloops=NULL;}
+    if (clastloops) { 
+      free(clastloops);
+      clastloops = NULL;
+    }
 
     ll = ll->next;
   }
@@ -629,6 +641,8 @@ CloogOptions * options ;
 
   if (program->language == 'f')
     options->language = CLOOG_LANGUAGE_FORTRAN ;
+  else if (program->language == 'p')
+    options->language = CLOOG_LANGUAGE_PYTHON ;
   else
     options->language = CLOOG_LANGUAGE_C ;
  
@@ -787,6 +801,8 @@ CloogProgram *cloog_program_alloc(CloogDomain *context, CloogUnionDomain *ud,
   
   if (options->language == CLOOG_LANGUAGE_FORTRAN)
     p->language = 'f';
+  else if (options->language == CLOOG_LANGUAGE_PYTHON)
+    p->language = 'p';
   else
     p->language = 'c';
     

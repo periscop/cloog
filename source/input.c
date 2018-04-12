@@ -85,6 +85,8 @@ CloogInput *cloog_input_read(FILE *file, CloogOptions *options)
    
 	if (language == 'f')
 		options->language = CLOOG_LANGUAGE_FORTRAN;
+        else if (language == 'p')
+                options->language = CLOOG_LANGUAGE_PYTHON;
 	else
 		options->language = CLOOG_LANGUAGE_C;
 
@@ -158,6 +160,9 @@ void cloog_input_dump_cloog(FILE *file, CloogInput *input, CloogOptions *opt)
         if (opt->language == CLOOG_LANGUAGE_FORTRAN) {
                 fprintf(file, "# Language: FORTRAN\n");
                 fprintf(file, "f\n\n");
+        } else if (opt->language == CLOOG_LANGUAGE_PYTHON) {
+                fprintf(file, "# Language: PYTHON\n");
+                fprintf(file, "p\n\n");
         } else {
                 fprintf(file, "# Language: C\n");
                 fprintf(file, "c\n\n");
