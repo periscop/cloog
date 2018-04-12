@@ -33,6 +33,16 @@ cloog
 !cloog/
 cloog-*-uninstalled.*
 cloog-*.pc*
+cloog.aux
+cloog.cp
+cloog.fn
+cloog.ky
+cloog.pg
+cloog.toc
+cloog.tp
+cloog.vr
+doc/cloog.pdf
+include/cloog/int.h
 
 # Miscellaneous.
 doc/gitversion.texi
@@ -40,3 +50,4 @@ test/generate_test*
 test/test_main*
 test/test_test*
 test/temp_generated*
+
