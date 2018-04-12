@@ -531,6 +531,8 @@ void cloog_options_copy_from_osl_scop(osl_scop_p scop,
     /* Extract the language. */
     if (!strcmp(scop->language, "FORTRAN"))
       options->language = CLOOG_LANGUAGE_FORTRAN;
+    else if (!strcmp(scop->language, "PYTHON"))
+      options->language = CLOOG_LANGUAGE_PYTHON;
     else
       options->language = CLOOG_LANGUAGE_C;
 
