@@ -44,7 +44,7 @@ extern "C"
 
 
 # define MAX_STRING_VAL 32
-# define INDENT_STEP 2
+# define INDENT_STEP 4
 
 # define EQTYPE_NONE	 0
 # define EQTYPE_CONSTANT 1
@@ -53,6 +53,7 @@ extern "C"
 
 #define CLOOG_LANGUAGE_C 0
 #define CLOOG_LANGUAGE_FORTRAN 1
+#define CLOOG_LANGUAGE_PYTHON 2
 
 /******************************************************************************
  *                          Structure display function                        *

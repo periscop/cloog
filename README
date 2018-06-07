@@ -67,7 +67,7 @@ library.
 If you obtained CLooG from the git repository, then you first
 need to obtain the submodules and create a configure script.
 
-  ./get_submodules.sh
+  ./submodules_get.sh
   ./autogen.sh
 
 The first step is only needed if you plan on using the isl backend.
