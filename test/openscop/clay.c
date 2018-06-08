@@ -4,17 +4,17 @@
 #define max(x,y)    ((x) > (y) ? (x) : (y))
 #define min(x,y)    ((x) < (y) ? (x) : (y))
 
-#ifdef TIME 
-#define IF_TIME(foo) foo; 
+#ifdef TIME
+#define IF_TIME(foo) foo;
 #else
 #define IF_TIME(foo)
 #endif
 
-  /* Scattering iterators. */
-  int __ii0;
+/* Scattering iterators. */
+int __ii0;
 
-for (__ii0=0;__ii0<=10;__ii0++) {
-  for (i=4*__ii0;i<=min(41,4*__ii0+3);i++) {
-    S(i);
-  }
+for (__ii0=0; __ii0<=10; __ii0++) {
+    for (i=4*__ii0; i<=min(41,4*__ii0+3); i++) {
+        S(i);
+    }
 }

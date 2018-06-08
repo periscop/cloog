@@ -9,16 +9,15 @@ extern void hash(int);
 
 #define S1(i) { hash(1); hash(i); }
 
-void test(int m, int n)
-{
-  /* Original iterators. */
-  int i;
-  for (i=1;i<=n;i++) {
-    if (i <= 2*m) {
-      S1(i) ;
+void test(int m, int n) {
+    /* Original iterators. */
+    int i;
+    for (i=1; i<=n; i++) {
+        if (i <= 2*m) {
+            S1(i) ;
+        }
+        if (i >= max(m,2*m+1)) {
+            S1(i) ;
+        }
     }
-    if (i >= max(m,2*m+1)) {
-      S1(i) ;
-    }
-  }
 }

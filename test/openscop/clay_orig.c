@@ -4,6 +4,6 @@ int i;
    stripmine([0,0],1,4,1);
  */
 for (i = 0; i < 42; i++) {
-  S(i);
+    S(i);
 }
 #pragma endscop

@@ -12,46 +12,45 @@ extern void hash(int);
 #define S3(i,j,k) { hash(3); hash(i); hash(j); hash(k); }
 #define S4(i,j,k) { hash(4); hash(i); hash(j); hash(k); }
 
-void test(int M, int N, int O, int P, int Q, int R, int S, int T, int U)
-{
-  /* Scattering iterators. */
-  int c2, c4, c6;
-  /* Original iterators. */
-  int i, j, k;
-  if ((M >= P+1) && (N >= Q+1)) {
-    for (c2=1;c2<=O-1;c2++) {
-      for (c4=Q;c4<=N-1;c4++) {
-        for (c6=P;c6<=M-1;c6++) {
-          S1(c2,c4,c6) ;
+void test(int M, int N, int O, int P, int Q, int R, int S, int T, int U) {
+    /* Scattering iterators. */
+    int c2, c4, c6;
+    /* Original iterators. */
+    int i, j, k;
+    if ((M >= P+1) && (N >= Q+1)) {
+        for (c2=1; c2<=O-1; c2++) {
+            for (c4=Q; c4<=N-1; c4++) {
+                for (c6=P; c6<=M-1; c6++) {
+                    S1(c2,c4,c6) ;
+                }
+            }
         }
-      }
     }
-  }
-  if ((M >= 2) && (N >= Q+1)) {
-    for (c2=1;c2<=O-1;c2++) {
-      for (c4=Q;c4<=N-1;c4++) {
-        for (c6=1;c6<=M-1;c6++) {
-          S2(c2,c4,c6) ;
+    if ((M >= 2) && (N >= Q+1)) {
+        for (c2=1; c2<=O-1; c2++) {
+            for (c4=Q; c4<=N-1; c4++) {
+                for (c6=1; c6<=M-1; c6++) {
+                    S2(c2,c4,c6) ;
+                }
+            }
         }
-      }
     }
-  }
-  if ((M >= P+1) && (N >= 2)) {
-    for (c2=1;c2<=O-1;c2++) {
-      for (c4=1;c4<=N-1;c4++) {
-        for (c6=P;c6<=M-1;c6++) {
-          S3(c2,c4,c6) ;
+    if ((M >= P+1) && (N >= 2)) {
+        for (c2=1; c2<=O-1; c2++) {
+            for (c4=1; c4<=N-1; c4++) {
+                for (c6=P; c6<=M-1; c6++) {
+                    S3(c2,c4,c6) ;
+                }
+            }
         }
-      }
     }
-  }
-  if ((M >= 2) && (N >= 2)) {
-    for (c2=1;c2<=O-1;c2++) {
-      for (c4=1;c4<=N-1;c4++) {
-        for (c6=1;c6<=M-1;c6++) {
-          S4(c2,c4,c6) ;
+    if ((M >= 2) && (N >= 2)) {
+        for (c2=1; c2<=O-1; c2++) {
+            for (c4=1; c4<=N-1; c4++) {
+                for (c6=1; c6<=M-1; c6++) {
+                    S4(c2,c4,c6) ;
+                }
+            }
         }
-      }
     }
-  }
 }

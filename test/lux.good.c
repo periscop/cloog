@@ -10,30 +10,29 @@ extern void hash(int);
 #define S1(i,j,k,l) { hash(1); hash(i); hash(j); hash(k); hash(l); }
 #define S2(i,j,k,l,m) { hash(2); hash(i); hash(j); hash(k); hash(l); hash(m); }
 
-void test(int M)
-{
-  /* Original iterators. */
-  int i, j, k, l, m;
-  if (M >= 2) {
-    for (l=2;l<=M;l++) {
-      S1(1,1,M,l) ;
+void test(int M) {
+    /* Original iterators. */
+    int i, j, k, l, m;
+    if (M >= 2) {
+        for (l=2; l<=M; l++) {
+            S1(1,1,M,l) ;
+        }
     }
-  }
-  for (i=2;i<=M-1;i++) {
-    for (j=1;j<=i-1;j++) {
-      for (k=j+1;k<=M;k++) {
-        S2(i,j,k,k,i) ;
-      }
+    for (i=2; i<=M-1; i++) {
+        for (j=1; j<=i-1; j++) {
+            for (k=j+1; k<=M; k++) {
+                S2(i,j,k,k,i) ;
+            }
+        }
+        for (l=i+1; l<=M; l++) {
+            S1(i,i,M,l) ;
+        }
     }
-    for (l=i+1;l<=M;l++) {
-      S1(i,i,M,l) ;
+    if (M >= 2) {
+        for (j=1; j<=M-1; j++) {
+            for (k=j+1; k<=M; k++) {
+                S2(M,j,k,k,M) ;
+            }
+        }
     }
-  }
-  if (M >= 2) {
-    for (j=1;j<=M-1;j++) {
-      for (k=j+1;k<=M;k++) {
-        S2(M,j,k,k,M) ;
-      }
-    }
-  }
 }

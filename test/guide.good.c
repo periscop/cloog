@@ -10,19 +10,18 @@ extern void hash(int);
 #define S1(i) { hash(1); hash(i); }
 #define S2(i) { hash(2); hash(i); }
 
-void test(int M, int N)
-{
-  /* Original iterators. */
-  int i;
-  for (i=1;i<=N;i++) {
-    if (i >= M) {
-      S1(i) ;
+void test(int M, int N) {
+    /* Original iterators. */
+    int i;
+    for (i=1; i<=N; i++) {
+        if (i >= M) {
+            S1(i) ;
+        }
+        if (i <= min(2*M,M-1)) {
+            S1(i) ;
+        }
     }
-    if (i <= min(2*M,M-1)) {
-      S1(i) ;
+    for (i=N+1; i<=2*N; i++) {
+        S2(i) ;
     }
-  }
-  for (i=N+1;i<=2*N;i++) {
-    S2(i) ;
-  }
 }

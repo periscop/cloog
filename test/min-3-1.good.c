@@ -9,13 +9,12 @@ extern void hash(int);
 
 #define S1(i,j) { hash(1); hash(i); hash(j); }
 
-void test(int M)
-{
-  /* Original iterators. */
-  int i, j;
-  for (i=0;i<=min(10,M);i++) {
-    for (j=0;j<=min(10,M);j++) {
-      S1(i,j) ;
+void test(int M) {
+    /* Original iterators. */
+    int i, j;
+    for (i=0; i<=min(10,M); i++) {
+        for (j=0; j<=min(10,M); j++) {
+            S1(i,j) ;
+        }
     }
-  }
 }

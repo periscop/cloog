@@ -1,11 +1,11 @@
 
-   /**-------------------------------------------------------------------**
-    **                               CLooG                               **
-    **-------------------------------------------------------------------**
-    **                               util.c                              **
-    **-------------------------------------------------------------------**
-    **                   First version: January 8th 2014                 **
-    **-------------------------------------------------------------------**/
+/**-------------------------------------------------------------------**
+ **                               CLooG                               **
+ **-------------------------------------------------------------------**
+ **                               util.c                              **
+ **-------------------------------------------------------------------**
+ **                   First version: January 8th 2014                 **
+ **-------------------------------------------------------------------**/
 
 
 /******************************************************************************
@@ -47,10 +47,10 @@
  * \return The real time clock of the operating system in seconds.
  */
 double cloog_util_rtclock() {
-  struct timezone Tzp;
-  struct timeval Tp;
-  int stat = gettimeofday(&Tp, &Tzp);
-  if (stat != 0)
-    cloog_msg(NULL, CLOOG_WARNING, "Error return from gettimeofday: %d", stat);
-  return (Tp.tv_sec + Tp.tv_usec*1.0e-6);
+    struct timezone Tzp;
+    struct timeval Tp;
+    int stat = gettimeofday(&Tp, &Tzp);
+    if (stat != 0)
+        cloog_msg(NULL, CLOOG_WARNING, "Error return from gettimeofday: %d", stat);
+    return (Tp.tv_sec + Tp.tv_usec*1.0e-6);
 }

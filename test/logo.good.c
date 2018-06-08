@@ -10,34 +10,33 @@ extern void hash(int);
 #define S1(i,j) { hash(1); hash(i); hash(j); }
 #define S2(i,j) { hash(2); hash(i); hash(j); }
 
-void test(int M)
-{
-  /* Original iterators. */
-  int i, j;
-  for (j=0;j<=7;j++) {
-    S1(1,j) ;
-  }
-  for (i=2;i<=5;i++) {
-    for (j=0;j<=i-2;j++) {
-      S2(i,j) ;
+void test(int M) {
+    /* Original iterators. */
+    int i, j;
+    for (j=0; j<=7; j++) {
+        S1(1,j) ;
     }
-    for (j=i-1;j<=4;j++) {
-      S1(i,j) ;
-      S2(i,j) ;
+    for (i=2; i<=5; i++) {
+        for (j=0; j<=i-2; j++) {
+            S2(i,j) ;
+        }
+        for (j=i-1; j<=4; j++) {
+            S1(i,j) ;
+            S2(i,j) ;
+        }
+        for (j=5; j<=7; j++) {
+            S1(i,j) ;
+        }
     }
-    for (j=5;j<=7;j++) {
-      S1(i,j) ;
+    for (j=0; j<=4; j++) {
+        S2(6,j) ;
     }
-  }
-  for (j=0;j<=4;j++) {
-    S2(6,j) ;
-  }
-  for (j=5;j<=7;j++) {
-    S1(6,j) ;
-  }
-  for (i=7;i<=8;i++) {
-    for (j=i-1;j<=7;j++) {
-      S1(i,j) ;
+    for (j=5; j<=7; j++) {
+        S1(6,j) ;
     }
-  }
+    for (i=7; i<=8; i++) {
+        for (j=i-1; j<=7; j++) {
+            S1(i,j) ;
+        }
+    }
 }

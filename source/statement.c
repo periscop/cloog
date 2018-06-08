@@ -1,11 +1,11 @@
 
-   /**-------------------------------------------------------------------**
-    **                              CLooG                                **
-    **-------------------------------------------------------------------**
-    **                           statement.c                             **
-    **-------------------------------------------------------------------**
-    **                 First version: november 4th 2001                  **
-    **-------------------------------------------------------------------**/
+/**-------------------------------------------------------------------**
+ **                              CLooG                                **
+ **-------------------------------------------------------------------**
+ **                           statement.c                             **
+ **-------------------------------------------------------------------**
+ **                 First version: november 4th 2001                  **
+ **-------------------------------------------------------------------**/
 
 
 /******************************************************************************
@@ -62,17 +62,15 @@
  */
 
 
-static void cloog_statement_leak_up(CloogState *state)
-{
-  state->statement_allocated++;
-  if ((state->statement_allocated - state->statement_freed) > state->statement_max)
-  state->statement_max = state->statement_allocated - state->statement_freed ;
+static void cloog_statement_leak_up(CloogState *state) {
+    state->statement_allocated++;
+    if ((state->statement_allocated - state->statement_freed) > state->statement_max)
+        state->statement_max = state->statement_allocated - state->statement_freed ;
 }
 
 
-static void cloog_statement_leak_down(CloogState *state)
-{ 
-  state->statement_freed++;
+static void cloog_statement_leak_down(CloogState *state) {
+    state->statement_freed++;
 }
 
 
@@ -92,36 +90,36 @@ void cloog_statement_print_structure(file, statement, level)
 FILE * file ;
 CloogStatement * statement ;
 int level ;
-{ int i ;
-      
-  if (statement != NULL)
-  { /* Go to the right level. */
-    for (i=0; i<level; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"+-- CloogStatement %d \n",statement->number) ;
-    
-    statement = statement->next ;
- 
-    while (statement != NULL)
-    { for (i=0; i<level; i++)
-      fprintf(file,"|\t") ;
-      fprintf(file,"|          |\n");
-      for (i=0; i<level; i++)
-      fprintf(file,"|\t") ;
-      fprintf(file,"|          V\n");
-      
-      for (i=0; i<level; i++)
-      fprintf(file,"|\t") ;
-      fprintf(file,"|   CloogStatement %d \n",statement->number) ;
-      statement = statement->next ;
+{
+    int i ;
+
+    if (statement != NULL) {
+        /* Go to the right level. */
+        for (i=0; i<level; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"+-- CloogStatement %d \n",statement->number) ;
+
+        statement = statement->next ;
+
+        while (statement != NULL) {
+            for (i=0; i<level; i++)
+                fprintf(file,"|\t") ;
+            fprintf(file,"|          |\n");
+            for (i=0; i<level; i++)
+                fprintf(file,"|\t") ;
+            fprintf(file,"|          V\n");
+
+            for (i=0; i<level; i++)
+                fprintf(file,"|\t") ;
+            fprintf(file,"|   CloogStatement %d \n",statement->number) ;
+            statement = statement->next ;
+        }
+    } else {
+        for (i=0; i<level; i++)
+            fprintf(file,"|\t") ;
+
+        fprintf(file,"+-- No CloogStatement\n") ;
     }
-  }
-  else
-  { for (i=0; i<level; i++)
-    fprintf(file,"|\t") ;
-    
-    fprintf(file,"+-- No CloogStatement\n") ;
-  }  
 }
 
 
@@ -130,8 +128,8 @@ int level ;
  * This function prints the content of a CloogStatement structure (statement)
  * into a file (file, possibly stdout).
  */
-void cloog_statement_print(FILE * file, CloogStatement * statement)
-{ cloog_statement_print_structure(file,statement,0) ;
+void cloog_statement_print(FILE * file, CloogStatement * statement) {
+    cloog_statement_print_structure(file,statement,0) ;
 }
 
 
@@ -144,18 +142,18 @@ void cloog_statement_print(FILE * file, CloogStatement * statement)
  * cloog_statement_free function:
  * This function frees the allocated memory for a CloogStatement structure.
  */
-void cloog_statement_free(CloogStatement * statement)
-{ CloogStatement * next ;
+void cloog_statement_free(CloogStatement * statement) {
+    CloogStatement * next ;
 
-  while (statement != NULL) {
-    cloog_statement_leak_down(statement->state);
-    
-    next = statement->next ;
-    /* free(statement->usr) ; Actually, this is user's job ! */
-    free(statement->name);
-    free(statement) ;
-    statement = next ;
-  }
+    while (statement != NULL) {
+        cloog_statement_leak_down(statement->state);
+
+        next = statement->next ;
+        /* free(statement->usr) ; Actually, this is user's job ! */
+        free(statement->name);
+        free(statement) ;
+        statement = next ;
+    }
 }
 
 
@@ -171,24 +169,24 @@ void cloog_statement_free(CloogStatement * statement)
  * allocated space.
  * - November 21th 2005: first version.
  */
-CloogStatement *cloog_statement_malloc(CloogState *state)
-{ CloogStatement * statement ;
-  
-  /* Memory allocation for the CloogStatement structure. */
-  statement = (CloogStatement *)malloc(sizeof(CloogStatement)) ;
-  if (statement == NULL) 
-    cloog_die("memory overflow.\n");
-  cloog_statement_leak_up(state);
-  
-  /* We set the various fields with default values. */
-  statement->state = state;
-  statement->number = 0;
-  statement->name = NULL;
-  statement->usr  = NULL ; /* To fill it is actually user's job ! */
-  statement->next = NULL ;
-  
-  return statement ;
-}  
+CloogStatement *cloog_statement_malloc(CloogState *state) {
+    CloogStatement * statement ;
+
+    /* Memory allocation for the CloogStatement structure. */
+    statement = (CloogStatement *)malloc(sizeof(CloogStatement)) ;
+    if (statement == NULL)
+        cloog_die("memory overflow.\n");
+    cloog_statement_leak_up(state);
+
+    /* We set the various fields with default values. */
+    statement->state = state;
+    statement->number = 0;
+    statement->name = NULL;
+    statement->usr  = NULL ; /* To fill it is actually user's job ! */
+    statement->next = NULL ;
+
+    return statement ;
+}
 
 
 /**
@@ -206,75 +204,74 @@ CloogStatement *cloog_statement_malloc(CloogState *state)
  *                       read on a file.
  * - November 21th 2005: use of cloog_statement_malloc.
  */
-CloogStatement *cloog_statement_alloc(CloogState *state, int number)
-{ CloogStatement * statement ;
-    
-  /* Memory allocation and initialization of the structure. */
-  statement = cloog_statement_malloc(state);
+CloogStatement *cloog_statement_alloc(CloogState *state, int number) {
+    CloogStatement * statement ;
 
-  statement->number = number ;
-  
-  return statement ;
+    /* Memory allocation and initialization of the structure. */
+    statement = cloog_statement_malloc(state);
+
+    statement->number = number ;
+
+    return statement ;
 }
 
 
 /**
  * cloog_statement_copy function:
  * This function returns a copy of the CloogStatement structure given as input.
- * - October 28th 2001: first version (in loop.c). 
+ * - October 28th 2001: first version (in loop.c).
  * - March   17th 2003: fix for the usr field in CloogStatement structure.
- * - April   16th 2005: adaptation to new CloogStatement struct (with number). 
- */ 
-CloogStatement * cloog_statement_copy(CloogStatement * source)
-{ CloogStatement * statement, * temp, * now = NULL ;
-  
-  statement = NULL ;
+ * - April   16th 2005: adaptation to new CloogStatement struct (with number).
+ */
+CloogStatement * cloog_statement_copy(CloogStatement * source) {
+    CloogStatement * statement, * temp, * now = NULL ;
 
-  while (source != NULL) {
-    cloog_statement_leak_up(source->state);
+    statement = NULL ;
 
-    temp = (CloogStatement *)malloc(sizeof(CloogStatement)) ;
-    if (temp == NULL)
-      cloog_die("memory overflow.\n");
-    
-    temp->state  = source->state;
-    temp->number = source->number ;
-    temp->name = source->name ? strdup(source->name) : NULL;
-    temp->usr    = source->usr ;
-    temp->next   = NULL ;
-    
-    if (statement == NULL)
-    { statement = temp ;
-      now = statement ;
+    while (source != NULL) {
+        cloog_statement_leak_up(source->state);
+
+        temp = (CloogStatement *)malloc(sizeof(CloogStatement)) ;
+        if (temp == NULL)
+            cloog_die("memory overflow.\n");
+
+        temp->state  = source->state;
+        temp->number = source->number ;
+        temp->name = source->name ? strdup(source->name) : NULL;
+        temp->usr    = source->usr ;
+        temp->next   = NULL ;
+
+        if (statement == NULL) {
+            statement = temp ;
+            now = statement ;
+        } else {
+            now->next = temp ;
+            now = now->next ;
+        }
+        source = source->next ;
     }
-    else
-    { now->next = temp ;
-      now = now->next ;
-    }
-    source = source->next ;
-  }
-  return(statement) ;
+    return(statement) ;
 }
 
 
-/** 
+/**
  * cloog_statement_add function:
  * This function adds a CloogStatement structure (statement) at a given place
  * (now) of a NULL terminated list of CloogStatement structures. The beginning
  * of this list is (start). This function updates (now) to (loop), and
  * updates (start) if the added element is the first one -that is when (start)
  * is NULL-.
- * - March 27th 2004: first version. 
- */ 
+ * - March 27th 2004: first version.
+ */
 void cloog_statement_add(start, now, statement)
 CloogStatement ** start, ** now, * statement ;
-{ if (*start == NULL)
-  { *start = statement ;
-    *now = *start ;
-  }
-  else
-  { (*now)->next = statement ;
-    *now = (*now)->next ;
-  }
+{
+    if (*start == NULL) {
+        *start = statement ;
+        *now = *start ;
+    } else {
+        (*now)->next = statement ;
+        *now = (*now)->next ;
+    }
 }
 

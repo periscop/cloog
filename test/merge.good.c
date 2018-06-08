@@ -11,19 +11,18 @@ extern void hash(int);
 #define S2(i) { hash(2); hash(i); }
 #define S3(i) { hash(3); hash(i); }
 
-void test()
-{
-  /* Scattering iterators. */
-  int c1;
-  /* Original iterators. */
-  int i;
-  for (c1=0;c1<=10;c1++) {
-    if (c1 == 0) {
-      S1(0) ;
+void test() {
+    /* Scattering iterators. */
+    int c1;
+    /* Original iterators. */
+    int i;
+    for (c1=0; c1<=10; c1++) {
+        if (c1 == 0) {
+            S1(0) ;
+        }
+        if (c1 >= 2) {
+            S2(c1) ;
+        }
+        S3(c1) ;
     }
-    if (c1 >= 2) {
-      S2(c1) ;
-    }
-    S3(c1) ;
-  }
 }

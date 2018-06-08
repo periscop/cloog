@@ -9,15 +9,14 @@ extern void hash(int);
 
 #define S1(i,j,k) { hash(1); hash(i); hash(j); hash(k); }
 
-void test()
-{
-  /* Original iterators. */
-  int i, j, k;
-  for (i=0;i<=1;i++) {
-    if ((i+1)%2 == 0) {
-      j = (-i+3)/2 ;
-      k = (i+9)/2 ;
-      S1(i,(-i+3)/2,(i+9)/2) ;
+void test() {
+    /* Original iterators. */
+    int i, j, k;
+    for (i=0; i<=1; i++) {
+        if ((i+1)%2 == 0) {
+            j = (-i+3)/2 ;
+            k = (i+9)/2 ;
+            S1(i,(-i+3)/2,(i+9)/2) ;
+        }
     }
-  }
 }

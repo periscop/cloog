@@ -16,47 +16,46 @@ extern void hash(int);
 #define S7(i,j,k,l) { hash(7); hash(i); hash(j); hash(k); hash(l); }
 #define S8() { hash(8); }
 
-void test(int M, int N)
-{
-  /* Scattering iterators. */
-  int p1, p3, p5, p7;
-  /* Original iterators. */
-  int i, j, k, l;
-  S1() ;
-  S2() ;
-  for (p1=0;p1<=N-1;p1++) {
-    for (p3=0;p3<=N-1;p3++) {
-      S4(p1,p3) ;
-      S5(p1,p3) ;
+void test(int M, int N) {
+    /* Scattering iterators. */
+    int p1, p3, p5, p7;
+    /* Original iterators. */
+    int i, j, k, l;
+    S1() ;
+    S2() ;
+    for (p1=0; p1<=N-1; p1++) {
+        for (p3=0; p3<=N-1; p3++) {
+            S4(p1,p3) ;
+            S5(p1,p3) ;
+        }
     }
-  }
-  for (p1=0;p1<=N-1;p1++) {
-    for (p3=0;p3<=N-1;p3++) {
-      for (p5=0;p5<=floord(N-1,32);p5++) {
-        if (p5 >= 0) {
-          p7 = 32*p5 ;
-          l = 32*p5 ;
-          S7(p1,p3,p5,32*p5) ;
+    for (p1=0; p1<=N-1; p1++) {
+        for (p3=0; p3<=N-1; p3++) {
+            for (p5=0; p5<=floord(N-1,32); p5++) {
+                if (p5 >= 0) {
+                    p7 = 32*p5 ;
+                    l = 32*p5 ;
+                    S7(p1,p3,p5,32*p5) ;
+                }
+                if (p5 <= -1) {
+                    S7(p1,p3,p5,0) ;
+                }
+                for (p7=max(32*p5+1,1); p7<=min(N-1,32*p5+31); p7++) {
+                    l = p7-1 ;
+                    S6(p1,p3,p5,p7-1) ;
+                    S7(p1,p3,p5,p7) ;
+                }
+                if (p5 >= ceild(N-32,32)) {
+                    l = N-1 ;
+                    S6(p1,p3,p5,N-1) ;
+                }
+                if (p5 <= floord(N-33,32)) {
+                    p7 = 32*p5+32 ;
+                    l = 32*p5+31 ;
+                    S6(p1,p3,p5,32*p5+31) ;
+                }
+            }
         }
-        if (p5 <= -1) {
-          S7(p1,p3,p5,0) ;
-        }
-        for (p7=max(32*p5+1,1);p7<=min(N-1,32*p5+31);p7++) {
-          l = p7-1 ;
-          S6(p1,p3,p5,p7-1) ;
-          S7(p1,p3,p5,p7) ;
-        }
-        if (p5 >= ceild(N-32,32)) {
-          l = N-1 ;
-          S6(p1,p3,p5,N-1) ;
-        }
-        if (p5 <= floord(N-33,32)) {
-          p7 = 32*p5+32 ;
-          l = 32*p5+31 ;
-          S6(p1,p3,p5,32*p5+31) ;
-        }
-      }
     }
-  }
-  S8() ;
+    S8() ;
 }

@@ -1,11 +1,11 @@
 
-   /**-------------------------------------------------------------------**
-    **                              CLooG                                **
-    **-------------------------------------------------------------------**
-    **                             names.c                               **
-    **-------------------------------------------------------------------**
-    **                  First version: august 1st 2002                   **
-    **-------------------------------------------------------------------**/
+/**-------------------------------------------------------------------**
+ **                              CLooG                                **
+ **-------------------------------------------------------------------**
+ **                             names.c                               **
+ **-------------------------------------------------------------------**
+ **                  First version: august 1st 2002                   **
+ **-------------------------------------------------------------------**/
 
 
 /******************************************************************************
@@ -57,128 +57,123 @@
  * - July 1st 2005: first version based on the old cloog_names_print function,
  *                  it was the first modification in this file since two years !
  */
-void cloog_names_print_structure(FILE * file, CloogNames * names, int level)
-{ int i ;
-  
-  /* Go to the right level. */
-  for (i=0; i<level; i++)
-  fprintf(file,"|\t") ;
-  
-  if (names != NULL)
-  { fprintf(file,"+-- CloogNames\n") ;
-    
-    /* A blank line. */
-    for (i=0; i<=level+1; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"\n") ;
+void cloog_names_print_structure(FILE * file, CloogNames * names, int level) {
+    int i ;
 
-    /* Print the scalar dimension number. */
-    for (i=0; i<=level; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"Scalar dimension number ---: %d\n",names->nb_scalars) ;
+    /* Go to the right level. */
+    for (i=0; i<level; i++)
+        fprintf(file,"|\t") ;
 
-    /* A blank line. */
-    for (i=0; i<=level+1; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"\n") ;
+    if (names != NULL) {
+        fprintf(file,"+-- CloogNames\n") ;
 
-    /* Print the scalar iterators. */
-    for (i=0; i<=level; i++)
-    fprintf(file,"|\t") ;
-    if (names->nb_scalars > 0)
-    { fprintf(file,"+-- Scalar iterator strings:") ;
-      for (i=0;i<names->nb_scalars;i++)
-      fprintf(file," %s",names->scalars[i]) ;
-      fprintf(file,"\n") ;
-    }
-    else
-    fprintf(file,"+-- No scalar string\n") ;
+        /* A blank line. */
+        for (i=0; i<=level+1; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"\n") ;
 
-    /* A blank line. */
-    for (i=0; i<=level+1; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"\n") ;
+        /* Print the scalar dimension number. */
+        for (i=0; i<=level; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"Scalar dimension number ---: %d\n",names->nb_scalars) ;
 
-    /* Print the scattering dimension number. */
-    for (i=0; i<=level; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"Scattering dimension number: %d\n",names->nb_scattering) ;
+        /* A blank line. */
+        for (i=0; i<=level+1; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"\n") ;
 
-    /* A blank line. */
-    for (i=0; i<=level+1; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"\n") ;
+        /* Print the scalar iterators. */
+        for (i=0; i<=level; i++)
+            fprintf(file,"|\t") ;
+        if (names->nb_scalars > 0) {
+            fprintf(file,"+-- Scalar iterator strings:") ;
+            for (i=0; i<names->nb_scalars; i++)
+                fprintf(file," %s",names->scalars[i]) ;
+            fprintf(file,"\n") ;
+        } else
+            fprintf(file,"+-- No scalar string\n") ;
 
-    /* Print the scattering iterators. */
-    for (i=0; i<=level; i++)
-    fprintf(file,"|\t") ;
-    if (names->nb_scattering > 0)
-    { fprintf(file,"+-- Scattering strings ----:") ;
-      for (i=0;i<names->nb_scattering;i++)
-      fprintf(file," %s",names->scattering[i]) ;
-      fprintf(file,"\n") ;
-    }
-    else
-    fprintf(file,"+-- No scattering string\n") ;
+        /* A blank line. */
+        for (i=0; i<=level+1; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"\n") ;
 
-    /* A blank line. */
-    for (i=0; i<=level+1; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"\n") ;
-    
-    /* Print the iterator number. */
-    for (i=0; i<=level; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"Iterator number -----------: %d\n",names->nb_iterators) ;
+        /* Print the scattering dimension number. */
+        for (i=0; i<=level; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"Scattering dimension number: %d\n",names->nb_scattering) ;
 
-    /* A blank line. */
-    for (i=0; i<=level+1; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"\n") ;
+        /* A blank line. */
+        for (i=0; i<=level+1; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"\n") ;
 
-    /* Print the iterators. */
-    for (i=0; i<=level; i++)
-    fprintf(file,"|\t") ;
-    if (names->nb_iterators > 0)
-    { fprintf(file,"+-- Iterator strings ------:") ;
-      for (i=0;i<names->nb_iterators;i++)
-      fprintf(file," %s",names->iterators[i]) ;
-      fprintf(file,"\n") ;
-    }
-    else
-    fprintf(file,"+-- No iterators\n") ;
+        /* Print the scattering iterators. */
+        for (i=0; i<=level; i++)
+            fprintf(file,"|\t") ;
+        if (names->nb_scattering > 0) {
+            fprintf(file,"+-- Scattering strings ----:") ;
+            for (i=0; i<names->nb_scattering; i++)
+                fprintf(file," %s",names->scattering[i]) ;
+            fprintf(file,"\n") ;
+        } else
+            fprintf(file,"+-- No scattering string\n") ;
 
-    /* A blank line. */
-    for (i=0; i<=level+1; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"\n") ;
-    
-    /* Print the parameter number. */
-    for (i=0; i<=level; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"Parameter number ----------: %d\n",names->nb_parameters) ;
+        /* A blank line. */
+        for (i=0; i<=level+1; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"\n") ;
 
-    /* A blank line. */
-    for (i=0; i<=level+1; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"\n") ;
+        /* Print the iterator number. */
+        for (i=0; i<=level; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"Iterator number -----------: %d\n",names->nb_iterators) ;
 
-    /* Print the parameters. */
-    for (i=0; i<=level; i++)
-    fprintf(file,"|\t") ;
-    if (names->nb_parameters > 0)
-    { fprintf(file,"+-- Parameter strings -----:") ;
-      for (i=0;i<names->nb_parameters;i++)
-      fprintf(file," %s",names->parameters[i]) ;
-      fprintf(file,"\n") ;
-    }
-    else
-    fprintf(file,"No parameters\n") ;
-    
-  }
-  else
-  fprintf(file,"+-- No CloogNames\n") ;
-  fprintf(file, "Number of active references: %d\n", names->references);
+        /* A blank line. */
+        for (i=0; i<=level+1; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"\n") ;
+
+        /* Print the iterators. */
+        for (i=0; i<=level; i++)
+            fprintf(file,"|\t") ;
+        if (names->nb_iterators > 0) {
+            fprintf(file,"+-- Iterator strings ------:") ;
+            for (i=0; i<names->nb_iterators; i++)
+                fprintf(file," %s",names->iterators[i]) ;
+            fprintf(file,"\n") ;
+        } else
+            fprintf(file,"+-- No iterators\n") ;
+
+        /* A blank line. */
+        for (i=0; i<=level+1; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"\n") ;
+
+        /* Print the parameter number. */
+        for (i=0; i<=level; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"Parameter number ----------: %d\n",names->nb_parameters) ;
+
+        /* A blank line. */
+        for (i=0; i<=level+1; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"\n") ;
+
+        /* Print the parameters. */
+        for (i=0; i<=level; i++)
+            fprintf(file,"|\t") ;
+        if (names->nb_parameters > 0) {
+            fprintf(file,"+-- Parameter strings -----:") ;
+            for (i=0; i<names->nb_parameters; i++)
+                fprintf(file," %s",names->parameters[i]) ;
+            fprintf(file,"\n") ;
+        } else
+            fprintf(file,"No parameters\n") ;
+
+    } else
+        fprintf(file,"+-- No CloogNames\n") ;
+    fprintf(file, "Number of active references: %d\n", names->references);
 }
 
 
@@ -190,8 +185,8 @@ void cloog_names_print_structure(FILE * file, CloogNames * names, int level)
  *                  cloog_program_print_structure, with a quite better
  *                  human-readable representation.
  */
-void cloog_names_print(FILE * file, CloogNames * names)
-{ cloog_names_print_structure(file,names,0) ;
+void cloog_names_print(FILE * file, CloogNames * names) {
+    cloog_names_print_structure(file,names,0) ;
 }
 
 
@@ -202,51 +197,50 @@ void cloog_names_print(FILE * file, CloogNames * names)
 
 /**
  * cloog_names_free function:
- * This function decrements the number of active references to 
+ * This function decrements the number of active references to
  * a CloogNames structure and frees the allocated memory for this structure
  * if the count drops to zero.
  */
-void cloog_names_free(CloogNames * names)
-{ int i ;
+void cloog_names_free(CloogNames * names) {
+    int i ;
 
-  if (--names->references)
-    return;
+    if (--names->references)
+        return;
 
-  if (names->scalars != NULL)
-  { for (i=0;i<names->nb_scalars;i++)
-    free(names->scalars[i]) ;
-    free(names->scalars) ;
-  }
-   
-  if (names->scattering != NULL)
-  { for (i=0;i<names->nb_scattering;i++)
-    free(names->scattering[i]) ;
-    free(names->scattering) ;
-  }
-   
-  if (names->iterators != NULL)
-  { for (i=0;i<names->nb_iterators;i++)
-    free(names->iterators[i]) ;
-    free(names->iterators) ;
-  }
-   
-  if (names->parameters != NULL)
-  { for (i=0;i<names->nb_parameters;i++)
-    free(names->parameters[i]) ;
-    free(names->parameters) ;
-  }
-  free(names) ;
+    if (names->scalars != NULL) {
+        for (i=0; i<names->nb_scalars; i++)
+            free(names->scalars[i]) ;
+        free(names->scalars) ;
+    }
+
+    if (names->scattering != NULL) {
+        for (i=0; i<names->nb_scattering; i++)
+            free(names->scattering[i]) ;
+        free(names->scattering) ;
+    }
+
+    if (names->iterators != NULL) {
+        for (i=0; i<names->nb_iterators; i++)
+            free(names->iterators[i]) ;
+        free(names->iterators) ;
+    }
+
+    if (names->parameters != NULL) {
+        for (i=0; i<names->nb_parameters; i++)
+            free(names->parameters[i]) ;
+        free(names->parameters) ;
+    }
+    free(names) ;
 }
 
 
 /**
  * cloog_names_copy function:
  * As usual in CLooG, "copy" means incrementing the reference count.
- */ 
-CloogNames *cloog_names_copy(CloogNames *names)
-{
-  names->references++;
-  return names;
+ */
+CloogNames *cloog_names_copy(CloogNames *names) {
+    names->references++;
+    return names;
 }
 
 
@@ -264,58 +258,57 @@ CloogNames *cloog_names_copy(CloogNames *names)
  * - nb_items is the number of names the function will have to read if the
  *   naming option is set to read.
  */
-char ** cloog_names_read_strings(FILE *file, int nb_items)
-{ int i, option, n ;
-  char s[MAX_STRING], str[MAX_STRING], * c, **names = NULL;
+char ** cloog_names_read_strings(FILE *file, int nb_items) {
+    int i, option, n ;
+    char s[MAX_STRING], str[MAX_STRING], * c, **names = NULL;
 
-  /* We first read name option. */
-  while (fgets(s,MAX_STRING,file) == 0) ;
-  while ((*s=='#' || *s=='\n') || (sscanf(s," %d",&option)<1))
-    if (fgets(s, MAX_STRING, file))
-      continue;
-  
-  /* If there is no item to read, then return NULL. */
-  if (nb_items == 0)
-  return NULL ;
-  
-  /* If option is to read them in the file, then we do it and put them into
-   * the array.
-   */
-  if (option)
-  { /* Memory allocation. */
-    names = (char **)malloc(nb_items*sizeof(char *)) ;
-    if (names == NULL) 
-      cloog_die("memory overflow.\n");
-    for (i=0;i<nb_items;i++)
-    { names[i] = (char *)malloc(MAX_NAME*sizeof(char)) ;
-      if (names[i] == NULL) 
-	cloog_die("memory overflow.\n");
-    }
-    
-    do  /* Skip the comments, spaces and empty lines... */
-    { c = fgets(s,MAX_STRING,file) ;
-      while ((c != NULL) && isspace(*c) && (*c != '\n'))
-      c++ ;
-    }
-    while (c != NULL && (*c == '#' || *c == '\n'));
-    
-    if (c == NULL) 
-      cloog_die("no names in input file.\n");
-    for (i=0;i<nb_items;i++) 
-    { /* All names must be on the same line. */
-      while (isspace(*c))
-      c++ ;
-      if (!*c || *c == '#' || *c == '\n')
-        cloog_die("not enough names in input file.\n");
-      /* n is strlen(str). */
-      if (sscanf(c,"%s%n",str,&n) == 0) 
-        cloog_die("no names in input file.\n");
-      sscanf(str,"%s",names[i]) ;
-      c += n ;
-    }
-  }
+    /* We first read name option. */
+    while (fgets(s,MAX_STRING,file) == 0) ;
+    while ((*s=='#' || *s=='\n') || (sscanf(s," %d",&option)<1))
+        if (fgets(s, MAX_STRING, file))
+            continue;
 
-  return names ;
+    /* If there is no item to read, then return NULL. */
+    if (nb_items == 0)
+        return NULL ;
+
+    /* If option is to read them in the file, then we do it and put them into
+     * the array.
+     */
+    if (option) {
+        /* Memory allocation. */
+        names = (char **)malloc(nb_items*sizeof(char *)) ;
+        if (names == NULL)
+            cloog_die("memory overflow.\n");
+        for (i=0; i<nb_items; i++) {
+            names[i] = (char *)malloc(MAX_NAME*sizeof(char)) ;
+            if (names[i] == NULL)
+                cloog_die("memory overflow.\n");
+        }
+
+        do { /* Skip the comments, spaces and empty lines... */
+            c = fgets(s,MAX_STRING,file) ;
+            while ((c != NULL) && isspace(*c) && (*c != '\n'))
+                c++ ;
+        } while (c != NULL && (*c == '#' || *c == '\n'));
+
+        if (c == NULL)
+            cloog_die("no names in input file.\n");
+        for (i=0; i<nb_items; i++) {
+            /* All names must be on the same line. */
+            while (isspace(*c))
+                c++ ;
+            if (!*c || *c == '#' || *c == '\n')
+                cloog_die("not enough names in input file.\n");
+            /* n is strlen(str). */
+            if (sscanf(c,"%s%n",str,&n) == 0)
+                cloog_die("no names in input file.\n");
+            sscanf(str,"%s",names[i]) ;
+            c += n ;
+        }
+    }
+
+    return names ;
 }
 
 
@@ -331,27 +324,27 @@ char ** cloog_names_read_strings(FILE *file, int nb_items)
  * allocated space.
  * - November 21th 2005: first version.
  */
-CloogNames * cloog_names_malloc()
-{ CloogNames * names ;
-  
-  /* Memory allocation for the CloogNames structure. */
-  names = (CloogNames *)malloc(sizeof(CloogNames)) ;
-  if (names == NULL) 
-    cloog_die("memory overflow.\n");
-  
-  /* We set the various fields with default values. */
-  names->nb_scalars    = 0 ;
-  names->nb_scattering = 0 ;
-  names->nb_iterators  = 0 ;
-  names->nb_parameters = 0 ;
-  names->scalars       = NULL ;
-  names->scattering    = NULL ;
-  names->iterators     = NULL ;
-  names->parameters    = NULL ;
-  names->references    = 1;
-  
-  return names ;
-}  
+CloogNames * cloog_names_malloc() {
+    CloogNames * names ;
+
+    /* Memory allocation for the CloogNames structure. */
+    names = (CloogNames *)malloc(sizeof(CloogNames)) ;
+    if (names == NULL)
+        cloog_die("memory overflow.\n");
+
+    /* We set the various fields with default values. */
+    names->nb_scalars    = 0 ;
+    names->nb_scattering = 0 ;
+    names->nb_iterators  = 0 ;
+    names->nb_parameters = 0 ;
+    names->scalars       = NULL ;
+    names->scattering    = NULL ;
+    names->iterators     = NULL ;
+    names->parameters    = NULL ;
+    names->references    = 1;
+
+    return names ;
+}
 
 
 /**
@@ -363,22 +356,22 @@ CloogNames * cloog_names_malloc()
  * - September 11th 2005: addition of both scalar and scattering informations.
  * - November  21th 2005: use of cloog_names_malloc.
  */
-CloogNames * cloog_names_alloc()
-{ CloogNames * names ;
+CloogNames * cloog_names_alloc() {
+    CloogNames * names ;
 
-  /* Memory allocation for the CloogNames structure. */
-  names = cloog_names_malloc() ;
-  
-  names->nb_scalars    = 0;
-  names->nb_scattering = 0;
-  names->nb_iterators  = 0;
-  names->nb_parameters = 0;
-  names->scalars       = NULL;
-  names->scattering    = NULL;
-  names->iterators     = NULL;
-  names->parameters    = NULL;
-  
-  return names ;
+    /* Memory allocation for the CloogNames structure. */
+    names = cloog_names_malloc() ;
+
+    names->nb_scalars    = 0;
+    names->nb_scattering = 0;
+    names->nb_iterators  = 0;
+    names->nb_parameters = 0;
+    names->scalars       = NULL;
+    names->scattering    = NULL;
+    names->iterators     = NULL;
+    names->parameters    = NULL;
+
+    return names ;
 }
 
 
@@ -396,27 +389,27 @@ CloogNames * cloog_names_alloc()
  **
  * - September 9th 2002 : first version, extracted from cloog_names_generate.
  */
-char ** cloog_names_generate_items(int nb_items, char * prefix, char first_item)
-{ int i ;
-  char ** names ;
-  
-  if (nb_items == 0)
-  return NULL ;
-    
-  names = (char **)malloc(nb_items*sizeof(char *)) ;
-  if (names == NULL) 
-    cloog_die("memory overflow.\n");
-  for (i=0;i<nb_items;i++)
-  { names[i] = (char *)malloc(MAX_NAME*sizeof(char)) ;
-    if (names[i] == NULL) 
-      cloog_die("memory overflow.\n");
-    if (prefix == NULL)
-    sprintf(names[i],"%c",first_item+i) ;
-    else
-      sprintf(names[i], "%s%d", prefix, 1+i);
-  }
-  
-  return names ;
+char ** cloog_names_generate_items(int nb_items, char * prefix, char first_item) {
+    int i ;
+    char ** names ;
+
+    if (nb_items == 0)
+        return NULL ;
+
+    names = (char **)malloc(nb_items*sizeof(char *)) ;
+    if (names == NULL)
+        cloog_die("memory overflow.\n");
+    for (i=0; i<nb_items; i++) {
+        names[i] = (char *)malloc(MAX_NAME*sizeof(char)) ;
+        if (names[i] == NULL)
+            cloog_die("memory overflow.\n");
+        if (prefix == NULL)
+            sprintf(names[i],"%c",first_item+i) ;
+        else
+            sprintf(names[i], "%s%d", prefix, 1+i);
+    }
+
+    return names ;
 }
 
 
@@ -444,24 +437,24 @@ char ** cloog_names_generate_items(int nb_items, char * prefix, char first_item)
  * - September 11th 2005 : addition of both scalar and scattering informations.
  */
 CloogNames * cloog_names_generate(
-     int nb_scalars, int nb_scattering, int nb_iterators, int nb_parameters,
-     char first_s,   char first_t,      char first_i,     char first_p)
-{ CloogNames * names ;
+    int nb_scalars, int nb_scattering, int nb_iterators, int nb_parameters,
+    char first_s,   char first_t,      char first_i,     char first_p) {
+    CloogNames * names ;
 
-  names = (CloogNames *)malloc(sizeof(CloogNames)) ;
-  if (names == NULL) 
-    cloog_die("memory overflow.\n");
-  
-  names->nb_scalars    = nb_scalars ;
-  names->nb_scattering = nb_scattering ;
-  names->nb_parameters = nb_parameters ;
-  names->nb_iterators  = nb_iterators ;
-  names->scalars       = cloog_names_generate_items(nb_scalars,   NULL,first_s);
-  names->scattering    = cloog_names_generate_items(nb_scattering,NULL,first_t);
-  names->parameters    = cloog_names_generate_items(nb_parameters,NULL,first_p);
-  names->iterators     = cloog_names_generate_items(nb_iterators, NULL,first_i);
+    names = (CloogNames *)malloc(sizeof(CloogNames)) ;
+    if (names == NULL)
+        cloog_die("memory overflow.\n");
 
-  return names ;
+    names->nb_scalars    = nb_scalars ;
+    names->nb_scattering = nb_scattering ;
+    names->nb_parameters = nb_parameters ;
+    names->nb_iterators  = nb_iterators ;
+    names->scalars       = cloog_names_generate_items(nb_scalars,   NULL,first_s);
+    names->scattering    = cloog_names_generate_items(nb_scattering,NULL,first_t);
+    names->parameters    = cloog_names_generate_items(nb_parameters,NULL,first_p);
+    names->iterators     = cloog_names_generate_items(nb_iterators, NULL,first_i);
+
+    return names ;
 }
 
 
@@ -469,59 +462,57 @@ CloogNames * cloog_names_generate(
  * scalar dimensions have to be removed since these dimensions have been
  * erased and do not need to be print. We copy all the iterator names except
  * the scalar ones in a new string array.
- * - September 12th 2005: first version. 
+ * - September 12th 2005: first version.
  */
-void cloog_names_scalarize(CloogNames * names, int nb_scattdims, int * scaldims)
-{ int  nb_scalars, nb_scattering, i, current_scalar, current_scattering ;
-  char ** scalars, ** scattering ;
+void cloog_names_scalarize(CloogNames * names, int nb_scattdims, int * scaldims) {
+    int  nb_scalars, nb_scattering, i, current_scalar, current_scattering ;
+    char ** scalars, ** scattering ;
 
-  if (!nb_scattdims || (scaldims == NULL))
-  return ;
-  
-  nb_scalars = 0 ;
-  for (i=0;i<nb_scattdims;i++)
-  if (scaldims[i])
-  nb_scalars  ++ ;
+    if (!nb_scattdims || (scaldims == NULL))
+        return ;
 
-  if (!nb_scalars)
-  return ;
-  
-  nb_scattering = names->nb_scattering - nb_scalars ;
-  scattering = (char **)malloc(nb_scattering * sizeof(char *)) ;
-  if (scattering == NULL) 
-    cloog_die("memory overflow.\n");
-  scalars = (char **)malloc(nb_scalars * sizeof(char *)) ;
-  if (scalars == NULL) 
-    cloog_die("memory overflow.\n");
-  
-  current_scalar = 0 ;
-  current_scattering  = 0 ;
-  for (i=0;i<nb_scattdims;i++)
-  { if (!scaldims[i])
-    { scattering[current_scattering] = names->scattering[i] ;
-      current_scattering ++ ;
+    nb_scalars = 0 ;
+    for (i=0; i<nb_scattdims; i++)
+        if (scaldims[i])
+            nb_scalars  ++ ;
+
+    if (!nb_scalars)
+        return ;
+
+    nb_scattering = names->nb_scattering - nb_scalars ;
+    scattering = (char **)malloc(nb_scattering * sizeof(char *)) ;
+    if (scattering == NULL)
+        cloog_die("memory overflow.\n");
+    scalars = (char **)malloc(nb_scalars * sizeof(char *)) ;
+    if (scalars == NULL)
+        cloog_die("memory overflow.\n");
+
+    current_scalar = 0 ;
+    current_scattering  = 0 ;
+    for (i=0; i<nb_scattdims; i++) {
+        if (!scaldims[i]) {
+            scattering[current_scattering] = names->scattering[i] ;
+            current_scattering ++ ;
+        } else {
+            scalars[current_scalar] = names->scattering[i] ;
+            current_scalar ++ ;
+        }
     }
-    else
-    { scalars[current_scalar] = names->scattering[i] ;
-      current_scalar ++ ;
-    }
-  }
-  
-  free(names->scattering) ;
-  names->scattering    = scattering ;
-  names->scalars       = scalars ;
-  names->nb_scattering = nb_scattering ;
-  names->nb_scalars    = nb_scalars ;
+
+    free(names->scattering) ;
+    names->scattering    = scattering ;
+    names->scalars       = scalars ;
+    names->nb_scattering = nb_scattering ;
+    names->nb_scalars    = nb_scalars ;
 }
 
 /**
  * Return the name at a given level (starting at one).
  * May be a scattering dimension or an iterator of the original domain.
  */
-const char *cloog_names_name_at_level(CloogNames *names, int level)
-{
-  if (level <= names->nb_scattering)
-    return names->scattering[level - 1];
-  else
-    return names->iterators[level - names->nb_scattering - 1];
+const char *cloog_names_name_at_level(CloogNames *names, int level) {
+    if (level <= names->nb_scattering)
+        return names->scattering[level - 1];
+    else
+        return names->iterators[level - names->nb_scattering - 1];
 }

@@ -12,31 +12,30 @@ extern void hash(int);
 #define S3(i,j) { hash(3); hash(i); hash(j); }
 #define S4(i,j) { hash(4); hash(i); hash(j); }
 
-void test(int M)
-{
-  /* Original iterators. */
-  int i, j;
-  S3(2,1) ;
-  S1(3,1) ;
-  S1(4,1) ;
-  S4(4,2) ;
-  for (i=5;i<=M+1;i++) {
-    S1(i,1) ;
-    for (j=2;j<=floord(i-1,2);j++) {
-      S2(i,j) ;
+void test(int M) {
+    /* Original iterators. */
+    int i, j;
+    S3(2,1) ;
+    S1(3,1) ;
+    S1(4,1) ;
+    S4(4,2) ;
+    for (i=5; i<=M+1; i++) {
+        S1(i,1) ;
+        for (j=2; j<=floord(i-1,2); j++) {
+            S2(i,j) ;
+        }
+        if (i%2 == 0) {
+            S4(i,i/2) ;
+        }
     }
-    if (i%2 == 0) {
-      S4(i,i/2) ;
+    for (i=M+2; i<=2*M-1; i++) {
+        for (j=i-M; j<=floord(i-1,2); j++) {
+            S2(i,j) ;
+        }
+        if (i%2 == 0) {
+            S4(i,i/2) ;
+        }
     }
-  }
-  for (i=M+2;i<=2*M-1;i++) {
-    for (j=i-M;j<=floord(i-1,2);j++) {
-      S2(i,j) ;
-    }
-    if (i%2 == 0) {
-      S4(i,i/2) ;
-    }
-  }
-  i = 2*M ;
-  S4(2*M,M) ;
+    i = 2*M ;
+    S4(2*M,M) ;
 }

@@ -1,11 +1,11 @@
 
-   /**-------------------------------------------------------------------**
-    **                              CLooG                                **
-    **-------------------------------------------------------------------**
-    **                             block.c                               **
-    **-------------------------------------------------------------------**
-    **                   First version: june 11th 2005                   **
-    **-------------------------------------------------------------------**/
+/**-------------------------------------------------------------------**
+ **                              CLooG                                **
+ **-------------------------------------------------------------------**
+ **                             block.c                               **
+ **-------------------------------------------------------------------**
+ **                   First version: june 11th 2005                   **
+ **-------------------------------------------------------------------**/
 
 
 /******************************************************************************
@@ -60,17 +60,15 @@
  */
 
 
-static void cloog_block_leak_up(CloogState *state)
-{ 
-  state->block_allocated++;
-  if ((state->block_allocated - state->block_freed) > state->block_max)
-    state->block_max = state->block_allocated - state->block_freed;
+static void cloog_block_leak_up(CloogState *state) {
+    state->block_allocated++;
+    if ((state->block_allocated - state->block_freed) > state->block_max)
+        state->block_max = state->block_allocated - state->block_freed;
 }
 
 
-static void cloog_block_leak_down(CloogState *state)
-{
-  state->block_freed++;
+static void cloog_block_leak_down(CloogState *state) {
+    state->block_freed++;
 }
 
 
@@ -86,72 +84,71 @@ static void cloog_block_leak_down(CloogState *state)
  * others print_structure functions.
  * - June  16th 2005: first version.
  */
-void cloog_block_print_structure(FILE * file, CloogBlock * block, int level)
-{ int i ;
-  
-  /* Go to the right level. */
-  for (i=0; i<level; i++)
-  fprintf(file,"|\t") ;
-    
-  if (block != NULL)
-  { fprintf(file,"+-- CloogBlock\n") ;
-   
-    /* A blank line. */
-    for (i=0; i<level+2; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"\n") ;    
+void cloog_block_print_structure(FILE * file, CloogBlock * block, int level) {
+    int i ;
 
-    /* Print statement list. */
-    cloog_statement_print_structure(file,block->statement,level+1) ;
-    
-    /* A blank line. */
-    for (i=0; i<level+2; i++)
-    fprintf(file,"|\t") ;    
-    fprintf(file,"\n") ;    
+    /* Go to the right level. */
+    for (i=0; i<level; i++)
+        fprintf(file,"|\t") ;
 
-    /* Print scattering function. */
-    for(i=0; i<level+1; i++)
-    fprintf(file,"|\t") ;
-  
-    fprintf(file,"+-- Null scattering function\n") ;
+    if (block != NULL) {
+        fprintf(file,"+-- CloogBlock\n") ;
 
-    /* A blank line. */
-    for (i=0; i<level+2; i++)
-    fprintf(file,"|\t") ;    
-    fprintf(file,"\n") ;    
+        /* A blank line. */
+        for (i=0; i<level+2; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"\n") ;
 
-    /* Print scalar dimensions. */
-    for (i=0; i<level+1; i++)
-    fprintf(file,"|\t") ;
-    
-    if (block->nb_scaldims == 0)
-    fprintf(file,"No scalar dimensions\n") ;
-    else
-    { fprintf(file,"Scalar dimensions (%d):",block->nb_scaldims) ;
-      for (i = 0; i < block->nb_scaldims; i++) {
-	fprintf(file, " ");
-	cloog_int_print(file, block->scaldims[i]);
-      }
-      fprintf(file,"\n") ;
-    }
-    
-    /* A blank line. */
-    for (i=0; i<level+2; i++)
-    fprintf(file,"|\t") ;    
-    fprintf(file,"\n") ;    
+        /* Print statement list. */
+        cloog_statement_print_structure(file,block->statement,level+1) ;
 
-    /* Print depth. */
-    for (i=0; i<level+1; i++)
-    fprintf(file,"|\t") ;
-    fprintf(file,"Depth: %d\n",block->depth) ;
-    
-    /* A blank line. */
-    for (i=0; i<level+1; i++)
-    fprintf(file,"|\t") ;   
-    fprintf(file,"\n") ;    
-  }
-  else
-  fprintf(file,"+-- Null CloogBlock\n") ;
+        /* A blank line. */
+        for (i=0; i<level+2; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"\n") ;
+
+        /* Print scattering function. */
+        for(i=0; i<level+1; i++)
+            fprintf(file,"|\t") ;
+
+        fprintf(file,"+-- Null scattering function\n") ;
+
+        /* A blank line. */
+        for (i=0; i<level+2; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"\n") ;
+
+        /* Print scalar dimensions. */
+        for (i=0; i<level+1; i++)
+            fprintf(file,"|\t") ;
+
+        if (block->nb_scaldims == 0)
+            fprintf(file,"No scalar dimensions\n") ;
+        else {
+            fprintf(file,"Scalar dimensions (%d):",block->nb_scaldims) ;
+            for (i = 0; i < block->nb_scaldims; i++) {
+                fprintf(file, " ");
+                cloog_int_print(file, block->scaldims[i]);
+            }
+            fprintf(file,"\n") ;
+        }
+
+        /* A blank line. */
+        for (i=0; i<level+2; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"\n") ;
+
+        /* Print depth. */
+        for (i=0; i<level+1; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"Depth: %d\n",block->depth) ;
+
+        /* A blank line. */
+        for (i=0; i<level+1; i++)
+            fprintf(file,"|\t") ;
+        fprintf(file,"\n") ;
+    } else
+        fprintf(file,"+-- Null CloogBlock\n") ;
 }
 
 
@@ -162,8 +159,8 @@ void cloog_block_print_structure(FILE * file, CloogBlock * block, int level)
  * - June 11th 2005: first version.
  * - June  16th 2005: now just a call to cloog_block_print_structure.
  */
-void cloog_block_print(FILE * file, CloogBlock * block)
-{ cloog_block_print_structure(file,block,0) ;  
+void cloog_block_print(FILE * file, CloogBlock * block) {
+    cloog_block_print_structure(file,block,0) ;
 }
 
 
@@ -173,15 +170,15 @@ void cloog_block_print(FILE * file, CloogBlock * block)
  * file (file, possibly stdout).
  * - June 16th 2005: first version.
  */
-void cloog_block_list_print(FILE * file, CloogBlockList * blocklist)
-{ int i=0 ;
-  
-  while (blocklist != NULL)
-  { fprintf(file,"+-- CloogBlockList node %d\n",i) ;
-    cloog_block_print_structure(file,blocklist->block,1) ;
-    blocklist = blocklist->next ;
-    i++ ;
-  }
+void cloog_block_list_print(FILE * file, CloogBlockList * blocklist) {
+    int i=0 ;
+
+    while (blocklist != NULL) {
+        fprintf(file,"+-- CloogBlockList node %d\n",i) ;
+        cloog_block_print_structure(file,blocklist->block,1) ;
+        blocklist = blocklist->next ;
+        i++ ;
+    }
 }
 
 
@@ -196,25 +193,25 @@ void cloog_block_list_print(FILE * file, CloogBlockList * blocklist)
  * - June 11th 2005: first version.
  * - June 30th 2005: scaldims field management.
  */
-void cloog_block_free(CloogBlock * block)
-{ int i ;
+void cloog_block_free(CloogBlock * block) {
+    int i ;
 
-  if (block != NULL)
-  { block->references -- ;
-    
-    if (block->references == 0) {
-      cloog_block_leak_down(block->state);
-      if (block->scaldims != NULL)
-      { for (i=0;i<block->nb_scaldims;i++)
-	  cloog_int_clear(block->scaldims[i]);
-      
-        free(block->scaldims) ;
-      }
-      if (block->statement)
-	cloog_statement_free(block->statement);
-      free(block) ;
+    if (block != NULL) {
+        block->references -- ;
+
+        if (block->references == 0) {
+            cloog_block_leak_down(block->state);
+            if (block->scaldims != NULL) {
+                for (i=0; i<block->nb_scaldims; i++)
+                    cloog_int_clear(block->scaldims[i]);
+
+                free(block->scaldims) ;
+            }
+            if (block->statement)
+                cloog_statement_free(block->statement);
+            free(block) ;
+        }
     }
-  }
 }
 
 
@@ -223,15 +220,15 @@ void cloog_block_free(CloogBlock * block)
  * This function frees the allocated memory for a CloogBlockList structure.
  * - June 11th 2005: first version.
  */
-void cloog_block_list_free(CloogBlockList * blocklist)
-{ CloogBlockList * temp ;
-  
-  while (blocklist != NULL)
-  { temp = blocklist->next ;
-    cloog_block_free(blocklist->block) ;
-    free(blocklist) ;
-    blocklist = temp ;
-  }
+void cloog_block_list_free(CloogBlockList * blocklist) {
+    CloogBlockList * temp ;
+
+    while (blocklist != NULL) {
+        temp = blocklist->next ;
+        cloog_block_free(blocklist->block) ;
+        free(blocklist) ;
+        blocklist = temp ;
+    }
 }
 
 
@@ -246,26 +243,26 @@ void cloog_block_list_free(CloogBlockList * blocklist)
  * allocated space.
  * - November 21th 2005: first version.
  */
-CloogBlock *cloog_block_malloc(CloogState *state)
-{ CloogBlock * block ;
-  
-  /* Memory allocation for the CloogBlock structure. */
-  block = (CloogBlock *)malloc(sizeof(CloogBlock)) ;
-  if (block == NULL) 
-    cloog_die("memory overflow.\n");
-  cloog_block_leak_up(state);
-  
-  /* We set the various fields with default values. */
-  block->state = state;
-  block->statement = NULL ;
-  block->nb_scaldims = 0 ;
-  block->scaldims = NULL ;
-  block->depth = 0 ;
-  block->references = 1 ;
-  block->usr = NULL;
-  
-  return block ;
-}  
+CloogBlock *cloog_block_malloc(CloogState *state) {
+    CloogBlock * block ;
+
+    /* Memory allocation for the CloogBlock structure. */
+    block = (CloogBlock *)malloc(sizeof(CloogBlock)) ;
+    if (block == NULL)
+        cloog_die("memory overflow.\n");
+    cloog_block_leak_up(state);
+
+    /* We set the various fields with default values. */
+    block->state = state;
+    block->statement = NULL ;
+    block->nb_scaldims = 0 ;
+    block->scaldims = NULL ;
+    block->depth = 0 ;
+    block->references = 1 ;
+    block->usr = NULL;
+
+    return block ;
+}
 
 
 /**
@@ -286,19 +283,19 @@ CloogBlock *cloog_block_malloc(CloogState *state)
  * - November 21th 2005: use of cloog_block_malloc.
  */
 CloogBlock *cloog_block_alloc(CloogStatement *statement, int nb_scaldims,
-				cloog_int_t *scaldims, int depth)
-{ CloogBlock * block ;
-    
-  /* Block allocation. */
-  block = cloog_block_malloc(statement->state);
+                              cloog_int_t *scaldims, int depth) {
+    CloogBlock * block ;
 
-  block->statement = statement ;
-  block->nb_scaldims = nb_scaldims ;
-  block->scaldims = scaldims ;
-  block->depth = depth ;
-  block->references = 1 ;
-  
-  return block ;
+    /* Block allocation. */
+    block = cloog_block_malloc(statement->state);
+
+    block->statement = statement ;
+    block->nb_scaldims = nb_scaldims ;
+    block->scaldims = scaldims ;
+    block->depth = depth ;
+    block->references = 1 ;
+
+    return block ;
 }
 
 
@@ -309,20 +306,20 @@ CloogBlock *cloog_block_alloc(CloogStatement *statement, int nb_scaldims,
  * allocated space.
  * - November 21th 2005: first version.
  */
-CloogBlockList * cloog_block_list_malloc()
-{ CloogBlockList * blocklist ;
-  
-  /* Memory allocation for the CloogBlock structure. */
-  blocklist = (CloogBlockList *)malloc(sizeof(CloogBlockList)) ;
-  if (blocklist == NULL) 
-    cloog_die("memory overflow.\n");
-  
-  /* We set the various fields with default values. */
-  blocklist->block = NULL ;
-  blocklist->next  = NULL ;
-  
-  return blocklist ;
-}  
+CloogBlockList * cloog_block_list_malloc() {
+    CloogBlockList * blocklist ;
+
+    /* Memory allocation for the CloogBlock structure. */
+    blocklist = (CloogBlockList *)malloc(sizeof(CloogBlockList)) ;
+    if (blocklist == NULL)
+        cloog_die("memory overflow.\n");
+
+    /* We set the various fields with default values. */
+    blocklist->block = NULL ;
+    blocklist->next  = NULL ;
+
+    return blocklist ;
+}
 
 
 /**
@@ -335,17 +332,17 @@ CloogBlockList * cloog_block_list_malloc()
  * - June     11th 2005: first version.
  * - November 21th 2005: use of cloog_block_list_malloc.
  */
-CloogBlockList * cloog_block_list_alloc(CloogBlock * block)
-{ CloogBlockList * blocklist ;
-  
-  /* Block list node allocation. */
-  blocklist = cloog_block_list_malloc() ;
+CloogBlockList * cloog_block_list_alloc(CloogBlock * block) {
+    CloogBlockList * blocklist ;
 
-  blocklist->block = block ;
-  blocklist->block->references ++ ; /* The block has a new reference to it. */
-  blocklist->next = NULL ;
-  
-  return blocklist ;
+    /* Block list node allocation. */
+    blocklist = cloog_block_list_malloc() ;
+
+    blocklist->block = block ;
+    blocklist->block->references ++ ; /* The block has a new reference to it. */
+    blocklist->next = NULL ;
+
+    return blocklist ;
 }
 
 
@@ -354,13 +351,13 @@ CloogBlockList * cloog_block_list_alloc(CloogBlock * block)
  * This function returns a copy of a CloogBlock structure 'block'. To save
  * memory this is not a memory copy but we increment a counter of active
  * references inside the structure, then return a pointer to that structure.
- */ 
-CloogBlock * cloog_block_copy(CloogBlock * block)
-{ if (block == NULL)
-  return NULL ;
+ */
+CloogBlock * cloog_block_copy(CloogBlock * block) {
+    if (block == NULL)
+        return NULL ;
 
-  block->references ++ ;
-  return block ;
+    block->references ++ ;
+    return block ;
 }
 
 
@@ -372,25 +369,24 @@ CloogBlock * cloog_block_copy(CloogBlock * block)
  * included in 'block').
  * - June 11th 2005: first version.
  */
-void cloog_block_merge(CloogBlock * block, CloogBlock * merged)
-{ CloogStatement * statement ;
+void cloog_block_merge(CloogBlock * block, CloogBlock * merged) {
+    CloogStatement * statement ;
 
-  if ((block == NULL) || (merged == NULL))
-  return ;
-  
-  if (block->statement != NULL)
-  { statement = block->statement ;
-    
-    while (statement->next != NULL)
-    statement = statement->next ;
-    
-    statement->next = merged->statement ;
-  }
-  else
-  block->statement = merged->statement ;
+    if ((block == NULL) || (merged == NULL))
+        return ;
 
-  merged->statement = NULL;
-  cloog_block_free(merged);
+    if (block->statement != NULL) {
+        statement = block->statement ;
+
+        while (statement->next != NULL)
+            statement = statement->next ;
+
+        statement->next = merged->statement ;
+    } else
+        block->statement = merged->statement ;
+
+    merged->statement = NULL;
+    cloog_block_free(merged);
 }
 
 

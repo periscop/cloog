@@ -9,9 +9,8 @@ extern void hash(int);
 
 #define S1() { hash(1); }
 
-void test(int M)
-{
-  if (M >= 0) {
-    S1() ;
-  }
+void test(int M) {
+    if (M >= 0) {
+        S1() ;
+    }
 }

@@ -10,18 +10,17 @@ extern void hash(int);
 #define S1(i0,i1) { hash(1); hash(i0); hash(i1); }
 #define S2(i0,i1) { hash(2); hash(i0); hash(i1); }
 
-void test()
-{
-  /* Original iterators. */
-  int i0, i1;
-  for (i0=0;i0<=5;i0++) {
-    for (i1=ceild(4*i0,5);i1<=floord(6*i0+20,5);i1++) {
-      if (2*i0 == i1) {
-        S1(i0,i1) ;
-      }
-      if (i1 == 4) {
-        S2(i0,i1) ;
-      }
+void test() {
+    /* Original iterators. */
+    int i0, i1;
+    for (i0=0; i0<=5; i0++) {
+        for (i1=ceild(4*i0,5); i1<=floord(6*i0+20,5); i1++) {
+            if (2*i0 == i1) {
+                S1(i0,i1) ;
+            }
+            if (i1 == 4) {
+                S2(i0,i1) ;
+            }
+        }
     }
-  }
 }

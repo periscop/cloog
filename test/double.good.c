@@ -12,16 +12,15 @@ extern void hash(int);
 #define S3(i,j) { hash(3); hash(i); hash(j); }
 #define S4(i) { hash(4); hash(i); }
 
-void test(int M, int N)
-{
-  /* Original iterators. */
-  int i, j;
-  for (i=0;i<=M;i++) {
-    S1(i) ;
-    for (j=0;j<=N;j++) {
-      S2(i,j) ;
-      S3(i,j) ;
+void test(int M, int N) {
+    /* Original iterators. */
+    int i, j;
+    for (i=0; i<=M; i++) {
+        S1(i) ;
+        for (j=0; j<=N; j++) {
+            S2(i,j) ;
+            S3(i,j) ;
+        }
+        S4(i) ;
     }
-    S4(i) ;
-  }
 }

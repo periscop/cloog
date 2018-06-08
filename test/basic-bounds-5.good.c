@@ -9,10 +9,9 @@ extern void hash(int);
 
 #define S1(i,j) { hash(1); hash(i); hash(j); }
 
-void test(int M)
-{
-  /* Original iterators. */
-  int i, j;
-  j = floord(M+1,2) ;
-  S1(1,j) ;
+void test(int M) {
+    /* Original iterators. */
+    int i, j;
+    j = floord(M+1,2) ;
+    S1(1,j) ;
 }

@@ -9,7 +9,6 @@ extern void hash(int);
 
 #define S1() { hash(1); }
 
-void test()
-{
-  S1() ;
+void test() {
+    S1() ;
 }
