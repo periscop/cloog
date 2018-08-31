@@ -6,6 +6,7 @@
 #include <isl/aff.h>
 #include <isl/set.h>
 #include <isl/val.h>
+#include <isl/space.h>
 
 #if ISL_USING_GMP
 #include <isl/val_gmp.h>

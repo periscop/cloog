@@ -11,6 +11,7 @@
 #include <isl/aff.h>
 #include <isl/map.h>
 #include <isl/val.h>
+#include <isl/space.h>
 
 #ifdef OSL_SUPPORT
 #include <osl/macros.h>
