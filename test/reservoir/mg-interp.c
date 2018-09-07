@@ -1,4 +1,4 @@
-/* Generated from ./reservoir/mg-interp.cloog by CLooG 0.18.1-2-g43fc508 gmp bits in 0.16s. */
+/* Generated from ../test/reservoir/mg-interp.cloog by CLooG 0.19.0-6faa51a gmp bits in 0.13s. */
 if ((M >= 2) && (N >= 2)) {
   for (c2=1;c2<=O-1;c2++) {
     for (c6=1;c6<=M;c6++) {
@@ -67,15 +67,14 @@ if ((M >= 2) && (N >= 2)) {
         if (c4%2 == 0) {
           S6(c2,((c4+2)/2),c6);
         }
-        if ((c4+1)%2 == 0) {
-          S1(c2,((c4+3)/2),c6);
-        }
         if (c4%2 == 0) {
           S7(c2,((c4+2)/2),c6);
         }
       }
-      if ((c4+1)%2 == 0) {
-        S1(c2,((c4+3)/2),M);
+      for (c6=1;c6<=M;c6++) {
+        if ((c4+1)%2 == 0) {
+          S1(c2,((c4+3)/2),c6);
+        }
       }
       for (c6=1;c6<=M-1;c6++) {
         if (c4%2 == 0) {

@@ -481,7 +481,6 @@ test_regenerate:
 
 check_SCRIPTS = \
 	test/check_c.sh \
-	test/check_fortran.sh \
 	test/check_strided.sh \
 	test/check_openscop.sh \
 	test/check_special.sh

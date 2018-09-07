@@ -1,4 +1,4 @@
-/* Generated from ./vivien.cloog by CLooG 0.18.1-2-g43fc508 gmp bits in 0.07s. */
+/* Generated from ../test/vivien.cloog by CLooG 0.19.0-6faa51a gmp bits in 0.08s. */
 if (n >= 0) {
   for (p1=-54*n+4;p1<=4;p1++) {
     if (p1%2 == 0) {
@@ -52,6 +52,9 @@ if (n >= 0) {
       if (p1%2 == 0) {
         S4(-p2,((p1+2*p2)/2));
       }
+    }
+    p2 = ceild(-p1+6,4);
+    if (p2 <= min(floord(-p1+2*n,2),floord(-p1+9,4))) {
       for (p3=1;p3<=-p2;p3++) {
         if (p1%2 == 0) {
           S5((-p2+1),((p1+2*p2-2)/2),p3);

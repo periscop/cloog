@@ -1,4 +1,4 @@
-/* Generated from ./vasilache.cloog by CLooG 0.18.1-2-g43fc508 gmp bits in 0.02s. */
+/* Generated from ../test/vasilache.cloog by CLooG 0.19.0-6faa51a gmp bits in 0.03s. */
 S1();
 S2();
 for (p1=0;p1<=N-1;p1++) {
@@ -15,11 +15,11 @@ for (p1=0;p1<=N-1;p1++) {
         S6(p1,p3,p5,(p7-1));
         S7(p1,p3,p5,p7);
       }
-      if (p5 >= ceild(N-31,32)) {
-        S6(p1,p3,p5,(N-1));
-      }
       if (p5 <= floord(N-32,32)) {
         S6(p1,p3,p5,(32*p5+31));
+      }
+      if (p5 >= ceild(N-31,32)) {
+        S6(p1,p3,p5,(N-1));
       }
     }
   }
