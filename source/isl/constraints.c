@@ -125,7 +125,7 @@ static struct cloog_isl_dim basic_set_cloog_dim_to_isl_dim(
 	struct cloog_isl_dim ci_dim;
 
 	for (i = 0; i < 3; ++i) {
-		unsigned dim = isl_basic_set_dim(bset, types[i]);
+		isl_size dim = isl_basic_set_dim(bset, types[i]);
 		if (pos < dim) {
 			ci_dim.type = types[i];
 			ci_dim.pos = pos;
@@ -518,7 +518,7 @@ static struct cloog_isl_dim constraint_cloog_dim_to_isl_dim(
 
 	for (i = 0; i < 3; ++i) {
 		isl_constraint *c = cloog_constraint_to_isl(constraint);
-		unsigned dim = isl_constraint_dim(c, types[i]);
+		int dim = isl_constraint_dim(c, types[i]);
 		if (pos < dim) {
 			ci_dim.type = types[i];
 			ci_dim.pos = pos;
@@ -535,7 +535,7 @@ static struct clast_expr *div_expr(CloogConstraint *constraint, int pos,
 					CloogNames *names)
 {
 	int i, nb_elts;
-	unsigned dim = cloog_constraint_total_dimension(constraint);
+	int dim = cloog_constraint_total_dimension(constraint);
 	isl_val *c;
 	struct clast_reduction *r;
 	struct clast_expr *e = NULL;
@@ -811,7 +811,7 @@ void cloog_constraint_copy_coefficients(CloogConstraint *constraint,
 					cloog_int_t *dst)
 {
 	int i;
-	unsigned dim;
+	int dim;
 
 	dim = cloog_constraint_total_dimension(constraint);
 
@@ -1088,7 +1088,7 @@ static isl_aff *extract_stride_offset(__isl_keep isl_constraint *c,
 	isl_local_space *ls = isl_local_space_from_space(dim);
 	isl_aff *offset = isl_aff_zero_on_domain(ls);
 	isl_val *u;
-	unsigned nparam, nvar;
+	isl_size nparam, nvar;
 
 	nparam = isl_constraint_dim(c, isl_dim_param);
 	nvar = isl_constraint_dim(c, isl_dim_set);
