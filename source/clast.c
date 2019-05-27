@@ -537,6 +537,7 @@ static struct clast_expr *clast_expr_copy(struct clast_expr *e)
 static int clast_equal_allow(CloogEqualities *equal, int level, int line,
 				CloogInfos *infos)
 { 
+  (void) line;
   if (level < infos->options->fsp)
   return 0 ;
   
@@ -844,6 +845,7 @@ static void update_lower_bound(struct clast_expr *expr, int level,
 	CloogStride *stride)
 {
     struct clast_term *t;
+    (void) level;
     if (stride->constraint)
 	return;
     if (expr->type != clast_expr_term)
@@ -1011,6 +1013,7 @@ struct clast_guard_data {
 
 static int guard_count_bounds(CloogConstraint *c, void *user)
 {
+    (void) c;
     struct clast_guard_data *d = (struct clast_guard_data *) user;
 
     d->n++;
@@ -1626,6 +1629,8 @@ static void insert_guarded_otl_for(CloogConstraintSet *constraints, int level,
     const char *iterator;
     struct clast_assignment *ass;
     struct clast_guard *guard;
+
+    (void) constraints;
 
     iterator = cloog_names_name_at_level(infos->names, level);
 
