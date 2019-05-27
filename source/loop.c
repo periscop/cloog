@@ -830,6 +830,8 @@ CloogLoop *cloog_loop_propagate_lower_bound(CloogLoop *loop, int level)
     CloogDomain *domain, *t;
     CloogLoop *l;
 
+    (void) level;
+
     for (l = loop; l; l = l->next) {
 	if (l->inner->next)
 	    continue;
@@ -1502,6 +1504,7 @@ CloogLoop *cloog_loop_generate_backtrack(CloogLoop *loop,
   CloogLoop * now, * now2, * next, * next2, * end, * temp, * l, * inner,
             * new_loop ;
   
+  (void) options;
   temp = loop ;
   loop = NULL ;
 
@@ -1599,6 +1602,7 @@ CloogLoop *cloog_loop_constant(CloogLoop *loop, int level)
 {
     CloogLoop *res, *inner, *tmp;
     CloogDomain *domain, *t;
+    (void) level;
 
     if (!loop)
 	return loop;
