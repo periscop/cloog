@@ -24,7 +24,7 @@ cloog_int_t cloog_gcd(cloog_int_t a, cloog_int_t b)
 
 struct cloog_vec *cloog_vec_alloc(unsigned size)
 {
-	int i;
+	unsigned int i;
 	struct cloog_vec *vec;
 
 	vec = ALLOC(struct cloog_vec);
@@ -47,7 +47,7 @@ error:
 
 void cloog_vec_free(struct cloog_vec *vec)
 {
-	int i;
+	unsigned int i;
 
 	if (!vec)
 		return;
@@ -60,7 +60,7 @@ void cloog_vec_free(struct cloog_vec *vec)
 
 void cloog_vec_dump(struct cloog_vec *vec)
 {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < vec->size; ++i) {
 		cloog_int_print(stderr, vec->p[i]);
@@ -73,7 +73,7 @@ int cloog_seq_first_non_zero(cloog_int_t *p, unsigned len)
 {
 	int i;
 
-	for (i = 0; i < len; ++i)
+	for (i = 0; i < (int) len; ++i)
 		if (!cloog_int_is_zero(p[i]))
 			return i;
 	return -1;
@@ -81,21 +81,21 @@ int cloog_seq_first_non_zero(cloog_int_t *p, unsigned len)
 
 void cloog_seq_neg(cloog_int_t *dst, cloog_int_t *src, unsigned len)
 {
-	int i;
+	unsigned int i;
 	for (i = 0; i < len; ++i)
 		cloog_int_neg(dst[i], src[i]);
 }
 
 void cloog_seq_cpy(cloog_int_t *dst, cloog_int_t *src, unsigned len)
 {
-	int i;
+	unsigned int i;
 	for (i = 0; i < len; ++i)
 		cloog_int_set(dst[i], src[i]);
 }
 
 static void cloog_seq_scale_down(cloog_int_t *dst, cloog_int_t *src, cloog_int_t m, unsigned len)
 {
-	int i;
+	unsigned int i;
 	for (i = 0; i < len; ++i)
 		cloog_int_divexact(dst[i], src[i], m);
 }
@@ -103,7 +103,7 @@ static void cloog_seq_scale_down(cloog_int_t *dst, cloog_int_t *src, cloog_int_t
 void cloog_seq_combine(cloog_int_t *dst, cloog_int_t m1, cloog_int_t *src1,
 			cloog_int_t m2, cloog_int_t *src2, unsigned len)
 {
-	int i;
+	unsigned int i;
 	cloog_int_t tmp;
 
 	cloog_int_init(tmp);
@@ -120,7 +120,7 @@ static int cloog_seq_abs_min_non_zero(cloog_int_t *p, unsigned len)
 	int i, min = cloog_seq_first_non_zero(p, len);
 	if (min < 0)
 		return -1;
-	for (i = min + 1; i < len; ++i) {
+	for (i = min + 1; i < (int) len; ++i) {
 		if (cloog_int_is_zero(p[i]))
 			continue;
 		if (cloog_int_abs_lt(p[i], p[min]))
@@ -138,7 +138,7 @@ void cloog_seq_gcd(cloog_int_t *p, unsigned len, cloog_int_t *gcd)
 		return;
 	}
 	cloog_int_abs(*gcd, p[min]);
-	for (i = 0; cloog_int_cmp_si(*gcd, 1) > 0 && i < len; ++i) {
+	for (i = 0; cloog_int_cmp_si(*gcd, 1) > 0 && i < (int) len; ++i) {
 		if (i == min)
 			continue;
 		if (cloog_int_is_zero(p[i]))
@@ -149,7 +149,7 @@ void cloog_seq_gcd(cloog_int_t *p, unsigned len, cloog_int_t *gcd)
 
 int cloog_seq_is_neg(cloog_int_t *p1, cloog_int_t *p2, unsigned len)
 {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < len; ++i) {
 		if (cloog_int_abs_ne(p1[i], p2[i]))
