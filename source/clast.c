@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdint.h>
 #include "../include/cloog/cloog.h"
 
 #define ALLOC(type) (type*)malloc(sizeof(type))
@@ -1920,12 +1921,14 @@ static int add_if_new(void **list, int num, void *new, int size)
     int i;
 
     for (i=0; i<num; i++) {
-        if (!memcmp((*list) + i*size, new, size)) break;
+        uint8_t* target = *list;
+        if (!memcmp(target + i*size, new, size)) break;
     }
 
     if (i==num) {
         *list = realloc(*list, (num+1)*size);
-        memcpy(*list + num*size, new, size);
+        uint8_t* target = *list;
+        memcpy(target + num*size, new, size);
         return 1;
     }
 
