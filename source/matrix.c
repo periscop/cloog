@@ -47,7 +47,7 @@ CloogMatrix *cloog_matrix_alloc(unsigned NbRows, unsigned NbColumns)
 {
   CloogMatrix *matrix;
   cloog_int_t **p, *q;
-  int i, j;
+  unsigned int i, j;
 
   matrix = (CloogMatrix *)malloc(sizeof(CloogMatrix));
 
@@ -123,7 +123,7 @@ void cloog_matrix_free(CloogMatrix * matrix)
 void cloog_matrix_print_structure(FILE *file, CloogMatrix *M,
 		const char *prefix, const char *suffix)
 {
-    int i, j;
+    unsigned int i, j;
 
     for (i = 0; i < M->NbRows; ++i) {
 	fprintf(file, "%s", prefix);
@@ -185,7 +185,7 @@ CloogMatrix *cloog_matrix_read_of_size(FILE *input,
 	unsigned n_row, unsigned n_col)
 {
 	CloogMatrix *M;
-	int i, j;
+	unsigned int i, j;
 	char line[1024];
 	char val[1024];
 	char *p;
