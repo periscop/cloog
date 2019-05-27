@@ -920,8 +920,10 @@ static struct clast_expr *clast_minmax(CloogConstraintSet *constraints,
 				       int lower_bound, int no_earlier,
 				       CloogInfos *infos)
 {
-    struct clast_minmax_data data = { level, max, guard, lower_bound,
-				      no_earlier, infos };
+    struct clast_minmax_data data = {
+        .level = level, .max = max, .guard = guard, .lower_bound = lower_bound,
+        .no_earlier = no_earlier, .infos = infos,
+    };
   
     data.n = 0;
 
@@ -1131,7 +1133,9 @@ static void insert_guard(CloogConstraintSet *constraints, int level,
 			 struct clast_stmt ***next, CloogInfos *infos)
 { 
     int total_dim;
-    struct clast_guard_data data = { level, infos, 0 };
+    struct clast_guard_data data = {
+        .level = level, .infos = infos, .n = 0,
+    };
 
     if (!constraints)
 	return;
@@ -1427,7 +1431,10 @@ static int insert_modulo_guard(CloogConstraint *upper,
 {
   int nb_par;
   CloogConstraintSet *set;
-  struct clast_modulo_guard_data data = { lower, level, next, infos, 0 };
+  struct clast_modulo_guard_data data = {
+      .lower = lower, .level = level, .next = next, .infos = infos,
+      .empty = 0,
+  };
 
   cloog_int_init(data.val);
   cloog_constraint_coefficient_get(upper, level-1, &data.val);
