@@ -173,6 +173,7 @@ static char *next_line(FILE *input, char *line, unsigned len)
 static CloogScatteringList *cloog_scattering_list_read(FILE * foo,
 	CloogDomain **domain, int nb_statements, int nb_parameters)
 {
+    (void) nb_parameters;
     int nb_scat = 0;
     char s[MAX_STRING];
     CloogScatteringList *list = NULL, **next = &list;
