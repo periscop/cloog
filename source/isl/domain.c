@@ -50,6 +50,7 @@ __isl_give isl_map *isl_map_from_cloog_scattering(CloogScattering *scattering)
 int cloog_scattering_fully_specified(CloogScattering *scattering,
 				      CloogDomain *domain)
 {
+	(void) domain;
 	isl_map *map = isl_map_from_cloog_scattering(scattering);
 	return isl_map_is_single_valued(map);
 }
@@ -1279,6 +1280,8 @@ int cloog_scattering_lazy_block(CloogScattering *s1, CloogScattering *s2,
 	isl_val *cst;
 	unsigned n_scat;
 
+	(void) scattdims;
+
 	n_scat = isl_map_dim(map1, isl_dim_out);
 	if (n_scat != isl_map_dim(map2, isl_dim_out))
 		return 0;
@@ -1369,6 +1372,7 @@ int cloog_domain_parameter_dimension(CloogDomain *domain)
 
 int cloog_scattering_dimension(CloogScattering *scatt, CloogDomain *domain)
 {
+	(void) domain;
 	isl_map *map = isl_map_from_cloog_scattering(scatt);
 	return isl_map_dim(map, isl_dim_out);
 }
