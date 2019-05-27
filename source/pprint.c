@@ -337,6 +337,10 @@ int pprint_osl_body(struct cloogoptions *options, FILE *dst,
       return 1;
     }
   }
+#else
+  (void) options;
+  (void) dst;
+  (void) u;
 #endif
   return 0;
 }
