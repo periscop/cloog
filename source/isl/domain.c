@@ -234,7 +234,8 @@ CloogDomain *cloog_domain_difference(CloogDomain *domain, CloogDomain *minus)
 void cloog_domain_sort(CloogDomain **doms, unsigned nb_doms, unsigned level,
 			int *permut)
 {
-	int i, j, k, cmp;
+  unsigned int i, j, k;
+	int cmp;
 	struct isl_ctx *ctx;
 	unsigned char **follows;
 	isl_set *set_i, *set_j;
@@ -496,8 +497,8 @@ CloogScattering *cloog_domain_read_scattering(CloogDomain *domain, FILE *input)
 	isl_set *set = isl_set_from_cloog_domain(domain);
 	isl_ctx *ctx = isl_set_get_ctx(set);
 	struct isl_map *scat;
-	unsigned nparam;
-	unsigned dim;
+	isl_size nparam;
+	isl_size dim;
 	unsigned n_scat;
 
 	dim = isl_set_dim(set, isl_dim_set);
@@ -565,7 +566,7 @@ static struct isl_basic_set *isl_basic_set_read_from_matrix(struct isl_ctx *ctx,
 {
 	struct isl_space *dim;
 	struct isl_basic_set *bset;
-	int i;
+	unsigned i;
 	unsigned nrows, ncolumns;
 
 	nrows = matrix->NbRows;
@@ -598,7 +599,7 @@ static isl_basic_map *isl_basic_map_read_from_matrix(isl_ctx *ctx,
 {
 	struct isl_space *dim;
 	struct isl_basic_map *bmap;
-	int i;
+	unsigned i;
 	unsigned nrows, ncolumns;
 
 	nrows = matrix->NbRows;
@@ -860,7 +861,7 @@ static int constraint_can_stride(__isl_take isl_constraint *c, void *user)
 	struct cloog_can_stride *ccs = (struct cloog_can_stride *)user;
 	int i;
 	isl_val *v;
-	unsigned n_div;
+	isl_size n_div;
 
 	if (isl_constraint_is_equality(c)) {
 		isl_constraint_free(c);
@@ -1278,7 +1279,7 @@ int cloog_scattering_lazy_block(CloogScattering *s1, CloogScattering *s2,
 	isl_map *map2 = isl_map_from_cloog_scattering(s2);
 	int block;
 	isl_val *cst;
-	unsigned n_scat;
+	isl_size n_scat;
 
 	(void) scattdims;
 
@@ -1646,7 +1647,7 @@ static int count_same_name(__isl_keep isl_space *dim,
 	int len = strlen(name);
 
 	for (t = isl_dim_param; t <= type && t <= isl_dim_out; ++t) {
-		s = t == type ? pos : isl_space_dim(dim, t);
+		s = t == type ? pos : (unsigned) isl_space_dim(dim, t);
 		for (p = 0; p < s; ++p) {
 			const char *n = isl_space_get_dim_name(dim, t, p);
 			if (n && !strncmp(n, name, len))
