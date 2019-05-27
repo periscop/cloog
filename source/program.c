@@ -341,6 +341,7 @@ static void print_scattering_declarations(FILE *file, CloogProgram *program,
 static void print_iterator_declarations(FILE *file, CloogProgram *program,
 	CloogOptions *options)
 {
+    (void) options;
     CloogNames *names = program->names;
 
     print_scattering_declarations(file, program, 2);
@@ -389,6 +390,7 @@ static void print_callable_preamble(FILE *file, CloogProgram *program,
 
 static void print_callable_postamble(FILE *file, CloogProgram *program)
 {
+    (void) program;
     fprintf(file, "}\n"); 
 }
 
@@ -603,6 +605,10 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
 
     return 1;
   }
+#else
+  (void) file;
+  (void) program;
+  (void) options;
 #endif
   return 0;
 }
