@@ -107,6 +107,7 @@ int cloog_constraint_set_contains_level(CloogConstraintSet *constraints,
 			int level, int nb_parameters)
 {
 	isl_basic_set *bset;
+	(void) nb_parameters;
 	bset = cloog_constraints_set_to_isl(constraints);
 	return isl_basic_set_dim(bset, isl_dim_set) >= level;
 }
@@ -216,6 +217,8 @@ CloogConstraint *cloog_constraint_set_defining_inequalities(
 	struct isl_basic_set *bset;
 	struct cloog_isl_other other;
 
+	(void) nb_par;
+
 	bset = cloog_constraints_set_to_isl(constraints);
 	dim = set_cloog_dim_to_isl_dim(constraints, level - 1);
 	if (!isl_basic_set_has_defining_inequalities(bset, dim.type, dim.pos,
@@ -246,6 +249,7 @@ int cloog_constraint_set_total_dimension(CloogConstraintSet *constraints)
 
 int cloog_constraint_set_n_iterators(CloogConstraintSet *constraints, int n_par)
 {
+	(void) n_par;
 	isl_basic_set *bset;
 	bset = cloog_constraints_set_to_isl(constraints);
 	return isl_basic_set_dim(bset, isl_dim_set);
@@ -418,6 +422,9 @@ void cloog_equal_add(CloogEqualities *equal, CloogConstraintSet *matrix,
 			int level, CloogConstraint *line, int nb_par)
 { 
 	isl_constraint *c;
+	(void) matrix;
+	(void) nb_par;
+
 	assert(cloog_constraint_is_valid(line));
   
 	equal->types[level-1] = cloog_constraint_equal_type(line, level);
@@ -455,6 +462,8 @@ void cloog_equal_del(CloogEqualities *equal, int level)
  */
 void cloog_constraint_set_normalize(CloogConstraintSet *matrix, int level)
 {
+	(void) matrix;
+	(void) level;
 }
 
 
@@ -493,6 +502,9 @@ CloogConstraintSet *cloog_constraint_set_copy(CloogConstraintSet *constraints)
 CloogConstraintSet *cloog_constraint_set_simplify(CloogConstraintSet *matrix,
 	CloogEqualities *equal, int level, int nb_par)
 {
+	(void) equal;
+	(void) level;
+	(void) nb_par;
 	return cloog_constraint_set_copy(matrix);
 }
 
@@ -949,6 +961,8 @@ CloogConstraintSet *cloog_constraint_set_reduce(CloogConstraintSet *constraints,
 	unsigned constraints_dim;
 	unsigned n_div;
 	isl_basic_set *bset, *orig;
+
+	(void) nb_par;
 
 	bset = cloog_constraints_set_to_isl(constraints);
 	orig = isl_basic_set_copy(bset);
