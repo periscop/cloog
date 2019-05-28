@@ -330,7 +330,7 @@ CloogUnionDomain *cloog_union_domain_from_osl_scop(CloogState *state,
 
   /* - Set the parameter names. */
   if (osl_generic_has_URI(scop->parameters, OSL_URI_STRINGS)) {
-    for (i = 0; i < osl_strings_size(scop->parameters->data); i++) {
+    for (i = 0; i < (int) osl_strings_size(scop->parameters->data); i++) {
       ud = cloog_union_domain_set_name(ud, CLOOG_PARAM, i,
         ((osl_strings_p)(scop->parameters->data))->string[i]);
     }
@@ -355,7 +355,7 @@ CloogUnionDomain *cloog_union_domain_from_osl_scop(CloogState *state,
   /* - Set the scattering dimension names. */
   scatnames = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
   if ((scatnames != NULL) && (scatnames->names != NULL)) {
-    for (i = 0; (i < osl_strings_size(scatnames->names)) &&
+    for (i = 0; (i < (int) osl_strings_size(scatnames->names)) &&
                 (i < ud->n_name[CLOOG_SCAT]); i++) {
       ud = cloog_union_domain_set_name(ud, CLOOG_SCAT, i,
                                        scatnames->names->string[i]);
