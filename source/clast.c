@@ -63,7 +63,12 @@ static void insert_block(CloogDomain *domain, CloogBlock *block, int level,
 			 struct clast_stmt ***next, CloogInfos *infos);
 static void insert_loop(CloogLoop * loop, int level,
 			struct clast_stmt ***next, CloogInfos *infos);
+static int clast_expr_is_bigger_constant(struct clast_expr *e1,
+    struct clast_expr *e2);
 
+static int concat_if_new(void **list1, int num1, void *list2, int num2,
+    int size);
+static int list_compare(const int *list1, int num1, const int *list2, int num2);
 
 struct clast_name *new_clast_name(const char *name)
 {
