@@ -13,7 +13,7 @@
 #define ALLOC(type) (type*)malloc(sizeof(type))
 #define ALLOCN(type,n) (type*)malloc((n)*sizeof(type))
 
-void cloog_named_domain_list_free(CloogNamedDomainList *list)
+static void cloog_named_domain_list_free(CloogNamedDomainList *list)
 {
 	while (list != NULL) {
 		CloogNamedDomainList *temp = list->next;
