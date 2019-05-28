@@ -164,6 +164,7 @@ struct cloog_vec {
 
 struct cloog_vec *cloog_vec_alloc(unsigned size);
 void cloog_vec_free(struct cloog_vec *vec);
+void cloog_vec_dump(struct cloog_vec *vec);
 
 int cloog_seq_first_non_zero(cloog_int_t *p, unsigned len);
 void cloog_seq_cpy(cloog_int_t *dst, cloog_int_t *src, unsigned len);
