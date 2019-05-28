@@ -396,7 +396,8 @@ CloogNames * cloog_names_alloc()
  **
  * - September 9th 2002 : first version, extracted from cloog_names_generate.
  */
-char ** cloog_names_generate_items(int nb_items, char * prefix, char first_item)
+char ** cloog_names_generate_items(int nb_items, const char * prefix,
+    char first_item)
 { int i ;
   char ** names ;
   

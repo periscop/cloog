@@ -92,7 +92,7 @@ char ** cloog_names_read_strings(FILE *file, int nb_items);
 CloogNames * cloog_names_malloc(void);
 CloogNames * cloog_names_copy(CloogNames *names);
 CloogNames * cloog_names_alloc(void);
-char ** cloog_names_generate_items(int, char *, char) ;
+char ** cloog_names_generate_items(int, const char *, char) ;
 CloogNames * cloog_names_generate(int, int, int, int, char, char, char, char) ;
 void cloog_names_scalarize(CloogNames *, int, int *) ;
 const char * cloog_names_name_at_level(CloogNames *names, int level);
