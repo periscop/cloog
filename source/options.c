@@ -151,7 +151,7 @@ void cloog_options_print(FILE * foo, CloogOptions * options)
   fprintf(foo,"compilable  = %3d.\n",options->compilable) ;
   fprintf(foo,"callable    = %3d.\n",options->callable) ;
   fprintf(foo,"MISC OPTIONS\n") ;
-  fprintf(foo,"name        = %3s.\n", options->name);
+  fprintf(foo,"name        = %3s.\n", options->name ? options->name : "");
   fprintf(foo,"openscop    = %3d.\n", options->openscop);
   if (options->scop != NULL)
     fprintf(foo,"scop        = (present but not printed).\n");
@@ -346,7 +346,7 @@ CloogOptions *cloog_options_malloc(CloogState *state)
   options->strides     =  0 ;  /* Generate a code with unit strides. */
   options->sh	       =  0;   /* Compute actual convex hull. */
   options->first_unroll = -1;  /* First level to unroll: none. */
-  options->name	       = "";
+  options->name	       = NULL;
   /* OPTIONS FOR PRETTY PRINTING */
   options->esp         =  1 ;  /* We want Equality SPreading.*/
   options->fsp         =  1 ;  /* The First level to SPread is the first. */
