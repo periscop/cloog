@@ -45,6 +45,11 @@
 #include <osl/scop.h>
 #endif
 
+static void cloog_vmsg(CloogOptions *options, enum cloog_msg_type type,
+    const char *msg, va_list ap);
+static void cloog_options_version(void);
+static void cloog_options_help(void);
+static void cloog_options_set(int *option, int argv, char **argc, int *number);
 
 /******************************************************************************
  *                          Error reporting functions                         *
