@@ -43,6 +43,60 @@
 
 #define ALLOC(type) (type*)malloc(sizeof(type))
 
+static void cloog_loop_free_parts(CloogLoop *loop, int domain, int block,
+    int inner, int next);
+static CloogLoop *cloog_loop_alloc(CloogState *state, CloogDomain *domain,
+    int otl, CloogStride *stride, CloogBlock *block, CloogLoop *inner,
+    CloogLoop *next);
+static void cloog_loop_add_disjoint(CloogLoop **start, CloogLoop **now,
+    CloogLoop *loop);
+static CloogLoop * cloog_loop_disjoint(CloogLoop * loop);
+static CloogLoop *cloog_loop_restrict(CloogLoop *loop, CloogDomain *context);
+static CloogLoop *cloog_loop_restrict_all(CloogLoop *loop,
+    CloogDomain *context);
+static CloogLoop *cloog_loop_restrict_inner(CloogLoop *loop);
+static CloogLoop * cloog_loop_project(CloogLoop * loop, int level);
+static CloogLoop *cloog_loop_project_all(CloogLoop *loop, int level);
+static CloogLoop *cloog_loop_combine(CloogLoop *loop);
+static CloogLoop *cloog_loop_remove_empty_domain_loops(CloogLoop *loop);
+static CloogLoop *cloog_loop_specialize(CloogLoop *loop, int level, int scalar,
+    int *scaldims, int nb_scattdims);
+static CloogLoop *cloog_loop_propagate_lower_bound(CloogLoop *loop, int level);
+static CloogLoop * cloog_loop_separate(CloogLoop * loop);
+static CloogLoop *cloog_loop_merge(CloogLoop *loop, int level,
+    CloogOptions *options);
+static CloogLoop *cloog_loop_nest(CloogLoop *loop, CloogDomain *context,
+    int level);
+static void cloog_loop_stride(CloogLoop * loop, int level);
+static void cloog_loop_otl(CloogLoop *loop, int level);
+static CloogLoop * cloog_loop_stop(CloogLoop * loop, CloogDomain * context);
+static int cloog_loop_constant_cmp(CloogLoop *l1, CloogLoop *l2, int level,
+    int *scaldims, int nb_scattdims, int scalar);
+static int cloog_loop_scalar_gt(CloogLoop *l1, CloogLoop *l2, int level,
+    int *scaldims, int nb_scattdims, int scalar);
+static int cloog_loop_scalar_eq(CloogLoop *l1, CloogLoop *l2, int level,
+    int *scaldims, int nb_scattdims, int scalar);
+static CloogLoop * cloog_loop_scalar_sort(CloogLoop *loop, int level,
+    int *scaldims, int nb_scattdims, int scalar);
+static CloogLoop *cloog_loop_generate_backtrack(CloogLoop *loop, int level,
+    CloogOptions *options);
+static int cloog_loop_more(CloogLoop *loop, int level, int scalar,
+    int nb_scattdims);
+static int cloog_loop_is_constant(CloogLoop *loop, int level);
+static CloogLoop *cloog_loop_constant(CloogLoop *loop, int level);
+static CloogLoop *cloog_loop_unroll(CloogLoop *loop, int level);
+static void cloog_statement_get_fl(CloogStatement *s, int *f, int *l,
+    CloogOptions *options);
+static void cloog_loop_get_fl(CloogLoop *loop, int *f, int *l,
+    CloogOptions *options);
+static CloogLoop *cloog_loop_generate_general(CloogLoop *loop, int level,
+    int scalar, int *scaldims, int nb_scattdims, CloogOptions *options);
+static CloogLoop *cloog_loop_generate_scalar(CloogLoop *loop, int level,
+    int scalar, int *scaldims, int nb_scattdims, CloogOptions *options);
+static int cloog_loop_follows(CloogLoop *loop1, CloogLoop *loop2, int level,
+    int scalar, int *scaldims, int nb_scattdims, int def);
+static CloogLoop *cloog_loop_generate_components(CloogLoop *loop, int level,
+    int scalar, int *scaldims, int nb_scattdims, CloogOptions *options);
 
 /******************************************************************************
  *                             Memory leaks hunting                           *

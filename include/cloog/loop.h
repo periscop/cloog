@@ -113,6 +113,12 @@ CloogLoop *cloog_loop_simplify(CloogLoop *loop, CloogDomain *context, int level,
 	int nb_scattdims, CloogOptions *options);
 void cloog_loop_scatter(CloogLoop *, CloogScattering *);
 
+void cloog_loop_add(CloogLoop ** start, CloogLoop ** now, CloogLoop * loop);
+void cloog_loop_add_list(CloogLoop ** start, CloogLoop ** now,
+    CloogLoop * loop);
+CloogLoop * cloog_loop_copy(CloogLoop * source);
+CloogLoop * cloog_loop_concat(CloogLoop * a, CloogLoop * b);
+CloogLoop *cloog_loop_sort(CloogLoop *loop, int level);
 
 #if defined(__cplusplus)
   }
