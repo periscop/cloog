@@ -145,7 +145,7 @@ void cloog_matrix_print(FILE* foo, CloogMatrix* m)
   if (!m)
     fprintf(foo, "(null)\n");
 
-  fprintf(foo, "%d %d\n", m->NbRows, m->NbColumns);
+  fprintf(foo, "%u %u\n", m->NbRows, m->NbColumns);
   cloog_matrix_print_structure(foo, m, "", "");
   fflush(foo);
 }
