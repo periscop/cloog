@@ -415,8 +415,6 @@ static void print_iterator_declarations_osl(FILE *file, CloogProgram *program,
   osl_coordinates_p co = NULL;
   int i;
   int loopflags = 0;
-  char* vecvar[2] = {"lbv", "ubv"};
-  char* parvar[2] = {"lbp", "ubp"};
 
   osl_scop_p scop = options->scop;
   CloogNames *names = program->names;
@@ -432,11 +430,28 @@ static void print_iterator_declarations_osl(FILE *file, CloogProgram *program,
     print_declarations(file, names->nb_iterators, names->iterators, indent);
   }
 
+  /*
+   * Assigning string literals as follows is illegal in pedantic C:
+   *   char* vecvar[2] = {"lbv", "ubv"};
+   *   char* parvar[2] = {"lbp", "ubp"};
+   */
   loopflags = get_osl_loop_flags(scop);
-  if(loopflags & CLAST_PARALLEL_OMP)
-    print_declarations(file, 2, parvar, indent);
-  if(loopflags & CLAST_PARALLEL_VEC)
-    print_declarations(file, 2, vecvar, indent);
+  if(loopflags & CLAST_PARALLEL_OMP) {
+    char parvar_0[4], parvar_1[4];
+    snprintf(parvar_0, sizeof parvar_0 / sizeof *parvar_0, "lbp");
+    snprintf(parvar_1, sizeof parvar_1 / sizeof *parvar_1, "ubp");
+
+    char* parvar[2] = { parvar_0, parvar_1, };
+    print_declarations(file, 2, (char**) parvar, indent);
+  }
+  if(loopflags & CLAST_PARALLEL_VEC) {
+    char vecvar_0[4], vecvar_1[4];
+    snprintf(vecvar_0, sizeof vecvar_0 / sizeof *vecvar_0, "lbv");
+    snprintf(vecvar_1, sizeof vecvar_1 / sizeof *vecvar_1, "ubv");
+
+    char* vecvar[2] = { vecvar_0, vecvar_1, };
+    print_declarations(file, 2, (char**) vecvar, indent);
+  }
   
   fprintf(file, "\n");
 }
