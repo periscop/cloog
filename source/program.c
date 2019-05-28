@@ -59,6 +59,9 @@
 #include <osl/extensions/loop.h>
 #endif
 
+static int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
+    CloogOptions * options);
+
 /******************************************************************************
  *                          Structure display function                        *
  ******************************************************************************/
