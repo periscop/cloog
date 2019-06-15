@@ -57,6 +57,7 @@
 #include <osl/scop.h>
 #include <osl/extensions/coordinates.h>
 #include <osl/extensions/loop.h>
+#include <osl/extensions/region.h>
 #endif
 
 static int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
@@ -525,6 +526,20 @@ static int annotate_loops(osl_scop_p program, struct clast_stmt *root){
 }
 #endif
 
+#if OSL_SUPPORT
+static void cloog_program_pprint_osl_region_text(FILE* stream, osl_region_text_t* text) {
+  for (size_t i = 0; i < text->count; ++i) {
+    const int line_type = text->types[i];
+    if (line_type & OSL_REGION_TEXT_PRAGMA) {
+      fprintf(stream, "#pragma ");
+    }
+    if (line_type & OSL_REGION_TEXT_USER) {
+      fprintf(stream, "%s\n", text->lines[i]);
+    }
+  }
+}
+#endif
+
 /**
  * cloog_program_osl_pprint function:
  * this function pretty-prints the C or FORTRAN code generated from an
@@ -550,6 +565,7 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
   osl_coordinates_p coordinates;
   struct clast_stmt *root;
   FILE* original = NULL;
+  osl_region_t* region = NULL;
 
   if (scop && !options->compilable && !options->callable) {
 #ifdef CLOOG_RUSAGE
@@ -594,12 +610,36 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
         fprintf(file, "\n");
     }
 
+    region = osl_generic_lookup(scop->extension, OSL_URI_REGION);
+    if (region) {
+      /* Ensure one of the regions is a global region. */
+      while (region && region->location != OSL_REGION_GLOBAL) {
+        region = region->next;
+      }
+      /* Otherwise, proceed as if there was no region. */
+      if (region && region->location != OSL_REGION_GLOBAL)
+        region = NULL;
+    }
+
+    if (region) {
+      cloog_program_pprint_osl_region_text(file, &region->prefix);
+      fprintf(file, "{\n");
+      cloog_program_pprint_osl_region_text(file, &region->prelude);
+      indentation += INDENT_STEP;
+    }
+
     /* Generate the clast from the pseudo-AST then pretty-print it. */
     root = cloog_clast_create(program, options);
     annotate_loops(options->scop, root);
     print_iterator_declarations_osl(file, program, indentation, options);
     clast_pprint(file, root, indentation, options);
     cloog_clast_free(root);
+
+    if (region) {
+      cloog_program_pprint_osl_region_text(file, &region->postlude);
+      fprintf(file, "}\n");
+      cloog_program_pprint_osl_region_text(file, &region->suffix);
+    }
 
     /* Print what was after the SCoP in the original file (if any). */
     if (coordinates) {
