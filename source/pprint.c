@@ -54,6 +54,7 @@
 #include <osl/util.h>
 #include <osl/body.h>
 #include <osl/extensions/extbody.h>
+#include <osl/extensions/annotation.h>
 #include <osl/statement.h>
 #include <osl/scop.h>
 #endif
@@ -304,6 +305,7 @@ int pprint_osl_body(struct cloogoptions *options, FILE *dst,
   osl_scop_p scop = options->scop;
   osl_statement_p stmt;
   osl_body_p body;
+  osl_annotation_t* annotations;
 
   if ((scop != NULL) &&
       (osl_statement_number(scop->statement) >= u->statement->number)) {
@@ -318,6 +320,21 @@ int pprint_osl_body(struct cloogoptions *options, FILE *dst,
     if ((body != NULL) &&
         (body->expression != NULL) &&
         (body->iterators != NULL)) {
+
+      annotations = osl_generic_lookup(stmt->extension, OSL_URI_ANNOTATION);
+      /* First print the prefix, if any */
+      if (annotations && annotations->prefix.count) {
+        for (size_t i = 0; i < annotations->prefix.count; ++i) {
+          const int line_type = annotations->prefix.types[i];
+          if (line_type & OSL_ANNOTATION_TEXT_PRAGMA) {
+            fprintf(dst, "#pragma ");
+          }
+          if (line_type & OSL_ANNOTATION_TEXT_USER) {
+            fprintf(dst, "%s\n", annotations->prefix.lines[i]);
+          }
+        }
+      }
+
       expr = osl_util_identifier_substitution(body->expression->string[0],
                                               body->iterators->string);
       tmp = expr;
@@ -336,6 +353,20 @@ int pprint_osl_body(struct cloogoptions *options, FILE *dst,
       }
       fprintf(dst, "\n");
       free(tmp);
+
+      /* Finally, print the suffix, if any */
+      if (annotations && annotations->suffix.count) {
+        for (size_t i = 0; i < annotations->suffix.count; ++i) {
+          const int line_type = annotations->suffix.types[i];
+          if (line_type & OSL_ANNOTATION_TEXT_PRAGMA) {
+            fprintf(dst, "#pragma ");
+          }
+          if (line_type & OSL_ANNOTATION_TEXT_USER) {
+            fprintf(dst, "%s\n", annotations->suffix.lines[i]);
+          }
+        }
+      }
+
       return 1;
     }
   }
