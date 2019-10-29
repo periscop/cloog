@@ -298,9 +298,9 @@ for x in $TEST_FILES; do
 
   if [ "$TEST_TYPE" = "hybrid" ]; then
     # Run CLooG and compare its output to the supposedly correct output.
-    generated="${name_basename}_generated_$$.c"
-    generated_pp="${name_basename}_generated_preprocessed_$$.c"
-    good_output_pp="${name_basename}_good_preprocessed_$$.c"
+    generated="${LOG_DIR}/${name_basename}_generated.c"
+    generated_pp="${LOG_DIR}/${name_basename}_generated_preprocessed.c"
+    good_output_pp="${LOG_DIR}/${name_basename}_good_preprocessed.c"
 
     print_step "$input" "$STEP_GENERATING" "$input_log"
     $cloog $options -q "$input" -o "${generated}"
@@ -313,17 +313,16 @@ for x in $TEST_FILES; do
     print_step "$input" "$STEP_COMPARING" "$input_log"
     diff -u -w "${generated_pp}" "${good_output_pp}" >/dev/null 2>>$input_log
     result=$?
-    rm "${generated}" "${generated_pp}" "${good_output_pp}"
 
     if [ ! $result -eq 0 ]; then
       # If the comparison failed, attempt to run the generated programs and
       # compare the results.
       generate_test=$builddir/test/generate_test_advanced$EXEEXT
-      test_run=$builddir/test/$$_test_hybrid$EXEEXT
       good="$srcdir/$name.good.$TEST_OUTPUT_EXTENSION";
-      test_main="${name_basename}_test_main_$$"
-      test_generated="${name_basename}_test_generated_$$"
-      test_good="${name_basename}_good_$$"
+      test_run="${LOG_DIR}/${name_basename}_test_hybrid$EXEEXT"
+      test_main="${LOG_DIR}/${name_basename}_test_main"
+      test_generated="${LOG_DIR}/${name_basename}_test_generated"
+      test_good="${LOG_DIR}/${name_basename}_good"
       if [ $(echo $options | grep -- "-openscop") ]; then
           generate_test="$generate_test -o"
       fi
@@ -353,8 +352,6 @@ for x in $TEST_FILES; do
       else
         test_failed "$input" "$elapsed_time" "$options"
       fi
-
-      rm -f $test_run "${test_main}".c "${test_generated}".o "${test_generated}".c "${test_good}".o;
     else
       elapsed_time=$(get_elapsed_time $elapsed_time $(get_seconds))
       test_passed "$input" "$elapsed_time" "$options"
