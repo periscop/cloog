@@ -72,9 +72,12 @@ readonly TEST_TYPE="$6"             ## - "generate" to simply test code
 # Global variables
 ################################################################################
 
-readonly CLOOG_TEMP="cloog_temp_$$"
+readonly CHECKER_START_DATE=$(date '+%F-%H-%M-%S')
+readonly CHECKER_FILE_SUFFIX="${CHECKER_START_DATE}_$$"
 
-readonly LOG_DIR="$builddir/logs/$TEST_TYPE-$$"
+readonly CLOOG_TEMP="cloog_temp_${CHECKER_FILE_SUFFIX}"
+
+readonly LOG_DIR="$builddir/logs/${TEST_TYPE}_${CHECKER_FILE_SUFFIX}"
 readonly LOG="$LOG_DIR/checker.log"
 readonly SUMMARY="$LOG_DIR/checker.summary.log"
 
