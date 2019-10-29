@@ -287,29 +287,33 @@ for x in $TEST_FILES; do
   name=$(echo $x | sed 's/%/ /g' | cut -d\  -f1);
   individual_options=$(echo $x | sed 's/%/ /g' | cut -s -d\  -f2-);
   input="$srcdir/$name.$TEST_INPUT_EXTENSION";
-  output="$srcdir/$name.$TEST_OUTPUT_EXTENSION";
+  correct_output="$srcdir/$name.$TEST_OUTPUT_EXTENSION";
   options="$individual_options $TEST_GLOBAL_OPTIONS";
-  input_basename=$(basename "${input}")
+  name_basename=$(basename "${name}")
+  input_log="$LOG_DIR/${name_basename}.${TEST_INPUT_EXTENSION}.log"
 
-  input_log="$LOG_DIR/${input_basename}.log"
   rm -rf "$input_log"
   mkdir -p $(dirname "$input_log")
   elapsed_time=$(get_seconds)
 
   if [ "$TEST_TYPE" = "hybrid" ]; then
     # Run CLooG and compare its output to the supposedly correct output.
+    generated="${name_basename}_generated_$$.c"
+    generated_pp="${name_basename}_generated_preprocessed_$$.c"
+    good_output_pp="${name_basename}_good_preprocessed_$$.c"
+
     print_step "$input" "$STEP_GENERATING" "$input_log"
-    $cloog $options -q "$input" -o temp_generated_$$.c
+    $cloog $options -q "$input" -o "${generated}"
 
     print_step "$input" "$STEP_COMPILING" "$input_log"
     fix_env_compile
-    $COMPILE -P -E temp_generated_$$.c -o temp_generated2_$$.c >/dev/null 2>>$input_log
-    $COMPILE -P -E $output -o temp_generated3_$$.c >/dev/null 2>>$input_log
+    $COMPILE -P -E "${generated}" -o "${generated_pp}" >/dev/null 2>>$input_log
+    $COMPILE -P -E "${correct_output}" -o "${good_output_pp}" >/dev/null 2>>$input_log
 
     print_step "$input" "$STEP_COMPARING" "$input_log"
-    diff -u -w temp_generated2_$$.c temp_generated3_$$.c >/dev/null 2>>$input_log
+    diff -u -w "${generated_pp}" "${good_output_pp}" >/dev/null 2>>$input_log
     result=$?
-    rm temp_generated_$$.c temp_generated2_$$.c temp_generated3_$$.c
+    rm "${generated}" "${generated_pp}" "${good_output_pp}"
 
     if [ ! $result -eq 0 ]; then
       # If the comparison failed, attempt to run the generated programs and
@@ -317,20 +321,23 @@ for x in $TEST_FILES; do
       generate_test=$builddir/test/generate_test_advanced$EXEEXT
       test_run=$builddir/test/$$_test_hybrid$EXEEXT
       good="$srcdir/$name.good.$TEST_OUTPUT_EXTENSION";
+      test_main="${name_basename}_test_main_$$"
+      test_generated="${name_basename}_test_generated_$$"
+      test_good="${name_basename}_good_$$"
       if [ $(echo $options | grep -- "-openscop") ]; then
           generate_test="$generate_test -o"
       fi
 
       print_step "$input" "$STEP_GENERATING_HYBRID" "$input_log"
-      $cloog $options -q -callable 1 "$input" -o test_test_$$.c;
-      $generate_test "$input" test_main_$$.c $options >/dev/null 2>>$input_log
+      $cloog $options -q -callable 1 "$input" -o "${test_generated}".c;
+      $generate_test "$input" "${test_main}".c $options >/dev/null 2>>$input_log
 
       print_step "$input" "$STEP_COMPILING_HYBRID" "$input_log"
       fix_env_compile
-      $COMPILE -c test_test_$$.c -o test_test_$$.o >/dev/null 2>>$input_log
-      $COMPILE -Dtest=good -c $good -o test_good_$$.o >/dev/null 2>>$input_log
+      $COMPILE -c "${test_generated}".c -o "${test_generated}".o >/dev/null 2>>$input_log
+      $COMPILE -Dtest=good -c $good -o "${test_good}".o >/dev/null 2>>$input_log
       fix_env_link "$test_run"
-      $LINK test_main_$$.c test_test_$$.o test_good_$$.o >/dev/null 2>>$input_log
+      $LINK "${test_main}".c "${test_generated}".o "${test_good}".o >/dev/null 2>>$input_log
 
       print_step "$input" "$STEP_COMPARING_HYBRID" "$input_log"
       $test_run;
@@ -347,7 +354,7 @@ for x in $TEST_FILES; do
         test_failed "$input" "$elapsed_time" "$options"
       fi
 
-      rm -f $test_run test_main_$$.c test_test_$$.o test_test_$$.c test_good_$$.o;
+      rm -f $test_run "${test_main}".c "${test_generated}".o "${test_generated}".c "${test_good}".o;
     else
       elapsed_time=$(get_elapsed_time $elapsed_time $(get_seconds))
       test_passed "$input" "$elapsed_time" "$options"
@@ -407,11 +414,11 @@ for x in $TEST_FILES; do
     # Test the file generation.
     print_step "$input" "$STEP_GENERATING" "$input_log"
     $cloog $options -q "$input" -o $CLOOG_TEMP 2>> "$input_log"
-    diff -u -w --ignore-matching-lines='CLooG' $output $CLOOG_TEMP;
+    diff -u -w --ignore-matching-lines='CLooG' "${correct_output}" $CLOOG_TEMP;
     result=$?;
     if [ "$result" -ne "0" ] && [ "$TEST_TYPE" = "regenerate" ]; then
       print_step "$input" "$STEP_REGENERATING" "$input_log"
-      cp $CLOOG_TEMP $output;
+      cp $CLOOG_TEMP "${correct_output}";
     fi;
     elapsed_time=$(get_elapsed_time $elapsed_time $(get_seconds))
     test_done "$input" "$elapsed_time" "$options"
