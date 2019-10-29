@@ -289,8 +289,9 @@ for x in $TEST_FILES; do
   input="$srcdir/$name.$TEST_INPUT_EXTENSION";
   output="$srcdir/$name.$TEST_OUTPUT_EXTENSION";
   options="$individual_options $TEST_GLOBAL_OPTIONS";
+  input_basename=$(basename "${input}")
 
-  input_log="$LOG_DIR/$input.log"
+  input_log="$LOG_DIR/${input_basename}.log"
   rm -rf "$input_log"
   mkdir -p $(dirname "$input_log")
   elapsed_time=$(get_seconds)
