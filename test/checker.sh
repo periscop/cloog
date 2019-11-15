@@ -105,6 +105,9 @@ readonly STEP_VALGRIND="running valgrind"
 readonly STEP_GENERATING_HYBRID="generating new files (normal test failed)"
 readonly STEP_COMPILING_HYBRID="compiling new files (normal test failed)"
 readonly STEP_COMPARING_HYBRID="comparing execution (normal test failed)"
+readonly STEP_GENERATING_EXECUTION="generating new files"
+readonly STEP_COMPILING_EXECUTION="compiling new files"
+readonly STEP_COMPARING_EXECUTION="comparing execution"
 
 readonly TESTLOG_MEMORY_ERROR="Error: memory error or leak detected."
 readonly TESTLOG_MEMORY_LEAK="Error: memory leak detected."
@@ -411,6 +414,43 @@ for x in $TEST_FILES; do
 
     cat "${CLOOG_TEMP}" >>"${input_log}"
     rm -f "${CLOOG_TEMP}"
+
+  elif [ "${TEST_TYPE}" = "execution" ]; then
+    # Attempt to run the generated programs and compare the results.
+    generate_test=${builddir}/test/generate_test_advanced${EXEEXT}
+    good="$srcdir/${name}.good.${TEST_OUTPUT_EXTENSION}";
+    test_run="${LOG_DIR}/${name_basename}_test_hybrid${EXEEXT}"
+    test_main="${LOG_DIR}/${name_basename}_test_main"
+    test_generated="${LOG_DIR}/${name_basename}_test_generated"
+    test_good="${LOG_DIR}/${name_basename}_good"
+    if [ $(echo ${options} | grep -- "-openscop") ]; then
+        generate_test="${generate_test} -o"
+    fi
+
+    print_step "${input}" "${STEP_GENERATING_EXECUTION}" "${input_log}"
+    ${cloog} ${options} -q -callable 1 "${input}" -o "${test_generated}".c;
+    ${generate_test} "${input}" "${test_main}".c $options >/dev/null 2>>"${input_log}"
+
+    print_step "${input}" "${STEP_COMPILING_EXECUTION}" "${input_log}"
+    fix_env_compile
+    ${COMPILE} -c "${test_generated}".c -o "${test_generated}".o >/dev/null 2>>"${input_log}"
+    ${COMPILE} -Dtest=good -c "${good}" -o "${test_good}".o >/dev/null 2>>"${input_log}"
+    fix_env_link "${test_run}"
+    ${LINK} "${test_main}".c "${test_generated}".o "${test_good}".o >/dev/null 2>>"${input_log}"
+
+    print_step "${input}" "${STEP_COMPARING_EXECUTION}" "${input_log}"
+    "${test_run}"
+    result=$?;
+
+    elapsed_time=$(get_elapsed_time ${elapsed_time} $(get_seconds))
+    if [ ${result} -eq 0 ]; then
+      test_passed "${input}" "${elapsed_time}" "${options}"
+    elif [ ${result} -eq 1 ]; then
+      test_unknown "${input}" "${elapsed_time}" "${options}" \
+        "${TEXT_YELLOW}""The test did not compute anything => Validity unknown."
+    else
+      test_failed "${input}" "${elapsed_time}" "${options}"
+    fi
 
   else
     # Test the file generation.

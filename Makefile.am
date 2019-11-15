@@ -464,6 +464,9 @@ TESTS_ENVIRONMENT = \
 test_hybrid: test/generate_test_advanced$(EXEEXT)
 	$(TESTS_ENVIRONMENT) $(srcdir)/test/check_hybrid.sh;
 
+test_execution: test/generate_test_advanced$(EXEEXT)
+	$(TESTS_ENVIRONMENT) $(srcdir)/test/check_execution.sh;
+
 test_valgrind:
 	$(RM) -rf $(srcdir)/logs; \
 	$(TESTS_ENVIRONMENT) $(srcdir)/test/check_c.sh valgrind ; \
