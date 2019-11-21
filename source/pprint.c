@@ -407,13 +407,17 @@ void pprint_user_stmt(struct cloogoptions *options, FILE *dst,
     int parenthesis_to_close = 0;
     struct clast_stmt *t;
 
-    if (pprint_osl_body(options, dst, u))
-      return;
-    
-    if (u->statement->name)
-	fprintf(dst, "%s", u->statement->name);
-    else
-	fprintf(dst, "S%d", u->statement->number);
+    if(options->callable) {
+        fprintf(dst, "S%d", u->statement->number);
+    } else {
+        if (pprint_osl_body(options, dst, u))
+          return;
+
+        if (u->statement->name)
+            fprintf(dst, "%s", u->statement->name);
+        else
+            fprintf(dst, "S%d", u->statement->number);
+    }
     fprintf(dst, "(");
     for (t = u->substitutions; t; t = t->next) {
 	assert(CLAST_STMT_IS_A(t, stmt_ass));
