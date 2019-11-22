@@ -367,6 +367,7 @@ static void print_callable_preamble(FILE *file, CloogProgram *program,
 
     print_macros(file);
 
+    fprintf(file, "#define S0 { hash(0); }\n");
     for (blocklist = program->blocklist; blocklist; blocklist = blocklist->next) {
 	block = blocklist->block;
 	for (statement = block->statement; statement; statement = statement->next) {

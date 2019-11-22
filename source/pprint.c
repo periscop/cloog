@@ -649,8 +649,12 @@ void pprint_stmt_list(struct cloogoptions *options, FILE *dst, int indent,
 		       struct clast_stmt *s)
 {
     for ( ; s; s = s->next) {
-	if (CLAST_STMT_IS_A(s, stmt_root))
+        if (CLAST_STMT_IS_A(s, stmt_root))
+        {
+            if(options->callable && s->next == NULL)
+                fprintf(dst, "%*sS0\n", indent, "");
 	    continue;
+        }
 	fprintf(dst, "%*s", indent, "");
 	if (CLAST_STMT_IS_A(s, stmt_ass)) {
 	    pprint_assignment(options, dst, (struct clast_assignment *) s);

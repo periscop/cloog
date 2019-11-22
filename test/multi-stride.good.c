@@ -1,4 +1,4 @@
-/* Generated from multi-stride.cloog by CLooG 0.20.0-5e05a27 gmp bits in 0.00s. */
+/* Generated from multi-stride.cloog by CLooG 0.20.0-044a1d0 gmp bits in 0.00s. */
 extern void hash(int);
 
 /* Useful macros. */
@@ -13,10 +13,12 @@ extern void hash(int);
 #define IF_TIME(foo)
 #endif
 
+#define S0 { hash(0); }
 #define S1(i,j,k) { hash(1); hash(i); hash(j); hash(k); }
 
 void test()
 {
   /* Original iterators. */
   int i, j, k;
+S0
 }
