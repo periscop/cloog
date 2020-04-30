@@ -19,7 +19,7 @@ pipeline {
             steps{
               script{
                 if(env.OS == 'Ubuntu')
-                  sh 'sudo apt install texlive texlive-generic-recommended autotools-dev autoconf -y'
+                  sh 'sudo apt install texlive texlive-generic-recommended autotools-dev autoconf libtool-bin -y'
                 if(env.OS == 'macOS')
                   sh 'brew install automake libtool'
                 if(env.OS == 'CentOS')
