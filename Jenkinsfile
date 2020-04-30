@@ -19,7 +19,7 @@ pipeline {
             steps{
               script{
                 if(env.OS == 'Ubuntu')
-                  sh 'sudo apt install texlive texlive-generic-recommended autotools-dev autoconf libtool-bin -y'
+                  sh 'sudo apt install texlive texlive-generic-recommended autotools-dev autoconf libtool-bin libgmp-dev -y'
                 if(env.OS == 'macOS')
                   sh 'brew install automake libtool'
                 if(env.OS == 'CentOS')
@@ -27,7 +27,7 @@ pipeline {
                 if(env.OS == 'fedora')
                   sh 'sudo dnf install gmp-devel -y'
                 if(env.OS == 'Debian')
-                  sh 'sudo apt install autoconf libtool libgmp-dev make texlive -y'
+                  sh 'sudo apt install texlive texlive-generic-recommended autotools-dev autoconf libtool-bin libgmp-dev -y'
               }
             }
           }
