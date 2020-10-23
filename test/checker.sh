@@ -433,10 +433,10 @@ for x in $TEST_FILES; do
 
     print_step "${input}" "${STEP_COMPILING_EXECUTION}" "${input_log}"
     fix_env_compile
-    ${COMPILE} -c "${test_generated}".c -o "${test_generated}".o >/dev/null 2>>"${input_log}"
-    ${COMPILE} -Dtest=good -c "${good}" -o "${test_good}".o >/dev/null 2>>"${input_log}"
+    ${COMPILE} -O3 -c "${test_generated}".c -o "${test_generated}".o >/dev/null 2>>"${input_log}"
+    ${COMPILE} -O3 -Dtest=good -c "${good}" -o "${test_good}".o >/dev/null 2>>"${input_log}"
     fix_env_link "${test_run}"
-    ${LINK} "${test_main}".c "${test_generated}".o "${test_good}".o >/dev/null 2>>"${input_log}"
+    ${LINK} -O3 "${test_main}".c "${test_generated}".o "${test_good}".o >/dev/null 2>>"${input_log}"
 
     print_step "${input}" "${STEP_COMPARING_EXECUTION}" "${input_log}"
     "${test_run}"
