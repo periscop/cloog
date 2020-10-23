@@ -947,7 +947,6 @@ int main(int argc, char **argv) {
         *input_name,
         *output_name;
 
-  int set_openscop_option = 0;
 #if _POSIX_C_SOURCE >=2 || _XOPEN_SOURCE
   int opt;
   while ((opt = getopt(argc, argv, getopt_flags)) != -1) {
@@ -963,9 +962,6 @@ int main(int argc, char **argv) {
         break;
       case 'm':
         margin_val = optarg;
-        break;
-      case 'o':
-        set_openscop_option = 1;
         break;
     }
   }
@@ -1018,8 +1014,6 @@ int main(int argc, char **argv) {
   cloog_options_print(stderr, options);
 #endif
 
-  if (set_openscop_option)
-    options->openscop = 1;
   program = cloog_program_read(input_file, options);
   context = cloog_domain_copy(program->context);
   context = cloog_domain_from_context(context);

@@ -329,9 +329,6 @@ for x in $TEST_FILES; do
       test_main="${LOG_DIR}/${name_basename}_test_main"
       test_generated="${LOG_DIR}/${name_basename}_test_generated"
       test_good="${LOG_DIR}/${name_basename}_good"
-      if [ $(echo ${options} | grep -- "-openscop") ]; then
-          generate_test="${generate_test} -o"
-      fi
 
       print_step "${input}" "${STEP_GENERATING_HYBRID}" "${input_log}"
       ${cloog} ${options} -q -callable 1 "${input}" -o "${test_generated}".c;
@@ -419,13 +416,10 @@ for x in $TEST_FILES; do
     # Attempt to run the generated programs and compare the results.
     generate_test=${builddir}/test/generate_test_advanced${EXEEXT}
     good="$srcdir/${name}.good.${TEST_OUTPUT_EXTENSION}";
-    test_run="${LOG_DIR}/${name_basename}_test_hybrid${EXEEXT}"
+    test_run="${LOG_DIR}/${name_basename}_test_execution${EXEEXT}"
     test_main="${LOG_DIR}/${name_basename}_test_main"
     test_generated="${LOG_DIR}/${name_basename}_test_generated"
     test_good="${LOG_DIR}/${name_basename}_good"
-    if [ $(echo ${options} | grep -- "-openscop") ]; then
-        generate_test="${generate_test} -o"
-    fi
 
     print_step "${input}" "${STEP_GENERATING_EXECUTION}" "${input_log}"
     ${cloog} ${options} -q -callable 1 "${input}" -o "${test_generated}".c;
