@@ -407,13 +407,17 @@ void pprint_user_stmt(struct cloogoptions *options, FILE *dst,
     int parenthesis_to_close = 0;
     struct clast_stmt *t;
 
-    if (pprint_osl_body(options, dst, u))
-      return;
-    
-    if (u->statement->name)
-	fprintf(dst, "%s", u->statement->name);
-    else
-	fprintf(dst, "S%d", u->statement->number);
+    if(options->callable) {
+        fprintf(dst, "S%d", u->statement->number);
+    } else {
+        if (pprint_osl_body(options, dst, u))
+          return;
+
+        if (u->statement->name)
+            fprintf(dst, "%s", u->statement->name);
+        else
+            fprintf(dst, "S%d", u->statement->number);
+    }
     fprintf(dst, "(");
     for (t = u->substitutions; t; t = t->next) {
 	assert(CLAST_STMT_IS_A(t, stmt_ass));
@@ -645,8 +649,12 @@ void pprint_stmt_list(struct cloogoptions *options, FILE *dst, int indent,
 		       struct clast_stmt *s)
 {
     for ( ; s; s = s->next) {
-	if (CLAST_STMT_IS_A(s, stmt_root))
+        if (CLAST_STMT_IS_A(s, stmt_root))
+        {
+            if(options->callable && s->next == NULL)
+                fprintf(dst, "%*sS0\n", indent, "");
 	    continue;
+        }
 	fprintf(dst, "%*s", indent, "");
 	if (CLAST_STMT_IS_A(s, stmt_ass)) {
 	    pprint_assignment(options, dst, (struct clast_assignment *) s);

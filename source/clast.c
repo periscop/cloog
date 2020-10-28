@@ -113,6 +113,34 @@ struct clast_reduction *new_clast_reduction(enum clast_red_type t, int n)
     return r;
 }
 
+static void clast_for_bound(struct clast_for* f)
+{
+    cloog_int_t inf_range, one;
+    cloog_int_init(inf_range); cloog_int_init(one);
+    cloog_int_set_si(&inf_range, 1000);
+    cloog_int_set_si(&one, 1);
+
+    if(f->LB || f->UB)
+    {
+        if(!f->UB)
+        {
+            f->UB = new_clast_reduction(clast_red_sum, 2);
+            ((struct clast_reduction*)f->UB)->elts[1] = new_clast_term(one,clast_expr_copy(f->LB));
+            ((struct clast_reduction*)f->UB)->elts[0] = new_clast_term(inf_range,NULL);
+
+        } else if (!f->LB) {
+            f->LB = new_clast_reduction(clast_red_sum, 2);
+            cloog_int_neg(inf_range,inf_range);
+            ((struct clast_reduction*)f->LB)->elts[1] = new_clast_term(one,clast_expr_copy(f->UB));
+            ((struct clast_reduction*)f->LB)->elts[0] = new_clast_term(inf_range,NULL);
+        }
+    } else {
+        f->UB = new_clast_term(inf_range, NULL);
+        cloog_int_neg(inf_range,inf_range);
+        f->LB = new_clast_term(inf_range, NULL);
+    }
+}
+
 static void free_clast_root(struct clast_stmt *s);
 
 const struct clast_stmt_op stmt_root = { free_clast_root };
@@ -246,6 +274,7 @@ struct clast_for *new_clast_for(CloogDomain *domain, const char *it,
 	cloog_int_set(f->stride, stride->stride);
     else
 	cloog_int_set_si(f->stride, 1);
+
     return f;
 }
 
@@ -1503,6 +1532,10 @@ static int insert_equation_as_loop(CloogDomain *domain, CloogConstraint *upper,
 	e1 = clast_bound_from_constraint(lower, level, infos->names);
 
     f = new_clast_for(domain, iterator, e1, e2, infos->stride[level-1]);
+
+    if(infos->options->callable)
+        clast_for_bound(f);
+
     **next = &f->stmt;
     *next = &f->body;
 
@@ -1717,6 +1750,10 @@ static int insert_for(CloogDomain *domain, CloogConstraintSet *constraints,
     iterator = cloog_names_name_at_level(infos->names, level);
 
     f = new_clast_for(domain, iterator, e1, e2, infos->stride[level-1]);
+
+    if(infos->options->callable)
+        clast_for_bound(f);
+
     **next = &f->stmt;
     *next = &f->body;
   }

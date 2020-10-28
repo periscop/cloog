@@ -775,7 +775,7 @@ static bool look_for_bounds_in_ast(struct clast_stmt *stmt,
 
 static void print_statement_macro(FILE *out, struct bounds *bounds){
   unsigned i;
-
+  fprintf(out, "#define STRIDE 23\n");
   fprintf(out, "#define S1(");
   for (i = 0; i < bounds->names.nb_names; ++i) {
     if(i)
@@ -783,14 +783,38 @@ static void print_statement_macro(FILE *out, struct bounds *bounds){
     fprintf(out, "p%u", i);
   }
   fprintf(out, ") do {");
-  fprintf(out, "h = h_good;\\\ngood(");
+  fprintf(out, "h = h_good;\\\n");
+
+  if(bounds->names.nb_names)
+  {
+  fprintf(out, "if((");
+  for (i = 0; i < bounds->names.nb_names; ++i) {
+    if(i != 0)
+      fprintf(out, "+ ");
+    fprintf(out, "p%u", i);
+  }
+  fprintf(out, ")%%STRIDE==0)\\\n");
+  }
+  fprintf(out, "good(");
   for (i = 0; i < bounds->names.nb_names; ++i) {
     if(i != 0)
       fprintf(out, ", ");
     fprintf(out, "p%u", i);
   }
   fprintf(out, ");\\\nh_good = h;\\\n");
-  fprintf(out, "h = h_test;\\\ntest(");
+  fprintf(out, "h = h_test;\\\n");
+
+  if(bounds->names.nb_names)
+  {
+  fprintf(out, "if((");
+  for (i = 0; i < bounds->names.nb_names; ++i) {
+    if(i != 0)
+      fprintf(out, "+ ");
+    fprintf(out, "p%u", i);
+  }
+  fprintf(out, ")%%STRIDE==0)\\\n");
+  }
+  fprintf(out, "test(");
   for (i = 0; i < bounds->names.nb_names; ++i) {
     if(i != 0)
       fprintf(out, ", ");
@@ -923,7 +947,6 @@ int main(int argc, char **argv) {
         *input_name,
         *output_name;
 
-  int set_openscop_option = 0;
 #if _POSIX_C_SOURCE >=2 || _XOPEN_SOURCE
   int opt;
   while ((opt = getopt(argc, argv, getopt_flags)) != -1) {
@@ -939,9 +962,6 @@ int main(int argc, char **argv) {
         break;
       case 'm':
         margin_val = optarg;
-        break;
-      case 'o':
-        set_openscop_option = 1;
         break;
     }
   }
@@ -994,8 +1014,6 @@ int main(int argc, char **argv) {
   cloog_options_print(stderr, options);
 #endif
 
-  if (set_openscop_option)
-    options->openscop = 1;
   program = cloog_program_read(input_file, options);
   context = cloog_domain_copy(program->context);
   context = cloog_domain_from_context(context);

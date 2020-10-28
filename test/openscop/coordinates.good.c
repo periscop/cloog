@@ -1,3 +1,6 @@
+/* Generated from coordinates.scop by CLooG 0.20.0-5e05a27 gmp bits in 0.00s. */
+extern void hash(int);
+
 /* Useful macros. */
 #define floord(n,d) (((n)<0) ? -((-(n)+(d)-1)/(d)) : (n)/(d))
 #define ceild(n,d)  (((n)<0) ? -((-(n))/(d)) : ((n)+(d)-1)/(d))
@@ -10,11 +13,13 @@
 #define IF_TIME(foo)
 #endif
 
-  /* Scattering iterators. */
-  int __ii0;
+#define S1(i) { hash(1); hash(i); }
 
-for (__ii0=0;__ii0<=10;__ii0++) {
-  for (i=4*__ii0;i<=min(41,4*__ii0+3);i++) {
+void test()
+{
+  /* Original iterators. */
+  int i;
+  for (i=0;i<=41;i++) {
     S1(i);
   }
 }
