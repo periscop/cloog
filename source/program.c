@@ -325,6 +325,7 @@ static void print_scattering_declarations(FILE *file, CloogProgram *program,
         found = 0;
         if (strcmp(names->scattering[i], names->iterators[j]) == 0) {
           found = 1;
+          break;
         }
       }
       if (!found) {
