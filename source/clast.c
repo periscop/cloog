@@ -139,6 +139,9 @@ static void clast_for_bound(struct clast_for* f)
         cloog_int_neg(inf_range,inf_range);
         f->LB = new_clast_term(inf_range, NULL);
     }
+
+    cloog_int_clear(inf_range);
+    cloog_int_clear(one);
 }
 
 static void free_clast_root(struct clast_stmt *s);
