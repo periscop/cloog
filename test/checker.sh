@@ -369,7 +369,7 @@ for x in $TEST_FILES; do
     leaks=$(grep "in use at exit:" "${CLOOG_TEMP}" | cut -f 2 -d ':')
     reachable=$(tail "${CLOOG_TEMP}" | grep "still reachable:" | cut -f 2 -d ':')
 
-    elapsed_time=$(get_elapsed_time ${elapsed_time }$(get_seconds))
+    elapsed_time=$(get_elapsed_time ${elapsed_time}$(get_seconds))
     if [ "${errors}" = "1" ]; then
       # Some memory errors or memory leaks (depending on the options passed to
       # valgrind, memory leaks may or may not be counted as errors...) have been
