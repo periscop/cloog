@@ -117,8 +117,8 @@ static void clast_for_bound(struct clast_for* f)
 {
     cloog_int_t inf_range, one;
     cloog_int_init(inf_range); cloog_int_init(one);
-    cloog_int_set_si(&inf_range, 1000);
-    cloog_int_set_si(&one, 1);
+    cloog_int_set_si(inf_range, 1000);
+    cloog_int_set_si(one, 1);
 
     if(f->LB || f->UB)
     {
