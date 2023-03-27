@@ -124,20 +124,20 @@ static void clast_for_bound(struct clast_for* f)
     {
         if(!f->UB)
         {
-            f->UB = new_clast_reduction(clast_red_sum, 2);
-            ((struct clast_reduction*)f->UB)->elts[1] = new_clast_term(one,clast_expr_copy(f->LB));
-            ((struct clast_reduction*)f->UB)->elts[0] = new_clast_term(inf_range,NULL);
+            f->UB = (struct clast_expr*)new_clast_reduction(clast_red_sum, 2);
+            ((struct clast_reduction*)f->UB)->elts[1] = (struct clast_expr*)new_clast_term(one,clast_expr_copy(f->LB));
+            ((struct clast_reduction*)f->UB)->elts[0] = (struct clast_expr*)new_clast_term(inf_range,NULL);
 
         } else if (!f->LB) {
-            f->LB = new_clast_reduction(clast_red_sum, 2);
+            f->LB = (struct clast_expr*)new_clast_reduction(clast_red_sum, 2);
             cloog_int_neg(inf_range,inf_range);
-            ((struct clast_reduction*)f->LB)->elts[1] = new_clast_term(one,clast_expr_copy(f->UB));
-            ((struct clast_reduction*)f->LB)->elts[0] = new_clast_term(inf_range,NULL);
+            ((struct clast_reduction*)f->LB)->elts[1] = (struct clast_expr*)new_clast_term(one,clast_expr_copy(f->UB));
+            ((struct clast_reduction*)f->LB)->elts[0] = (struct clast_expr*)new_clast_term(inf_range,NULL);
         }
     } else {
-        f->UB = new_clast_term(inf_range, NULL);
+        f->UB = (struct clast_expr*)new_clast_term(inf_range, NULL);
         cloog_int_neg(inf_range,inf_range);
-        f->LB = new_clast_term(inf_range, NULL);
+        f->LB = (struct clast_expr*)new_clast_term(inf_range, NULL);
     }
 
     cloog_int_clear(inf_range);
