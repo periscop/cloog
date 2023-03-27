@@ -462,7 +462,8 @@ static void print_iterator_declarations_osl(FILE *file, CloogProgram *program,
 /*
 * add tags clast loops according to information in scop's osl_loop extension
 */
-static int annotate_loops(osl_scop_p program, struct clast_stmt *root){
+static int annotate_loops(osl_scop_p program, struct clast_stmt *root,
+    ClastFilterType filter_type){
 
   int j, nclastloops, nclaststmts;
   struct clast_for **clastloops = NULL;
@@ -478,7 +479,7 @@ static int annotate_loops(osl_scop_p program, struct clast_stmt *root){
     //for each loop
     osl_loop_p loop = ll;
     ClastFilter filter = { loop->iter, loop->stmt_ids, 
-                           loop->nb_stmts, subset};
+                           loop->nb_stmts, filter_type};
 
     clast_filter(root, filter, &clastloops, &nclastloops, 
                  &claststmts, &nclaststmts);
@@ -568,6 +569,7 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
   struct clast_stmt *root;
   FILE* original = NULL;
   osl_region_t* region = NULL;
+  ClastFilterType filter_type = options->exact_clast_filtering ? exact : subset;
 
   if (scop && !options->compilable && !options->callable) {
 #ifdef CLOOG_RUSAGE
@@ -632,7 +634,7 @@ int cloog_program_osl_pprint(FILE * file, CloogProgram * program,
 
     /* Generate the clast from the pseudo-AST then pretty-print it. */
     root = cloog_clast_create(program, options);
-    annotate_loops(options->scop, root);
+    annotate_loops(options->scop, root, filter_type);
     print_iterator_declarations_osl(file, program, indentation, options);
     clast_pprint(file, root, indentation, options);
     cloog_clast_free(root);

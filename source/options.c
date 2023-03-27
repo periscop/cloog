@@ -356,6 +356,7 @@ CloogOptions *cloog_options_malloc(CloogState *state)
   options->callable    =  0 ;  /* No callable code. */
   options->quiet       =  0;   /* Do print informational messages. */
   options->save_domains = 0;   /* Don't save domains. */
+  options->exact_clast_filtering = 0;  /* Default to subset. */
   /* MISC OPTIONS */
   options->language    = CLOOG_LANGUAGE_C; /* The default output language is C. */
   options->openscop    =  0 ;  /* The input file has not the OpenScop format.*/
@@ -434,6 +435,8 @@ void cloog_options_read(CloogState *state, int argc, char **argv,
       cloog_options_set(&(*options)->compilable, argc, argv, &i);
     else if (strcmp(argv[i], "-callable") == 0)
       cloog_options_set(&(*options)->callable, argc, argv, &i);
+    else if (strcmp(argv[i], "-exact-clast-filtering") == 0)
+      cloog_options_set(&(*options)->exact_clast_filtering, argc, argv, &i);
     else
     if (strcmp(argv[i],"-loopo") == 0) /* Special option for the LooPo team ! */
     { (*options)->esp   = 0 ;

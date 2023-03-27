@@ -98,6 +98,8 @@ struct cloogoptions
 
   int save_domains;/* Save unsimplified copy of domain. */
 
+  int exact_clast_filtering;   /* 0 for subsets filtering, 1 for exact filtering. */
+
   /* MISC OPTIONS */
   char * name ;   /* Name of the input file. */
   float time ;    /* Time spent for code generation in seconds. */
