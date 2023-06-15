@@ -444,7 +444,7 @@ generate_good:
 
 valcheck: test_valgrind
 
-CHECKER := "$(srcdir)/test/checker.sh"
+CHECKER = "$(srcdir)/test/checker.sh"
 
 TESTS_ENVIRONMENT = \
 	builddir=$(builddir) \
