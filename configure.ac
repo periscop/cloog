@@ -85,10 +85,6 @@ AC_TYPE_SIZE_T
 
 
 
-dnl Checks for header files.
-AC_HEADER_STDC
-
-
 dnl Checks for library functions.
 AC_CHECK_FUNCS(strtol)
 
