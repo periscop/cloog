@@ -222,7 +222,7 @@ dnl /**************************************************************************
 dnl  *                   Where is the OpenScop Library?                       *
 dnl  **************************************************************************/
 
-AX_SUBMODULE(osl,no|system|build|bundled,no)
+AX_SUBMODULE(osl,no|system|build|bundled,bundled)
 osl_flag="OSL_SUPPORT"
 
 AC_SUBST(OSL_CPPFLAGS)
