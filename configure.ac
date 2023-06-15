@@ -71,7 +71,7 @@ AC_PROG_MAKE_SET
 AC_CHECK_PROG(CD, cd)
 dnl Configure needs an empty install.sh file with this, i HATE that...
 AC_PROG_INSTALL
-AC_PROG_LIBTOOL
+LT_INIT
 AC_CHECK_PROG(TEXI2DVI, texi2dvi, texi2dvi, [])
 AM_CONDITIONAL(HAVE_TEXI2DVI, test -n "$TEXI2DVI")
 
