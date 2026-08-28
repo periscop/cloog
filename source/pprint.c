@@ -534,7 +534,28 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
             fprintf(dst, "%*s", indent, "");
         }
         if ((f->parallel & CLAST_PARALLEL_VEC) && !(f->parallel & CLAST_PARALLEL_OMP)
-               && !(f->parallel & CLAST_PARALLEL_MPI)) {
+               && !(f->parallel & CLAST_PARALLEL_MPI) && (f->parallel & CLAST_PARALLEL_USER)) {
+            if (f->LB) {
+                fprintf(dst, "lbv=");
+                pprint_expr(options, dst, f->LB);
+                fprintf(dst, ";\n");
+            }
+            if (f->UB) {
+                fprintf(dst, "%*s", indent, "");
+                fprintf(dst, "ubv=");
+                pprint_expr(options, dst, f->UB);
+                fprintf(dst, ";\n");
+            }
+            if(f->user_directive) {
+                fprintf(dst, "%*s#pragma %s\n", indent, "", f->user_directive);
+            } else {
+                fprintf(dst, "%*s#pragma ivdep\n", indent, "");
+                fprintf(dst, "%*s#pragma vector always\n", indent, "");
+            }
+            fprintf(dst, "%*s", indent, "");
+        }
+        if ((f->parallel & CLAST_PARALLEL_VEC) && !(f->parallel & CLAST_PARALLEL_OMP)
+               && !(f->parallel & CLAST_PARALLEL_MPI) && !(f->parallel & CLAST_PARALLEL_USER)) {
             if (f->LB) {
                 fprintf(dst, "lbv=");
                 pprint_expr(options, dst, f->LB);
@@ -572,6 +593,13 @@ void pprint_for(struct cloogoptions *options, FILE *dst, int indent,
                         (f->reduction_vars)? " reduction(": "",
                         (f->reduction_vars)? f->reduction_vars: "",
                         (f->reduction_vars)? ")": "");
+            }
+            fprintf(dst, "%*s", indent, "");
+        }
+        if ((f->parallel & CLAST_PARALLEL_USER) && !(f->parallel & CLAST_PARALLEL_OMP)
+               && !(f->parallel & CLAST_PARALLEL_MPI) && !(f->parallel & CLAST_PARALLEL_VEC)) {
+            if(f->user_directive) {
+                fprintf(dst, "#pragma %s\n", f->user_directive);
             }
             fprintf(dst, "%*s", indent, "");
         }
