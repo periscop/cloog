@@ -73,7 +73,7 @@ AC_CHECK_PROG(CD, cd)
 dnl Configure needs an empty install.sh file with this, i HATE that...
 AC_PROG_INSTALL
 LT_INIT
-AC_CHECK_PROG(TEXI2DVI, texi2dvi, texi2dvi, [])
+AC_CHECK_PROG(TEXI2DVI, texi2dvi, [], [])
 AM_CONDITIONAL(HAVE_TEXI2DVI, test -n "$TEXI2DVI")
 
 AX_CC_MAXOPT
