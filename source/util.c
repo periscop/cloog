@@ -47,10 +47,9 @@
  * \return The real time clock of the operating system in seconds.
  */
 double cloog_util_rtclock() {
-  struct timezone Tzp;
   struct timeval Tp;
-  int stat = gettimeofday(&Tp, &Tzp);
+  int stat = gettimeofday(&Tp, NULL);
   if (stat != 0)
     cloog_msg(NULL, CLOOG_WARNING, "Error return from gettimeofday: %d", stat);
-  return (Tp.tv_sec + Tp.tv_usec*1.0e-6);
+  return (Tp.tv_sec + Tp.tv_usec/1.0e-6);
 }
